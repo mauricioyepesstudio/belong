@@ -1,15 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
-import {
-  fetchUserStats,
-  getAllProjectsForUser,
-  joinMembershipsWithCommunities,
-} from "@/lib/core";
-import { getDiscoverCommunities } from "@/lib/data/communities";
-import { fetchMissionEngineData } from "@/engines/mission/engine";
-import { fetchImpactEngineData } from "@/engines/impact/data";
-import { getMissionText } from "@/engines/mission";
-import type { Community, Mission, UserProfile } from "@/types/database.types";
+import { createDefaultCoreEngine } from "@/engines/core/server";
+import type { Community } from "@/types/database.types";
 import type { MissionEngineData } from "@/engines/mission/types";
 import type { ImpactEngineData } from "@/engines/impact/types";
 import type { WeeklyGoal } from "@/engines/mission/types";
@@ -18,6 +10,8 @@ import {
   fetchUserRecentActivity,
   type UserActivityItem,
 } from "@/engines/belong/global-feed";
+import type { UserProfile } from "@/types/database.types";
+import type { Mission } from "@/types/database.types";
 
 export type HomeEngineData = {
   profile: UserProfile;
@@ -35,46 +29,21 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
   const supabase = await createClient();
   const profile = await requireProfile();
 
-  const stats = await fetchUserStats(supabase, profile.id);
-
-  const [{ data: primaryMission }, communities, discoverAll, recentProjects, recentActivity] =
-    await Promise.all([
-      supabase
-        .from("missions")
-        .select("*")
-        .eq("user_id", profile.id)
-        .eq("is_primary", true)
-        .maybeSingle(),
-      joinMembershipsWithCommunities(supabase, profile.id, 6),
-      getDiscoverCommunities(),
-      getAllProjectsForUser(supabase, profile.id).then((p) => p.slice(0, 4)),
-      fetchUserRecentActivity(supabase, profile.id),
-    ]);
-
-  const joinedIds = new Set(communities.map((c) => c.id));
-  const discoverCommunities = discoverAll.filter((c) => !joinedIds.has(c.id)).slice(0, 12);
-
-  const hasMission = Boolean(getMissionText(profile, primaryMission));
-
-  const [missionEngine, impactEngine] = await Promise.all([
-    fetchMissionEngineData(supabase, profile.id, profile, stats),
-    fetchImpactEngineData(supabase, profile.id, profile, stats, hasMission),
+  const core = createDefaultCoreEngine();
+  const [result, recentActivity] = await Promise.all([
+    core.resolve({ supabase, profile, userId: profile.id }),
+    fetchUserRecentActivity(supabase, profile.id),
   ]);
 
-  const primaryWeeklyGoal =
-    missionEngine.weeklyGoals.find((g) => g.status === "active") ??
-    missionEngine.weeklyGoals[0] ??
-    null;
-
   return {
-    profile,
-    impactEngine,
-    missionEngine,
-    communities,
-    discoverCommunities,
-    recentProjects,
-    primaryWeeklyGoal,
+    profile: result.profile,
+    impactEngine: result.impact,
+    missionEngine: result.mission,
+    communities: result.community.joined,
+    discoverCommunities: result.community.discover,
+    recentProjects: result.projects.recent,
+    primaryWeeklyGoal: result.weeklyGoals.primary,
     recentActivity,
-    primaryMission,
+    primaryMission: result.primaryMission,
   };
 }

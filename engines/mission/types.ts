@@ -1,6 +1,133 @@
 export type DailyMissionStatus = "pending" | "completed" | "skipped";
 export type WeeklyGoalStatus = "active" | "completed" | "expired";
 
+// ---------------------------------------------------------------------------
+// Life Mission domain (Sprint 2 — Mission Engine)
+// ---------------------------------------------------------------------------
+
+export type MissionState =
+  | "draft"
+  | "discovering"
+  | "active"
+  | "paused"
+  | "completed"
+  | "archived";
+
+export type MissionCategory =
+  | "startup"
+  | "career"
+  | "learn"
+  | "health"
+  | "relationships"
+  | "community"
+  | "travel"
+  | "creator"
+  | "custom";
+
+export type Mission = {
+  id: string;
+  userId: string;
+  title: string;
+  description: string | null;
+  vision: string | null;
+  category: MissionCategory | null;
+  state: MissionState;
+  isPrimary: boolean;
+  milestones: MissionMilestone[];
+  createdAt: string;
+  updatedAt: string;
+  activatedAt: string | null;
+  completedAt: string | null;
+  archivedAt: string | null;
+};
+
+export type MissionMilestone = {
+  id: string;
+  missionId: string;
+  title: string;
+  description: string | null;
+  targetDate: string | null;
+  completedAt: string | null;
+  sortOrder: number;
+};
+
+export type MissionProgress = {
+  missionId: string;
+  state: MissionState;
+  completionPercent: number;
+  milestonesCompleted: number;
+  milestonesTotal: number;
+  dailyMissionsCompleted: number;
+  weeklyGoalsCompleted: number;
+  currentStreak: number;
+  lastActiveAt: string | null;
+};
+
+export type MissionRecommendationPriority = "high" | "medium" | "low";
+
+export type MissionRecommendation = {
+  id: string;
+  missionId: string;
+  title: string;
+  description: string;
+  actionLabel: string;
+  actionHref: string;
+  priority: MissionRecommendationPriority;
+  category: MissionCategory | null;
+};
+
+export type MissionInsightType =
+  | "progress"
+  | "momentum"
+  | "alignment"
+  | "opportunity";
+
+export type MissionInsight = {
+  id: string;
+  missionId: string;
+  title: string;
+  description: string;
+  type: MissionInsightType;
+  createdAt: string;
+};
+
+export type CreateMissionInput = {
+  title: string;
+  description?: string | null;
+  vision?: string | null;
+  category?: MissionCategory | null;
+  state?: MissionState;
+  isPrimary?: boolean;
+  milestones?: Omit<MissionMilestone, "id" | "missionId" | "completedAt">[];
+};
+
+export type UpdateMissionInput = {
+  title?: string;
+  description?: string | null;
+  vision?: string | null;
+  category?: MissionCategory | null;
+  state?: MissionState;
+  isPrimary?: boolean;
+};
+
+export type MissionEngineContext = {
+  userId: string;
+};
+
+export type GenerateRecommendationsOptions = {
+  limit?: number;
+  includePaused?: boolean;
+};
+
+export type GenerateInsightsOptions = {
+  limit?: number;
+  types?: MissionInsightType[];
+};
+
+// ---------------------------------------------------------------------------
+// Operational mission data (daily missions, weekly goals, momentum)
+// ---------------------------------------------------------------------------
+
 export type DailyMission = {
   id: string;
   user_id: string;

@@ -11,6 +11,14 @@ export type PaymentStatus = "pending" | "succeeded" | "failed" | "refunded";
 export type ListingStatus = "draft" | "active" | "sold" | "archived";
 export type DailyMissionStatus = "pending" | "completed" | "skipped";
 export type WeeklyGoalStatus = "active" | "completed" | "expired";
+export type OnboardingSessionStatus = "in_progress" | "completed" | "abandoned";
+export type MissionState =
+  | "draft"
+  | "discovering"
+  | "active"
+  | "paused"
+  | "completed"
+  | "archived";
 export type BuildGoal =
   | "startup"
   | "career"
@@ -97,6 +105,12 @@ export interface Database {
           title: string;
           description: string | null;
           is_primary: boolean;
+          state: MissionState;
+          vision: string | null;
+          category: string | null;
+          activated_at: string | null;
+          completed_at: string | null;
+          archived_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -106,6 +120,12 @@ export interface Database {
           title: string;
           description?: string | null;
           is_primary?: boolean;
+          state?: MissionState;
+          vision?: string | null;
+          category?: string | null;
+          activated_at?: string | null;
+          completed_at?: string | null;
+          archived_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -115,8 +135,47 @@ export interface Database {
           title?: string;
           description?: string | null;
           is_primary?: boolean;
+          state?: MissionState;
+          vision?: string | null;
+          category?: string | null;
+          activated_at?: string | null;
+          completed_at?: string | null;
+          archived_at?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      mission_milestones: {
+        Row: {
+          id: string;
+          mission_id: string;
+          title: string;
+          description: string | null;
+          target_date: string | null;
+          completed_at: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          mission_id: string;
+          title: string;
+          description?: string | null;
+          target_date?: string | null;
+          completed_at?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          mission_id?: string;
+          title?: string;
+          description?: string | null;
+          target_date?: string | null;
+          completed_at?: string | null;
+          sort_order?: number;
+          created_at?: string;
         };
         Relationships: [];
       };
@@ -771,6 +830,66 @@ export interface Database {
         };
         Relationships: [];
       };
+      identity_profiles: {
+        Row: {
+          user_id: string;
+          strengths: string[];
+          interests: string[];
+          values: string[];
+          personality: Json;
+          experience: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          strengths?: string[];
+          interests?: string[];
+          values?: string[];
+          personality?: Json;
+          experience?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          strengths?: string[];
+          interests?: string[];
+          values?: string[];
+          personality?: Json;
+          experience?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      onboarding_sessions: {
+        Row: {
+          user_id: string;
+          current_step: string;
+          draft: Json;
+          status: OnboardingSessionStatus;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          current_step?: string;
+          draft?: Json;
+          status?: OnboardingSessionStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          current_step?: string;
+          draft?: Json;
+          status?: OnboardingSessionStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       community_contributions: {
         Row: {
           id: string;
@@ -838,6 +957,8 @@ export interface Database {
       listing_status: ListingStatus;
       daily_mission_status: DailyMissionStatus;
       weekly_goal_status: WeeklyGoalStatus;
+      mission_state: MissionState;
+      onboarding_session_status: OnboardingSessionStatus;
     };
   };
 }

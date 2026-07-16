@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
+import { createIdentityEngineService, IdentityValidationError } from "@/engines/identity/server";
 import { syncUserSkill } from "@/lib/engine/mission-progress";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
@@ -32,12 +33,19 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
 
   const url = `${publicUrl}?t=${Date.now()}`;
 
-  const { error: updateError } = await supabase
-    .from("users")
-    .update({ avatar_url: url })
-    .eq("id", profile.id);
+  const identity = createIdentityEngineService(supabase);
 
-  if (updateError) return { error: updateError.message };
+  try {
+    await identity.updateProfile(
+      { userId: profile.id },
+      { avatarUrl: url }
+    );
+  } catch (error) {
+    if (error instanceof IdentityValidationError) {
+      return { error: error.message };
+    }
+    throw error;
+  }
 
   revalidatePath("/profile");
   revalidatePath("/settings");
@@ -54,13 +62,24 @@ export async function updateProfile(data: {
 }): Promise<ActionResult> {
   const supabase = await createClient();
   const profile = await requireProfile();
+  const identity = createIdentityEngineService(supabase);
 
-  const { error } = await supabase
-    .from("users")
-    .update(data)
-    .eq("id", profile.id);
-
-  if (error) return { error: error.message };
+  try {
+    await identity.updateProfile(
+      { userId: profile.id },
+      {
+        name: data.full_name,
+        role: data.role,
+        location: data.location,
+        bio: data.bio,
+      }
+    );
+  } catch (error) {
+    if (error instanceof IdentityValidationError) {
+      return { error: error.message };
+    }
+    throw error;
+  }
 
   if (data.role !== undefined) {
     await syncUserSkill(supabase, profile.id, data.role);

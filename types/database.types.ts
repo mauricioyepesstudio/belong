@@ -1,0 +1,855 @@
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
+export type ConnectionStatus = "pending" | "accepted" | "declined";
+export type CommunityMemberRole = "member" | "admin" | "owner";
+export type ProjectStatus = "planning" | "active" | "completed" | "archived";
+export type NotificationType = "connection" | "project" | "event" | "community" | "message" | "system" | "payment";
+export type SubscriptionTier = "free" | "pro" | "creator";
+export type SubscriptionStatus = "active" | "canceled" | "past_due" | "trialing" | "incomplete" | "incomplete_expired" | "unpaid";
+export type PaymentType = "platform_subscription" | "community_subscription" | "project_funding" | "donation" | "marketplace_purchase" | "creator_tip";
+export type PaymentStatus = "pending" | "succeeded" | "failed" | "refunded";
+export type ListingStatus = "draft" | "active" | "sold" | "archived";
+export type DailyMissionStatus = "pending" | "completed" | "skipped";
+export type WeeklyGoalStatus = "active" | "completed" | "expired";
+export type BuildGoal =
+  | "startup"
+  | "career"
+  | "learn"
+  | "health"
+  | "relationships"
+  | "community"
+  | "travel"
+  | "creator";
+
+export interface Database {
+  public: {
+    Tables: {
+      users: {
+        Row: {
+          id: string;
+          email: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          role: string | null;
+          location: string | null;
+          bio: string | null;
+          build_goal: BuildGoal | null;
+          build_vision: string | null;
+          onboarding_completed: boolean;
+          stripe_customer_id: string | null;
+          subscription_tier: SubscriptionTier;
+          stripe_connect_account_id: string | null;
+          connect_charges_enabled: boolean;
+          connect_payouts_enabled: boolean;
+          founder_reputation: number;
+          community_contribution_points: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          full_name?: string | null;
+          avatar_url?: string | null;
+          role?: string | null;
+          location?: string | null;
+          bio?: string | null;
+          build_goal?: BuildGoal | null;
+          build_vision?: string | null;
+          onboarding_completed?: boolean;
+          stripe_customer_id?: string | null;
+          subscription_tier?: SubscriptionTier;
+          stripe_connect_account_id?: string | null;
+          connect_charges_enabled?: boolean;
+          connect_payouts_enabled?: boolean;
+          founder_reputation?: number;
+          community_contribution_points?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          full_name?: string | null;
+          avatar_url?: string | null;
+          role?: string | null;
+          location?: string | null;
+          bio?: string | null;
+          build_goal?: BuildGoal | null;
+          build_vision?: string | null;
+          onboarding_completed?: boolean;
+          stripe_customer_id?: string | null;
+          subscription_tier?: SubscriptionTier;
+          stripe_connect_account_id?: string | null;
+          connect_charges_enabled?: boolean;
+          connect_payouts_enabled?: boolean;
+          founder_reputation?: number;
+          community_contribution_points?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      missions: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          description: string | null;
+          is_primary: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          description?: string | null;
+          is_primary?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          description?: string | null;
+          is_primary?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      connections: {
+        Row: {
+          id: string;
+          requester_id: string;
+          recipient_id: string;
+          status: ConnectionStatus;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          requester_id: string;
+          recipient_id: string;
+          status?: ConnectionStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          requester_id?: string;
+          recipient_id?: string;
+          status?: ConnectionStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      communities: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          tag: string | null;
+          owner_id: string;
+          is_paid: boolean;
+          subscription_price_cents: number | null;
+          stripe_price_id: string | null;
+          stripe_product_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          tag?: string | null;
+          owner_id: string;
+          is_paid?: boolean;
+          subscription_price_cents?: number | null;
+          stripe_price_id?: string | null;
+          stripe_product_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          tag?: string | null;
+          owner_id?: string;
+          is_paid?: boolean;
+          subscription_price_cents?: number | null;
+          stripe_price_id?: string | null;
+          stripe_product_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      community_members: {
+        Row: {
+          id: string;
+          community_id: string;
+          user_id: string;
+          role: CommunityMemberRole;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          community_id: string;
+          user_id: string;
+          role?: CommunityMemberRole;
+          joined_at?: string;
+        };
+        Update: {
+          id?: string;
+          community_id?: string;
+          user_id?: string;
+          role?: CommunityMemberRole;
+          joined_at?: string;
+        };
+        Relationships: [];
+      };
+      projects: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          status: ProjectStatus;
+          progress: number;
+          deadline: string | null;
+          owner_id: string;
+          community_id: string | null;
+          funding_enabled: boolean;
+          funding_goal_cents: number | null;
+          funding_raised_cents: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          status?: ProjectStatus;
+          progress?: number;
+          deadline?: string | null;
+          owner_id: string;
+          community_id?: string | null;
+          funding_enabled?: boolean;
+          funding_goal_cents?: number | null;
+          funding_raised_cents?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          status?: ProjectStatus;
+          progress?: number;
+          deadline?: string | null;
+          owner_id?: string;
+          community_id?: string | null;
+          funding_enabled?: boolean;
+          funding_goal_cents?: number | null;
+          funding_raised_cents?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      project_members: {
+        Row: {
+          project_id: string;
+          user_id: string;
+          role: string;
+          joined_at: string;
+        };
+        Insert: {
+          project_id: string;
+          user_id: string;
+          role?: string;
+          joined_at?: string;
+        };
+        Update: {
+          project_id?: string;
+          user_id?: string;
+          role?: string;
+          joined_at?: string;
+        };
+        Relationships: [];
+      };
+      events: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          location: string | null;
+          starts_at: string;
+          ends_at: string | null;
+          community_id: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          location?: string | null;
+          starts_at: string;
+          ends_at?: string | null;
+          community_id?: string | null;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string | null;
+          location?: string | null;
+          starts_at?: string;
+          ends_at?: string | null;
+          community_id?: string | null;
+          created_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      event_registrations: {
+        Row: {
+          event_id: string;
+          user_id: string;
+          registered_at: string;
+        };
+        Insert: {
+          event_id: string;
+          user_id: string;
+          registered_at?: string;
+        };
+        Update: {
+          event_id?: string;
+          user_id?: string;
+          registered_at?: string;
+        };
+        Relationships: [];
+      };
+      conversations: {
+        Row: {
+          id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      conversation_participants: {
+        Row: {
+          conversation_id: string;
+          user_id: string;
+          joined_at: string;
+        };
+        Insert: {
+          conversation_id: string;
+          user_id: string;
+          joined_at?: string;
+        };
+        Update: {
+          conversation_id?: string;
+          user_id?: string;
+          joined_at?: string;
+        };
+        Relationships: [];
+      };
+      messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          body: string;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          sender_id: string;
+          body: string;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          sender_id?: string;
+          body?: string;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          subscription_type: string;
+          status: SubscriptionStatus;
+          stripe_subscription_id: string | null;
+          stripe_customer_id: string | null;
+          community_id: string | null;
+          price_cents: number | null;
+          currency: string;
+          current_period_start: string | null;
+          current_period_end: string | null;
+          cancel_at_period_end: boolean;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          subscription_type: string;
+          status?: SubscriptionStatus;
+          stripe_subscription_id?: string | null;
+          stripe_customer_id?: string | null;
+          community_id?: string | null;
+          price_cents?: number | null;
+          currency?: string;
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          cancel_at_period_end?: boolean;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          subscription_type?: string;
+          status?: SubscriptionStatus;
+          stripe_subscription_id?: string | null;
+          stripe_customer_id?: string | null;
+          community_id?: string | null;
+          price_cents?: number | null;
+          currency?: string;
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          cancel_at_period_end?: boolean;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      payments: {
+        Row: {
+          id: string;
+          payer_id: string;
+          recipient_id: string | null;
+          payment_type: PaymentType;
+          status: PaymentStatus;
+          amount_cents: number;
+          currency: string;
+          platform_fee_cents: number;
+          stripe_payment_intent_id: string | null;
+          stripe_checkout_session_id: string | null;
+          target_type: string | null;
+          target_id: string | null;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          payer_id: string;
+          recipient_id?: string | null;
+          payment_type: PaymentType;
+          status?: PaymentStatus;
+          amount_cents: number;
+          currency?: string;
+          platform_fee_cents?: number;
+          stripe_payment_intent_id?: string | null;
+          stripe_checkout_session_id?: string | null;
+          target_type?: string | null;
+          target_id?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          payer_id?: string;
+          recipient_id?: string | null;
+          payment_type?: PaymentType;
+          status?: PaymentStatus;
+          amount_cents?: number;
+          currency?: string;
+          platform_fee_cents?: number;
+          stripe_payment_intent_id?: string | null;
+          stripe_checkout_session_id?: string | null;
+          target_type?: string | null;
+          target_id?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      marketplace_listings: {
+        Row: {
+          id: string;
+          seller_id: string;
+          title: string;
+          description: string | null;
+          price_cents: number;
+          currency: string;
+          stripe_price_id: string | null;
+          stripe_product_id: string | null;
+          image_url: string | null;
+          status: ListingStatus;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          seller_id: string;
+          title: string;
+          description?: string | null;
+          price_cents: number;
+          currency?: string;
+          stripe_price_id?: string | null;
+          stripe_product_id?: string | null;
+          image_url?: string | null;
+          status?: ListingStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          seller_id?: string;
+          title?: string;
+          description?: string | null;
+          price_cents?: number;
+          currency?: string;
+          stripe_price_id?: string | null;
+          stripe_product_id?: string | null;
+          image_url?: string | null;
+          status?: ListingStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      stripe_webhook_events: {
+        Row: {
+          id: string;
+          event_type: string;
+          processed_at: string;
+        };
+        Insert: {
+          id: string;
+          event_type: string;
+          processed_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_type?: string;
+          processed_at?: string;
+        };
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          body: string | null;
+          type: NotificationType;
+          read_at: string | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          body?: string | null;
+          type?: NotificationType;
+          read_at?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          body?: string | null;
+          type?: NotificationType;
+          read_at?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      user_momentum: {
+        Row: {
+          user_id: string;
+          current_streak: number;
+          longest_streak: number;
+          last_active_date: string | null;
+          weekly_completions: number;
+          week_start: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          current_streak?: number;
+          longest_streak?: number;
+          last_active_date?: string | null;
+          weekly_completions?: number;
+          week_start?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          current_streak?: number;
+          longest_streak?: number;
+          last_active_date?: string | null;
+          weekly_completions?: number;
+          week_start?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      daily_missions: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          description: string | null;
+          action_href: string;
+          impact_points: number;
+          status: DailyMissionStatus;
+          mission_date: string;
+          completed_at: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          description?: string | null;
+          action_href?: string;
+          impact_points?: number;
+          status?: DailyMissionStatus;
+          mission_date?: string;
+          completed_at?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          description?: string | null;
+          action_href?: string;
+          impact_points?: number;
+          status?: DailyMissionStatus;
+          mission_date?: string;
+          completed_at?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      weekly_goals: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          description: string | null;
+          target_count: number;
+          current_count: number;
+          action_href: string;
+          impact_points: number;
+          status: WeeklyGoalStatus;
+          week_start: string;
+          week_end: string;
+          completed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          description?: string | null;
+          target_count?: number;
+          current_count?: number;
+          action_href?: string;
+          impact_points?: number;
+          status?: WeeklyGoalStatus;
+          week_start: string;
+          week_end: string;
+          completed_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          description?: string | null;
+          target_count?: number;
+          current_count?: number;
+          action_href?: string;
+          impact_points?: number;
+          status?: WeeklyGoalStatus;
+          week_start?: string;
+          week_end?: string;
+          completed_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      impact_snapshots: {
+        Row: {
+          id: string;
+          user_id: string;
+          score: number;
+          recorded_date: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          score: number;
+          recorded_date?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          score?: number;
+          recorded_date?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      user_skills: {
+        Row: {
+          id: string;
+          user_id: string;
+          skill: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          skill: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          skill?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      community_contributions: {
+        Row: {
+          id: string;
+          user_id: string;
+          community_id: string;
+          contribution_type: string;
+          points: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          community_id: string;
+          contribution_type: string;
+          points?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          community_id?: string;
+          contribution_type?: string;
+          points?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: {
+      create_notification: {
+        Args: {
+          p_user_id: string;
+          p_title: string;
+          p_body: string;
+          p_type?: NotificationType;
+          p_metadata?: Json;
+        };
+        Returns: string;
+      };
+      increment_project_funding: {
+        Args: {
+          p_project_id: string;
+          p_amount_cents: number;
+        };
+        Returns: undefined;
+      };
+      record_user_activity: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: Database["public"]["Tables"]["user_momentum"]["Row"];
+      };
+    };
+    Enums: {
+      connection_status: ConnectionStatus;
+      community_member_role: CommunityMemberRole;
+      project_status: ProjectStatus;
+      notification_type: NotificationType;
+      build_goal: BuildGoal;
+      subscription_tier: SubscriptionTier;
+      subscription_status: SubscriptionStatus;
+      payment_type: PaymentType;
+      payment_status: PaymentStatus;
+      listing_status: ListingStatus;
+      daily_mission_status: DailyMissionStatus;
+      weekly_goal_status: WeeklyGoalStatus;
+    };
+  };
+}
+
+export type UserProfile = Database["public"]["Tables"]["users"]["Row"];
+export type Mission = Database["public"]["Tables"]["missions"]["Row"];
+export type Community = Database["public"]["Tables"]["communities"]["Row"];
+export type Project = Database["public"]["Tables"]["projects"]["Row"];
+export type Event = Database["public"]["Tables"]["events"]["Row"];
+export type Message = Database["public"]["Tables"]["messages"]["Row"];
+export type Notification = Database["public"]["Tables"]["notifications"]["Row"];
+export type Connection = Database["public"]["Tables"]["connections"]["Row"];
+export type Subscription = Database["public"]["Tables"]["subscriptions"]["Row"];
+export type Payment = Database["public"]["Tables"]["payments"]["Row"];
+export type MarketplaceListing = Database["public"]["Tables"]["marketplace_listings"]["Row"];

@@ -1,0 +1,432 @@
+"use client";
+
+import {
+  createCommunity,
+  joinCommunity,
+  leaveCommunity,
+} from "@/lib/actions/communities";
+import { configurePaidCommunity } from "@/lib/actions/billing";
+import {
+  respondToConnection,
+  sendConnectionRequest,
+  startConversation,
+} from "@/lib/actions/connections";
+import type { PendingConnection, DiscoverUser } from "@/lib/data/connections";
+import { formatCents, PayModal } from "@/engines/billing";
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  EmptyState,
+  EntityCard,
+  EntityGrid,
+  FeatureScreen,
+  Input,
+  Label,
+  Modal,
+  SearchField,
+  Tabs,
+  Textarea,
+  useToast,
+} from "@/systems/design-system";
+import { StaggerItem, StaggerList } from "@/components/motion/fade-in";
+import { formatInitials } from "@/lib/format";
+import type { Community, CommunityMemberRole } from "@/types/database.types";
+import { MessageSquare, Plus, UserPlus, Users, DollarSign } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
+
+type CommunityItem = Community & { role?: CommunityMemberRole };
+
+type CommunityScreenProps = {
+  joined: CommunityItem[];
+  discover: Community[];
+  pending: PendingConnection[];
+  people: DiscoverUser[];
+};
+
+export function CommunityScreen({
+  joined,
+  discover,
+  pending: pendingRequests,
+  people,
+}: CommunityScreenProps) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [tab, setTab] = useState("joined");
+  const [query, setQuery] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [monetizeOpen, setMonetizeOpen] = useState(false);
+  const [monetizeId, setMonetizeId] = useState<string | null>(null);
+  const [tipUser, setTipUser] = useState<DiscoverUser | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const filtered = useMemo(() => {
+    if (tab === "people") {
+      return people.filter((p) =>
+        (p.full_name ?? "").toLowerCase().includes(query.toLowerCase())
+      );
+    }
+    const base: CommunityItem[] = tab === "joined" ? joined : discover;
+    if (!query.trim()) return base;
+    return base.filter((c) => c.name.toLowerCase().includes(query.toLowerCase()));
+  }, [tab, query, joined, discover, people]);
+
+  const handleCreate = (formData: FormData) => {
+    startTransition(async () => {
+      const result = await createCommunity({
+        name: formData.get("name") as string,
+        description: formData.get("description") as string,
+        tag: formData.get("tag") as string,
+      });
+      if (result.error) toast(result.error, "error");
+      else {
+        toast("Community created", "success");
+        setCreateOpen(false);
+        router.refresh();
+      }
+    });
+  };
+
+  const handleJoin = (communityId: string) => {
+    startTransition(async () => {
+      const result = await joinCommunity(communityId);
+      if (result.error) toast(result.error, "error");
+      else if (result.url) window.location.href = result.url;
+      else {
+        toast("Joined community", "success");
+        router.refresh();
+      }
+    });
+  };
+
+  const handleMonetize = (formData: FormData) => {
+    if (!monetizeId) return;
+    const price = parseFloat(formData.get("price") as string);
+    const cents = Math.round(price * 100);
+    startTransition(async () => {
+      const result = await configurePaidCommunity(monetizeId, cents);
+      if (result.error) toast(result.error, "error");
+      else {
+        toast("Paid access enabled", "success");
+        setMonetizeOpen(false);
+        router.refresh();
+      }
+    });
+  };
+
+  const handleLeave = (communityId: string) => {
+    startTransition(async () => {
+      const result = await leaveCommunity(communityId);
+      if (result.error) toast(result.error, "error");
+      else {
+        toast("Left community", "success");
+        router.refresh();
+      }
+    });
+  };
+
+  const handleConnection = (connectionId: string, accept: boolean) => {
+    startTransition(async () => {
+      const result = await respondToConnection(connectionId, accept);
+      if (result.error) toast(result.error, "error");
+      else {
+        toast(accept ? "Connection accepted" : "Request declined", "success");
+        router.refresh();
+      }
+    });
+  };
+
+  const handleConnect = (userId: string) => {
+    startTransition(async () => {
+      const result = await sendConnectionRequest(userId);
+      if (result.error) toast(result.error, "error");
+      else toast("Connection request sent", "success");
+    });
+  };
+
+  const handleMessage = (userId: string) => {
+    startTransition(async () => {
+      const result = await startConversation(userId);
+      if (result.error) toast(result.error, "error");
+      else if (result.id) router.push("/messages");
+    });
+  };
+
+  return (
+    <>
+      <FeatureScreen
+        label="Community"
+        title="Your communities"
+        description="Discover builders, join communities, and grow your network."
+        action={
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4" aria-hidden />
+            Create
+          </Button>
+        }
+        toolbar={
+          <div className="flex flex-col gap-4">
+            {pendingRequests.length > 0 && (
+              <div className="rounded-2xl border border-brand/20 bg-brand/5 p-4">
+                <p className="mb-3 text-sm font-semibold text-fg-primary">
+                  Pending connection requests
+                </p>
+                <ul className="space-y-2">
+                  {pendingRequests.map((req) => (
+                    <li
+                      key={req.id}
+                      className="flex items-center justify-between gap-3 rounded-xl bg-bg-elevated/80 px-3 py-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar
+                          src={req.requester.avatar_url ?? undefined}
+                          fallback={formatInitials(req.requester.full_name)}
+                          size="sm"
+                        />
+                        <span className="text-sm">{req.requester.full_name}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={isPending}
+                          onClick={() => handleConnection(req.id, false)}
+                        >
+                          Decline
+                        </Button>
+                        <Button
+                          size="sm"
+                          disabled={isPending}
+                          onClick={() => handleConnection(req.id, true)}
+                        >
+                          Accept
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <Tabs
+                tabs={[
+                  { id: "joined", label: "Joined", count: joined.length },
+                  { id: "discover", label: "Discover" },
+                  { id: "people", label: "People" },
+                ]}
+                active={tab}
+                onChange={setTab}
+              />
+              <SearchField
+                value={query}
+                onChange={setQuery}
+                placeholder={
+                  tab === "people" ? "Search people..." : "Search communities..."
+                }
+                aria-label="Search"
+              />
+            </div>
+          </div>
+        }
+      >
+        {tab === "people" ? (
+          filtered.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="No builders found"
+              description="More members will appear as BELONG grows."
+            />
+          ) : (
+            <StaggerList className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {(filtered as DiscoverUser[]).map((person) => (
+                <StaggerItem key={person.id}>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-3">
+                        <Avatar
+                          src={person.avatar_url ?? undefined}
+                          fallback={formatInitials(person.full_name)}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-semibold text-fg-primary">
+                            {person.full_name ?? "Builder"}
+                          </p>
+                          <p className="truncate text-xs text-fg-muted">
+                            {person.role ?? person.build_goal ?? "Member"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="flex-1"
+                          disabled={isPending}
+                          onClick={() => handleConnect(person.id)}
+                        >
+                          <UserPlus className="h-3.5 w-3.5" aria-hidden />
+                          Connect
+                        </Button>
+                        {person.connect_charges_enabled && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            disabled={isPending}
+                            onClick={() => setTipUser(person)}
+                            aria-label="Tip"
+                          >
+                            <DollarSign className="h-3.5 w-3.5" aria-hidden />
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={isPending}
+                          onClick={() => handleMessage(person.id)}
+                        >
+                          <MessageSquare className="h-3.5 w-3.5" aria-hidden />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </StaggerItem>
+              ))}
+            </StaggerList>
+          )
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title={tab === "joined" ? "No communities yet" : "No communities found"}
+            description={
+              tab === "joined"
+                ? "Join a community to connect with builders who share your mission."
+                : "Try a different search term."
+            }
+            action={{
+              label: "Discover communities",
+              onClick: () => {
+                setTab("discover");
+                setQuery("");
+              },
+            }}
+          />
+        ) : (
+          <StaggerList>
+            <EntityGrid>
+            {(filtered as CommunityItem[]).map((c) => (
+              <StaggerItem key={c.id}>
+                <EntityCard
+                  icon={Users}
+                  title={c.name}
+                  description={c.description}
+                  badges={
+                    tab === "joined" && c.role ? (
+                      <Badge variant={c.role === "admin" || c.role === "owner" ? "brand" : "outline"}>
+                        {c.role}
+                      </Badge>
+                    ) : c.is_paid && c.subscription_price_cents ? (
+                      <Badge variant="brand">{formatCents(c.subscription_price_cents)}/mo</Badge>
+                    ) : undefined
+                  }
+                  meta={
+                    c.tag ? <Badge variant="outline">{c.tag}</Badge> : undefined
+                  }
+                  footer={
+                    tab === "discover" ? (
+                      <Button size="sm" className="w-full" disabled={isPending} onClick={() => handleJoin(c.id)}>
+                        {c.is_paid ? "Subscribe" : "Join community"}
+                      </Button>
+                    ) : c.role === "owner" && !c.is_paid ? (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="w-full"
+                        disabled={isPending}
+                        onClick={() => {
+                          setMonetizeId(c.id);
+                          setMonetizeOpen(true);
+                        }}
+                      >
+                        Enable paid access
+                      </Button>
+                    ) : c.role && c.role !== "owner" ? (
+                      <Button size="sm" variant="secondary" className="w-full" disabled={isPending} onClick={() => handleLeave(c.id)}>
+                        Leave
+                      </Button>
+                    ) : undefined
+                  }
+                />
+              </StaggerItem>
+            ))}
+            </EntityGrid>
+          </StaggerList>
+        )}
+      </FeatureScreen>
+
+      <Modal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title="Create community"
+        description="Start a purpose-driven community on BELONG."
+      >
+        <form action={handleCreate} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input id="name" name="name" required placeholder="Community name" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea id="description" name="description" placeholder="What is this community about?" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tag">Tag</Label>
+            <Input id="tag" name="tag" placeholder="e.g. Startup, Wellness" />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="ghost" onClick={() => setCreateOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" isLoading={isPending}>
+              Create
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        open={monetizeOpen}
+        onClose={() => setMonetizeOpen(false)}
+        title="Enable paid access"
+        description="Set a monthly subscription price for your community."
+      >
+        <form action={handleMonetize} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="price">Monthly price (USD)</Label>
+            <Input id="price" name="price" type="number" min="5" step="0.01" required placeholder="9.99" />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="ghost" onClick={() => setMonetizeOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="brand" isLoading={isPending}>
+              Enable
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {tipUser && (
+        <PayModal
+          open={Boolean(tipUser)}
+          onClose={() => setTipUser(null)}
+          recipientId={tipUser.id}
+          recipientName={tipUser.full_name ?? "Builder"}
+          mode="tip"
+        />
+      )}
+    </>
+  );
+}

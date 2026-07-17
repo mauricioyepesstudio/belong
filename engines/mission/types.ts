@@ -173,3 +173,29 @@ export type MissionEngineData = {
   dailyTotal: number;
   weeklyProgress: number;
 };
+
+export type MissionParticipant = {
+  id: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  role: "owner" | "participant";
+  joinedAt: string;
+};
+
+export type DailyMissionDetailData = {
+  mission: DailyMission;
+  owner: MissionParticipant;
+  participants: MissionParticipant[];
+  objectives: MissionMilestone[];
+  progress: {
+    percent: number;
+    milestonesCompleted: number;
+    milestonesTotal: number;
+  };
+  rewards: {
+    impactPoints: number;
+  };
+  isOwner: boolean;
+  isParticipant: boolean;
+  currentUserId: string;
+};

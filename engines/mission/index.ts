@@ -5,6 +5,7 @@ export type { BuildGoalOption } from "./config";
 // UI components (existing)
 export { MissionCard, BuildGoalBadge } from "./components/mission-card";
 export { MissionEnginePanel } from "./components/mission-engine-panel";
+export { MissionDetailScreen } from "./components/mission-detail-screen";
 
 // Operational data fetchers (existing — daily missions, weekly goals)
 export { fetchMissionEngineData, buildDailyMissionTemplates } from "./engine";
@@ -52,6 +53,8 @@ export type {
   WeeklyGoal,
   UserMomentum,
   MissionEngineData,
+  MissionParticipant,
+  DailyMissionDetailData,
 } from "./types";
 
 // Utilities

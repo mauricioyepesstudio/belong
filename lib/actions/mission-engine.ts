@@ -43,6 +43,7 @@ export async function completeDailyMission(missionId: string): Promise<ActionRes
 
   revalidatePath("/dashboard");
   revalidatePath("/profile");
+  revalidatePath(`/missions/${missionId}`);
   return {};
 }
 
@@ -58,7 +59,7 @@ export async function createCustomDailyMission(data: {
 
   const missionDate = new Date().toISOString().slice(0, 10);
 
-  const { error } = await supabase.from("daily_missions").insert({
+  const { data: inserted, error } = await supabase.from("daily_missions").insert({
     user_id: profile.id,
     title,
     description: data.description?.trim() || null,
@@ -67,10 +68,44 @@ export async function createCustomDailyMission(data: {
     mission_date: missionDate,
     sort_order: 99,
     status: "pending",
-  });
+  }).select("id").single();
 
   if (error) return { error: error.message };
 
+  await supabase
+    .from("daily_missions")
+    .update({ action_href: `/missions/${inserted.id}` })
+    .eq("id", inserted.id);
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/missions/${inserted.id}`);
+  return { id: inserted.id };
+}
+
+export async function joinDailyMission(missionId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const { data: mission } = await supabase
+    .from("daily_missions")
+    .select("id, user_id")
+    .eq("id", missionId)
+    .maybeSingle();
+
+  if (!mission) return { error: "Mission not found" };
+  if (mission.user_id === profile.id) return { error: "You already own this mission" };
+
+  const { error } = await supabase.from("daily_mission_participants").insert({
+    daily_mission_id: missionId,
+    user_id: profile.id,
+  });
+
+  if (error) {
+    if (error.code === "23505") return { error: "Already joined" };
+    return { error: error.message };
+  }
+
+  revalidatePath(`/missions/${missionId}`);
   revalidatePath("/dashboard");
   return {};
 }

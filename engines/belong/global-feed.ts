@@ -153,7 +153,7 @@ export async function fetchUserRecentActivity(
       title: m.title,
       subtitle: "Daily mission completed",
       points: m.impact_points,
-      href: "/dashboard",
+      href: `/missions/${m.id}`,
       createdAt: m.completed_at!,
     })),
     ...(completedGoals ?? []).map((g) => ({

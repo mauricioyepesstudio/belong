@@ -93,19 +93,21 @@ export function ActiveMissions({
               <li key={mission.id}>
                 <GlassCard hover className="p-5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-base font-semibold text-fg-primary">{mission.title}</p>
+                    <Link href={`/missions/${mission.id}`} className="min-w-0 flex-1 group">
+                      <p className="text-base font-semibold text-fg-primary group-hover:text-brand">
+                        {mission.title}
+                      </p>
                       {mission.description && (
                         <p className="mt-1 text-sm text-fg-muted">{mission.description}</p>
                       )}
                       <Badge variant="outline" className="mt-3">
                         +{mission.impact_points} impact
                       </Badge>
-                    </div>
+                    </Link>
                     <div className="flex shrink-0 gap-2">
-                      <Link href={mission.action_href}>
+                      <Link href={`/missions/${mission.id}`}>
                         <Button variant="outline" size="sm" className="rounded-xl">
-                          Start
+                          View
                           <ArrowRight className="h-4 w-4" aria-hidden />
                         </Button>
                       </Link>
@@ -134,12 +136,14 @@ export function ActiveMissions({
             </p>
             <ul className="space-y-2">
               {completed.map((mission) => (
-                <li
-                  key={mission.id}
-                  className="flex items-center justify-between rounded-xl border border-success/15 bg-success/5 px-4 py-3 opacity-80"
-                >
-                  <span className="text-sm text-fg-secondary line-through">{mission.title}</span>
-                  <CheckCircle2 className="h-4 w-4 text-success" aria-hidden />
+                <li key={mission.id}>
+                  <Link
+                    href={`/missions/${mission.id}`}
+                    className="flex items-center justify-between rounded-xl border border-success/15 bg-success/5 px-4 py-3 opacity-80 transition-opacity hover:opacity-100"
+                  >
+                    <span className="text-sm text-fg-secondary line-through">{mission.title}</span>
+                    <CheckCircle2 className="h-4 w-4 text-success" aria-hidden />
+                  </Link>
                 </li>
               ))}
             </ul>

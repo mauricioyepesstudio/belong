@@ -40,6 +40,7 @@ export const authRoutes = ["/login", "/register", "/forgot-password"] as const;
 
 export const platformRoutes = [
   "/dashboard",
+  "/missions",
   "/community",
   "/projects",
   "/events",

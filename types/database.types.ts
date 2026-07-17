@@ -737,6 +737,27 @@ export interface Database {
         };
         Relationships: [];
       };
+      daily_mission_participants: {
+        Row: {
+          id: string;
+          daily_mission_id: string;
+          user_id: string;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          daily_mission_id: string;
+          user_id: string;
+          joined_at?: string;
+        };
+        Update: {
+          id?: string;
+          daily_mission_id?: string;
+          user_id?: string;
+          joined_at?: string;
+        };
+        Relationships: [];
+      };
       weekly_goals: {
         Row: {
           id: string;

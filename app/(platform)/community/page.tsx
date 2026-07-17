@@ -16,12 +16,10 @@ export default async function CommunityPage() {
     getDiscoverUsers(),
   ]);
 
-  const joinedIds = new Set(joined.map((c) => c.id));
-
   return (
     <CommunityScreen
       joined={joined}
-      discover={discover.filter((c) => !joinedIds.has(c.id))}
+      discover={discover}
       pending={pending}
       people={people}
     />

@@ -61,6 +61,11 @@ export function CommunityScreen({
   const [tipUser, setTipUser] = useState<DiscoverUser | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const membershipById = useMemo(
+    () => new Map(joined.map((c) => [c.id, c.role])),
+    [joined]
+  );
+
   const filtered = useMemo(() => {
     if (tab === "people") {
       return people.filter((p) =>
@@ -88,8 +93,8 @@ export function CommunityScreen({
       else {
         toast("Community created", "success");
         setCreateOpen(false);
-        if (result.slug) router.push(`/community/${result.slug}`);
-        else router.refresh();
+        setTab("discover");
+        router.refresh();
       }
     });
   };
@@ -101,6 +106,7 @@ export function CommunityScreen({
       else if (result.url) window.location.href = result.url;
       else {
         toast("Joined community", "success");
+        setTab("joined");
         router.refresh();
       }
     });
@@ -320,7 +326,9 @@ export function CommunityScreen({
         ) : (
           <StaggerList>
             <EntityGrid>
-            {(filtered as (UserCommunity | DiscoverCommunity)[]).map((c) => (
+            {(filtered as (UserCommunity | DiscoverCommunity)[]).map((c) => {
+              const role = membershipById.get(c.id);
+              return (
               <StaggerItem key={c.id}>
                 <EntityCard
                   icon={Users}
@@ -328,9 +336,9 @@ export function CommunityScreen({
                   description={c.description}
                   href={`/community/${c.slug}`}
                   badges={
-                    tab === "joined" && "role" in c && c.role ? (
-                      <Badge variant={c.role === "admin" || c.role === "owner" ? "brand" : "outline"}>
-                        {c.role}
+                    role ? (
+                      <Badge variant={role === "admin" || role === "owner" ? "brand" : "outline"}>
+                        {role}
                       </Badge>
                     ) : c.is_paid && c.subscription_price_cents ? (
                       <Badge variant="brand">{formatCents(c.subscription_price_cents)}/mo</Badge>
@@ -346,18 +354,53 @@ export function CommunityScreen({
                   }
                   footer={
                     tab === "discover" ? (
-                      <Button
-                        size="sm"
-                        className="w-full"
-                        disabled={isPending}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleJoin(c.id);
-                        }}
-                      >
-                        {c.is_paid ? "Subscribe" : "Join community"}
-                      </Button>
+                      role === "owner" && !c.is_paid ? (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="w-full"
+                          disabled={isPending}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setMonetizeId(c.id);
+                            setMonetizeOpen(true);
+                          }}
+                        >
+                          Enable paid access
+                        </Button>
+                      ) : role && role !== "owner" ? (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="w-full"
+                          disabled={isPending}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleLeave(c.id);
+                          }}
+                        >
+                          Leave
+                        </Button>
+                      ) : role ? (
+                        <Button size="sm" variant="secondary" className="w-full" disabled>
+                          Joined
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          disabled={isPending}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleJoin(c.id);
+                          }}
+                        >
+                          {c.is_paid ? "Subscribe" : "Join community"}
+                        </Button>
+                      )
                     ) : "role" in c && c.role === "owner" && !c.is_paid ? (
                       <Button
                         size="sm"
@@ -391,7 +434,8 @@ export function CommunityScreen({
                   }
                 />
               </StaggerItem>
-            ))}
+            );
+            })}
             </EntityGrid>
           </StaggerList>
         )}

@@ -56,11 +56,16 @@ export async function createCommunity(data: {
 
   if (error) return { error: error.message };
 
-  await supabase.from("community_members").insert({
+  const { error: memberError } = await supabase.from("community_members").insert({
     community_id: community.id,
     user_id: profile.id,
     role: "owner",
   });
+
+  if (memberError) {
+    await supabase.from("communities").delete().eq("id", community.id);
+    return { error: memberError.message };
+  }
 
   revalidateCommunity(community.slug);
   return { id: community.id, slug: community.slug };

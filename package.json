@@ -15,6 +15,7 @@
     "test:reputation-e2e": "supabase db query --linked -f scripts/validate-reputation-flow.sql",
     "test:realtime-e2e": "supabase db query --linked -f scripts/validate-realtime-flow.sql",
     "test:organization-e2e": "supabase db query --linked -f scripts/validate-organization-flow.sql",
+    "test:ai-copilot-e2e": "supabase db query --linked -f scripts/validate-ai-copilot-flow.sql",
     "db:push": "supabase db push",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > types/database.generated.ts"

@@ -6,6 +6,8 @@ import {
 } from "@/lib/actions/organizations";
 import type { OrganizationDetail } from "@/lib/core/organizations";
 import { canAdminOrganization, canManageOrganization } from "@/lib/core/organizations";
+import type { CopilotPanelData } from "@/lib/data/ai-copilot";
+import { CopilotPanel } from "@/engines/ai/components/copilot-panel";
 import {
   OrganizationAnalyticsTab,
   OrganizationEntityListTab,
@@ -38,9 +40,11 @@ type CurrentUser = {
 
 export function OrganizationDetailScreen({
   data,
+  copilot,
   currentUser,
 }: {
   data: OrganizationDetail;
+  copilot: CopilotPanelData;
   currentUser: CurrentUser;
 }) {
   const router = useRouter();
@@ -146,6 +150,18 @@ export function OrganizationDetailScreen({
           </div>
         </CardContent>
       </Card>
+
+      {isMember && (
+        <CopilotPanel
+          contextType="organization"
+          contextId={organization.id}
+          slug={organization.slug}
+          contextName={organization.name}
+          canUse={copilot.canUse}
+          canApply={copilot.canApply}
+          recentActions={copilot.recentActions}
+        />
+      )}
 
       <div className="mt-6 overflow-x-auto">
         <Tabs

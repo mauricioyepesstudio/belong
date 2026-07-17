@@ -3,6 +3,16 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type ConnectionStatus = "pending" | "accepted" | "declined";
 export type CommunityMemberRole = "member" | "admin" | "owner";
 export type OrganizationMemberRole = "owner" | "admin" | "manager" | "member" | "guest";
+export type AICopilotContextType = "community" | "organization" | "project";
+export type AICopilotActionType =
+  | "summarize_discussions"
+  | "generate_tasks"
+  | "generate_milestones"
+  | "suggest_missions"
+  | "answer_question"
+  | "create_announcement"
+  | "weekly_summary";
+export type AICopilotActionStatus = "completed" | "failed" | "applied";
 export type ProjectStatus = "planning" | "active" | "completed" | "archived";
 export type NotificationType = "connection" | "project" | "event" | "community" | "message" | "system" | "payment";
 export type SubscriptionTier = "free" | "pro" | "creator";
@@ -35,6 +45,7 @@ export type ImpactEventType =
   | "organization_created"
   | "organization_join"
   | "organization_invite_accepted"
+  | "ai_copilot_applied"
   | "streak_activity"
   | "connection_accepted";
 export type ProjectTaskStatus = "todo" | "in_progress" | "review" | "done";
@@ -1499,6 +1510,63 @@ export interface Database {
         };
         Relationships: [];
       };
+      ai_copilot_actions: {
+        Row: {
+          id: string;
+          user_id: string;
+          context_type: AICopilotContextType;
+          context_id: string;
+          action_type: AICopilotActionType;
+          status: AICopilotActionStatus;
+          prompt: string | null;
+          input_summary: Json;
+          output_payload: Json;
+          model: string | null;
+          tokens_used: number | null;
+          error_message: string | null;
+          applied: boolean;
+          applied_entity_type: string | null;
+          applied_entity_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          context_type: AICopilotContextType;
+          context_id: string;
+          action_type: AICopilotActionType;
+          status?: AICopilotActionStatus;
+          prompt?: string | null;
+          input_summary?: Json;
+          output_payload?: Json;
+          model?: string | null;
+          tokens_used?: number | null;
+          error_message?: string | null;
+          applied?: boolean;
+          applied_entity_type?: string | null;
+          applied_entity_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          context_type?: AICopilotContextType;
+          context_id?: string;
+          action_type?: AICopilotActionType;
+          status?: AICopilotActionStatus;
+          prompt?: string | null;
+          input_summary?: Json;
+          output_payload?: Json;
+          model?: string | null;
+          tokens_used?: number | null;
+          error_message?: string | null;
+          applied?: boolean;
+          applied_entity_type?: string | null;
+          applied_entity_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       impact_events: {
         Row: {
           id: string;
@@ -1575,6 +1643,9 @@ export interface Database {
       quarterly_goal_status: QuarterlyGoalStatus;
       impact_event_module: ImpactEventModule;
       impact_event_type: ImpactEventType;
+      ai_copilot_context_type: AICopilotContextType;
+      ai_copilot_action_type: AICopilotActionType;
+      ai_copilot_action_status: AICopilotActionStatus;
       mission_state: MissionState;
       onboarding_session_status: OnboardingSessionStatus;
     };

@@ -23,6 +23,7 @@ export type ImpactEventType =
   | "organization_created"
   | "organization_join"
   | "organization_invite_accepted"
+  | "ai_copilot_applied"
   | "streak_activity"
   | "connection_accepted";
 

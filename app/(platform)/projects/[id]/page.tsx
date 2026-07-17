@@ -1,5 +1,6 @@
 import { ProjectDetailScreen } from "@/engines/project";
 import { getProjectDetail } from "@/lib/data/projects";
+import { getCopilotPanelData } from "@/lib/data/ai-copilot";
 import { requireProfile } from "@/lib/auth/session";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -16,13 +17,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProjectDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const [data, profile] = await Promise.all([getProjectDetail(id), requireProfile()]);
+  const data = await getProjectDetail(id);
+  const profile = await requireProfile();
 
   if (!data) notFound();
+
+  const copilot = await getCopilotPanelData("project", data.project.id);
 
   return (
     <ProjectDetailScreen
       data={data}
+      copilot={copilot}
       currentUser={{
         id: profile.id,
         fullName: profile.full_name,

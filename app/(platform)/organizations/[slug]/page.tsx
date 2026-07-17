@@ -1,5 +1,6 @@
 import { OrganizationDetailScreen } from "@/engines/organization";
 import { getOrganizationDetail } from "@/lib/data/organizations";
+import { getCopilotPanelData } from "@/lib/data/ai-copilot";
 import { requireProfile } from "@/lib/auth/session";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -16,13 +17,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function OrganizationDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const [data, profile] = await Promise.all([getOrganizationDetail(slug), requireProfile()]);
+  const data = await getOrganizationDetail(slug);
+  const profile = await requireProfile();
 
   if (!data) notFound();
+
+  const copilot = await getCopilotPanelData("organization", data.organization.id);
 
   return (
     <OrganizationDetailScreen
       data={data}
+      copilot={copilot}
       currentUser={{
         id: profile.id,
         fullName: profile.full_name,

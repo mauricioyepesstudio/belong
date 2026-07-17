@@ -26,6 +26,8 @@ import {
 } from "@/systems/design-system";
 import { formatCents } from "@/engines/billing";
 import { formatInitials } from "@/lib/format";
+import type { CopilotPanelData } from "@/lib/data/ai-copilot";
+import { CopilotPanel } from "@/engines/ai/components/copilot-panel";
 import {
   ConnectionStatus,
   LiveBadge,
@@ -47,10 +49,11 @@ type CurrentUser = {
 
 type CommunityDetailScreenProps = {
   data: CommunityDetail;
+  copilot: CopilotPanelData;
   currentUser: CurrentUser;
 };
 
-export function CommunityDetailScreen({ data, currentUser }: CommunityDetailScreenProps) {
+export function CommunityDetailScreen({ data, copilot, currentUser }: CommunityDetailScreenProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [tab, setTab] = useState("feed");
@@ -272,6 +275,18 @@ export function CommunityDetailScreen({ data, currentUser }: CommunityDetailScre
             </div>
           </CardContent>
         </Card>
+
+        {isMember && (
+          <CopilotPanel
+            contextType="community"
+            contextId={community.id}
+            slug={community.slug}
+            contextName={community.name}
+            canUse={copilot.canUse}
+            canApply={copilot.canApply}
+            recentActions={copilot.recentActions}
+          />
+        )}
 
         <div className="mt-6 overflow-x-auto">
           <Tabs

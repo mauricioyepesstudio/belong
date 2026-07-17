@@ -38,6 +38,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import type { ProjectStatus } from "@/types/database.types";
+import type { CopilotPanelData } from "@/lib/data/ai-copilot";
+import { CopilotPanel } from "@/engines/ai/components/copilot-panel";
 import {
   ConnectionStatus,
   LiveBadge,
@@ -58,6 +60,7 @@ type CurrentUser = {
 
 type ProjectDetailScreenProps = {
   data: ProjectDetail;
+  copilot: CopilotPanelData;
   currentUser: CurrentUser;
 };
 
@@ -75,7 +78,7 @@ const statusOptions: { value: ProjectStatus; label: string }[] = [
   { value: "archived", label: "Archived" },
 ];
 
-export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenProps) {
+export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetailScreenProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [tab, setTab] = useState("overview");
@@ -469,6 +472,17 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
             </div>
           </CardContent>
         </Card>
+
+        {isMember && (
+          <CopilotPanel
+            contextType="project"
+            contextId={project.id}
+            contextName={project.name}
+            canUse={copilot.canUse}
+            canApply={copilot.canApply}
+            recentActions={copilot.recentActions}
+          />
+        )}
 
         <div className="mt-6 overflow-x-auto">
           <Tabs

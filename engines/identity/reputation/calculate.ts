@@ -21,6 +21,7 @@ export const IMPACT_EVENT_POINTS: Partial<Record<ImpactEventType, number>> = {
   organization_created: 20,
   organization_join: 10,
   organization_invite_accepted: 8,
+  ai_copilot_applied: 6,
   streak_activity: 3,
   connection_accepted: 12,
 };

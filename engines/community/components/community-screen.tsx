@@ -34,6 +34,7 @@ import {
 } from "@/systems/design-system";
 import { StaggerItem, StaggerList } from "@/components/motion/fade-in";
 import { formatInitials } from "@/lib/format";
+import type { CommunityMemberRole } from "@/types/database.types";
 import { MessageSquare, Plus, UserPlus, Users, DollarSign } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
@@ -60,11 +61,18 @@ export function CommunityScreen({
   const [monetizeId, setMonetizeId] = useState<string | null>(null);
   const [tipUser, setTipUser] = useState<DiscoverUser | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [membershipOverrides, setMembershipOverrides] = useState<
+    Map<string, CommunityMemberRole | "left">
+  >(new Map());
 
-  const membershipById = useMemo(
-    () => new Map(joined.map((c) => [c.id, c.role])),
-    [joined]
-  );
+  const membershipById = useMemo(() => {
+    const map = new Map(joined.map((c) => [c.id, c.role]));
+    for (const [id, role] of membershipOverrides) {
+      if (role === "left") map.delete(id);
+      else map.set(id, role);
+    }
+    return map;
+  }, [joined, membershipOverrides]);
 
   const filtered = useMemo(() => {
     if (tab === "people") {
@@ -106,6 +114,7 @@ export function CommunityScreen({
       else if (result.url) window.location.href = result.url;
       else {
         toast("Joined community", "success");
+        setMembershipOverrides((prev) => new Map(prev).set(communityId, "member"));
         setTab("joined");
         router.refresh();
       }
@@ -133,6 +142,7 @@ export function CommunityScreen({
       if (result.error) toast(result.error, "error");
       else {
         toast("Left community", "success");
+        setMembershipOverrides((prev) => new Map(prev).set(communityId, "left"));
         router.refresh();
       }
     });
@@ -360,9 +370,7 @@ export function CommunityScreen({
                           variant="secondary"
                           className="w-full"
                           disabled={isPending}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
+                          onClick={() => {
                             setMonetizeId(c.id);
                             setMonetizeOpen(true);
                           }}
@@ -375,11 +383,7 @@ export function CommunityScreen({
                           variant="secondary"
                           className="w-full"
                           disabled={isPending}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleLeave(c.id);
-                          }}
+                          onClick={() => handleLeave(c.id)}
                         >
                           Leave
                         </Button>
@@ -392,11 +396,7 @@ export function CommunityScreen({
                           size="sm"
                           className="w-full"
                           disabled={isPending}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleJoin(c.id);
-                          }}
+                          onClick={() => handleJoin(c.id)}
                         >
                           {c.is_paid ? "Subscribe" : "Join community"}
                         </Button>
@@ -407,9 +407,7 @@ export function CommunityScreen({
                         variant="secondary"
                         className="w-full"
                         disabled={isPending}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
+                        onClick={() => {
                           setMonetizeId(c.id);
                           setMonetizeOpen(true);
                         }}
@@ -422,11 +420,7 @@ export function CommunityScreen({
                         variant="secondary"
                         className="w-full"
                         disabled={isPending}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleLeave(c.id);
-                        }}
+                        onClick={() => handleLeave(c.id)}
                       >
                         Leave
                       </Button>

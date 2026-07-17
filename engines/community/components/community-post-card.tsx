@@ -10,36 +10,55 @@ import {
   Button,
   Card,
   CardContent,
-  EmptyState,
   Input,
   useToast,
 } from "@/systems/design-system";
 import { formatDistanceToNow, formatInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Heart, MessageCircle } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 type CommunityPostCardProps = {
   post: CommunityPostWithMeta;
   isMember: boolean;
-  onUpdate?: () => void;
+  onPostUpdate?: (post: CommunityPostWithMeta) => void;
 };
 
-export function CommunityPostCard({ post, isMember, onUpdate }: CommunityPostCardProps) {
+export function CommunityPostCard({ post, isMember, onPostUpdate }: CommunityPostCardProps) {
   const { toast } = useToast();
+  const [localPost, setLocalPost] = useState(post);
   const [showComments, setShowComments] = useState(post.comments.length > 0);
   const [commentBody, setCommentBody] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setLocalPost(post);
+  }, [post]);
+
+  const updatePost = (next: CommunityPostWithMeta) => {
+    setLocalPost(next);
+    onPostUpdate?.(next);
+  };
 
   const handleLike = () => {
     if (!isMember) {
       toast("Join the community to like posts", "error");
       return;
     }
+
+    const optimistic: CommunityPostWithMeta = {
+      ...localPost,
+      likedByCurrentUser: !localPost.likedByCurrentUser,
+      likeCount: localPost.likeCount + (localPost.likedByCurrentUser ? -1 : 1),
+    };
+    updatePost(optimistic);
+
     startTransition(async () => {
-      const result = await togglePostLike(post.id);
-      if (result.error) toast(result.error, "error");
-      else onUpdate?.();
+      const result = await togglePostLike(localPost.id);
+      if (result.error) {
+        toast(result.error, "error");
+        updatePost(post);
+      }
     });
   };
 
@@ -49,13 +68,26 @@ export function CommunityPostCard({ post, isMember, onUpdate }: CommunityPostCar
       toast("Join the community to comment", "error");
       return;
     }
+
+    const trimmed = commentBody.trim();
+    setCommentBody("");
+
     startTransition(async () => {
-      const result = await createPostComment(post.id, commentBody.trim());
-      if (result.error) toast(result.error, "error");
-      else {
-        setCommentBody("");
+      const result = await createPostComment(localPost.id, trimmed);
+      if (result.error) {
+        toast(result.error, "error");
+        setCommentBody(trimmed);
+        return;
+      }
+
+      if (result.comment) {
+        const next: CommunityPostWithMeta = {
+          ...localPost,
+          commentCount: localPost.commentCount + 1,
+          comments: [...localPost.comments, result.comment],
+        };
+        updatePost(next);
         setShowComments(true);
-        onUpdate?.();
       }
     });
   };
@@ -65,36 +97,36 @@ export function CommunityPostCard({ post, isMember, onUpdate }: CommunityPostCar
       <CardContent className="pt-6">
         <div className="flex items-start gap-3">
           <Avatar
-            src={post.author.avatarUrl ?? undefined}
-            fallback={formatInitials(post.author.fullName)}
+            src={localPost.author.avatarUrl ?? undefined}
+            fallback={formatInitials(localPost.author.fullName)}
             size="sm"
           />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-semibold text-fg-primary">
-                {post.author.fullName ?? "Builder"}
+                {localPost.author.fullName ?? "Builder"}
               </span>
               <span className="text-caption text-fg-muted">
-                {formatDistanceToNow(post.created_at)}
+                {formatDistanceToNow(localPost.created_at)}
               </span>
             </div>
             <p className="mt-2 whitespace-pre-wrap text-body leading-relaxed text-fg-secondary">
-              {post.content}
+              {localPost.content}
             </p>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <Button
                 size="sm"
-                variant={post.likedByCurrentUser ? "brand" : "ghost"}
+                variant={localPost.likedByCurrentUser ? "brand" : "ghost"}
                 disabled={isPending}
                 onClick={handleLike}
                 className="gap-1.5"
               >
                 <Heart
-                  className={cn("h-4 w-4", post.likedByCurrentUser && "fill-current")}
+                  className={cn("h-4 w-4", localPost.likedByCurrentUser && "fill-current")}
                   aria-hidden
                 />
-                {post.likeCount > 0 ? post.likeCount : "Like"}
+                {localPost.likeCount > 0 ? localPost.likeCount : "Like"}
               </Button>
               <Button
                 size="sm"
@@ -103,17 +135,17 @@ export function CommunityPostCard({ post, isMember, onUpdate }: CommunityPostCar
                 className="gap-1.5"
               >
                 <MessageCircle className="h-4 w-4" aria-hidden />
-                {post.commentCount > 0 ? post.commentCount : "Comment"}
+                {localPost.commentCount > 0 ? localPost.commentCount : "Comment"}
               </Button>
             </div>
 
             {showComments && (
               <div className="mt-4 space-y-3 border-t border-border-subtle pt-4">
-                {post.comments.length === 0 ? (
+                {localPost.comments.length === 0 ? (
                   <p className="text-caption text-fg-muted">No comments yet. Start the conversation.</p>
                 ) : (
                   <ul className="space-y-3">
-                    {post.comments.map((comment) => (
+                    {localPost.comments.map((comment) => (
                       <li key={comment.id} className="flex gap-2">
                         <Avatar
                           src={comment.author.avatarUrl ?? undefined}
@@ -138,7 +170,7 @@ export function CommunityPostCard({ post, isMember, onUpdate }: CommunityPostCar
                 )}
 
                 {isMember && (
-                  <div className="flex gap-2 pt-1">
+                  <div className="flex flex-col gap-2 pt-1 sm:flex-row">
                     <Input
                       placeholder="Write a comment..."
                       value={commentBody}
@@ -151,11 +183,13 @@ export function CommunityPostCard({ post, isMember, onUpdate }: CommunityPostCar
                       }}
                       disabled={isPending}
                       aria-label="Comment"
+                      className="min-w-0 flex-1"
                     />
                     <Button
                       size="sm"
                       disabled={isPending || !commentBody.trim()}
                       onClick={handleComment}
+                      className="shrink-0"
                     >
                       Post
                     </Button>

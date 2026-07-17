@@ -17,7 +17,7 @@ type EntityCardProps = {
   className?: string;
 };
 
-export function EntityCard({
+function EntityCardContent({
   title,
   description,
   icon: Icon,
@@ -25,15 +25,12 @@ export function EntityCard({
   badges,
   meta,
   footer,
-  href,
-  onClick,
   className,
 }: EntityCardProps) {
-  const inner = (
+  return (
     <Card
       className={cn(
-        "transition-all hover:border-border-strong hover:shadow-md",
-        (href || onClick) && "cursor-pointer",
+        "overflow-hidden transition-all hover:border-border-strong hover:shadow-md",
         className
       )}
     >
@@ -60,24 +57,96 @@ export function EntityCard({
       </CardContent>
     </Card>
   );
+}
 
+export function EntityCard({
+  title,
+  description,
+  icon,
+  iconNode,
+  badges,
+  meta,
+  footer,
+  href,
+  onClick,
+  className,
+}: EntityCardProps) {
   if (href) {
+    const Icon = icon;
     return (
-      <Link href={href} className="block">
-        {inner}
-      </Link>
+      <Card
+        className={cn(
+          "group overflow-hidden transition-all hover:border-border-strong hover:shadow-md",
+          className
+        )}
+      >
+        <Link
+          href={href}
+          className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
+        >
+          <CardContent className="pt-6">
+            {(Icon || iconNode || badges) && (
+              <div className="flex items-start justify-between gap-3">
+                {iconNode ??
+                  (Icon ? (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand/20 to-brand-secondary/10">
+                      <Icon className="h-5 w-5 text-brand" aria-hidden />
+                    </div>
+                  ) : null)}
+                {badges}
+              </div>
+            )}
+            <h3
+              className={cn(
+                "font-semibold text-fg-primary transition-colors group-hover:text-brand",
+                (Icon || iconNode) && "mt-4",
+                "text-lg"
+              )}
+            >
+              {title}
+            </h3>
+            {description && (
+              <p className="mt-2 text-caption line-clamp-2">{description}</p>
+            )}
+            {meta && <div className="mt-3">{meta}</div>}
+          </CardContent>
+        </Link>
+        {footer && (
+          <div className="border-t border-border-subtle px-6 py-4">{footer}</div>
+        )}
+      </Card>
     );
   }
 
   if (onClick) {
     return (
       <button type="button" className="block w-full text-left" onClick={onClick}>
-        {inner}
+        <EntityCardContent
+          title={title}
+          description={description}
+          icon={icon}
+          iconNode={iconNode}
+          badges={badges}
+          meta={meta}
+          footer={footer}
+          className={className}
+        />
       </button>
     );
   }
 
-  return inner;
+  return (
+    <EntityCardContent
+      title={title}
+      description={description}
+      icon={icon}
+      iconNode={iconNode}
+      badges={badges}
+      meta={meta}
+      footer={footer}
+      className={className}
+    />
+  );
 }
 
 export function EntityGrid({ children, className }: { children: ReactNode; className?: string }) {

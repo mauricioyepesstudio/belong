@@ -4,10 +4,11 @@ import {
   createCommunityPost,
   joinCommunity,
   leaveCommunity,
+  refreshCommunityDetail,
 } from "@/lib/actions/communities";
 import { configurePaidCommunity } from "@/lib/actions/billing";
 import { CommunityPostCard } from "./community-post-card";
-import type { CommunityDetail } from "@/lib/core";
+import type { CommunityDetail, CommunityMember, CommunityPostWithMeta } from "@/lib/core";
 import {
   Avatar,
   Badge,
@@ -28,14 +29,20 @@ import { formatInitials } from "@/lib/format";
 import { ArrowLeft, MessageSquarePlus, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
+
+type CurrentUser = {
+  id: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+};
 
 type CommunityDetailScreenProps = {
   data: CommunityDetail;
-  currentUserId: string;
+  currentUser: CurrentUser;
 };
 
-export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailScreenProps) {
+export function CommunityDetailScreen({ data, currentUser }: CommunityDetailScreenProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [tab, setTab] = useState("feed");
@@ -43,9 +50,30 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
   const [monetizeOpen, setMonetizeOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const { community, memberCount, membership, members, posts, owner } = data;
+  const { community, owner } = data;
+  const [posts, setPosts] = useState(data.posts);
+  const [membership, setMembership] = useState(data.membership);
+  const [memberCount, setMemberCount] = useState(data.memberCount);
+  const [members, setMembers] = useState(data.members);
+
+  useEffect(() => {
+    setPosts(data.posts);
+    setMembership(data.membership);
+    setMemberCount(data.memberCount);
+    setMembers(data.members);
+  }, [data]);
+
   const isMember = Boolean(membership);
   const isOwner = membership?.role === "owner";
+
+  const syncFromServer = useCallback(async () => {
+    const fresh = await refreshCommunityDetail(community.slug);
+    if (!fresh) return;
+    setPosts(fresh.posts);
+    setMembership(fresh.membership);
+    setMemberCount(fresh.memberCount);
+    setMembers(fresh.members);
+  }, [community.slug]);
 
   const handleJoin = () => {
     startTransition(async () => {
@@ -54,7 +82,22 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
       else if (result.url) window.location.href = result.url;
       else {
         toast("Joined community", "success");
+        setMembership({ role: "member", joinedAt: new Date().toISOString() });
+        setMemberCount((count) => count + 1);
+        if (!members.some((m) => m.userId === currentUser.id)) {
+          const member: CommunityMember = {
+            id: `temp-${currentUser.id}`,
+            userId: currentUser.id,
+            role: "member",
+            joinedAt: new Date().toISOString(),
+            fullName: currentUser.fullName,
+            avatarUrl: currentUser.avatarUrl,
+            bio: null,
+          };
+          setMembers((prev) => [...prev, member]);
+        }
         router.refresh();
+        void syncFromServer();
       }
     });
   };
@@ -65,7 +108,11 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
       if (result.error) toast(result.error, "error");
       else {
         toast("Left community", "success");
-        router.push("/community");
+        setMembership(null);
+        setMemberCount((count) => Math.max(0, count - 1));
+        setMembers((prev) => prev.filter((m) => m.userId !== currentUser.id));
+        router.refresh();
+        void syncFromServer();
       }
     });
   };
@@ -75,12 +122,18 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
     startTransition(async () => {
       const result = await createCommunityPost(community.id, postBody.trim());
       if (result.error) toast(result.error, "error");
-      else {
+      else if (result.post) {
         toast("Post published", "success");
         setPostBody("");
+        setPosts((prev) => [result.post!, ...prev]);
         router.refresh();
+        void syncFromServer();
       }
     });
+  };
+
+  const handlePostUpdate = (postId: string, updated: CommunityPostWithMeta) => {
+    setPosts((prev) => prev.map((p) => (p.id === postId ? updated : p)));
   };
 
   const handleMonetize = (formData: FormData) => {
@@ -105,7 +158,7 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
         description={community.description ?? undefined}
         action={
           <Link href="/community">
-            <Button variant="ghost">
+            <Button variant="ghost" className="w-full sm:w-auto">
               <ArrowLeft className="h-4 w-4" aria-hidden />
               All communities
             </Button>
@@ -119,7 +172,7 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand/20 to-brand-secondary/10">
                   <Users className="h-7 w-7 text-brand" aria-hidden />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     {community.tag && <Badge variant="outline">{community.tag}</Badge>}
                     {membership && (
@@ -142,29 +195,34 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
                   </div>
                   <p className="mt-2 text-caption text-fg-muted">
                     {memberCount} member{memberCount === 1 ? "" : "s"}
-                    {owner && (
-                      <>
-                        {" "}
-                        · Led by {owner.full_name ?? "Builder"}
-                      </>
-                    )}
+                    {owner && <> · Led by {owner.full_name ?? "Builder"}</>}
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2">
                 {!isMember && (
-                  <Button disabled={isPending} onClick={handleJoin}>
+                  <Button disabled={isPending} onClick={handleJoin} className="w-full sm:w-auto">
                     {community.is_paid ? "Subscribe" : "Join community"}
                   </Button>
                 )}
                 {isMember && !isOwner && (
-                  <Button variant="secondary" disabled={isPending} onClick={handleLeave}>
+                  <Button
+                    variant="secondary"
+                    disabled={isPending}
+                    onClick={handleLeave}
+                    className="w-full sm:w-auto"
+                  >
                     Leave
                   </Button>
                 )}
                 {isOwner && !community.is_paid && (
-                  <Button variant="secondary" disabled={isPending} onClick={() => setMonetizeOpen(true)}>
+                  <Button
+                    variant="secondary"
+                    disabled={isPending}
+                    onClick={() => setMonetizeOpen(true)}
+                    className="w-full sm:w-auto"
+                  >
                     Enable paid access
                   </Button>
                 )}
@@ -173,7 +231,7 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
           </CardContent>
         </Card>
 
-        <div className="mt-6">
+        <div className="mt-6 overflow-x-auto">
           <Tabs
             tabs={[
               { id: "feed", label: "Activity", count: posts.length },
@@ -201,10 +259,7 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
                     disabled={isPending}
                   />
                   <div className="mt-3 flex justify-end">
-                    <Button
-                      disabled={isPending || !postBody.trim()}
-                      onClick={handlePost}
-                    >
+                    <Button disabled={isPending || !postBody.trim()} onClick={handlePost}>
                       <MessageSquarePlus className="h-4 w-4" aria-hidden />
                       Post
                     </Button>
@@ -216,7 +271,10 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
                 icon={MessageSquarePlus}
                 title="Join to participate"
                 description="Become a member to post, comment, and like in this community."
-                action={{ label: community.is_paid ? "Subscribe" : "Join community", onClick: handleJoin }}
+                action={{
+                  label: community.is_paid ? "Subscribe" : "Join community",
+                  onClick: handleJoin,
+                }}
                 className="py-10"
               />
             )}
@@ -237,7 +295,7 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
                   key={post.id}
                   post={post}
                   isMember={isMember}
-                  onUpdate={() => router.refresh()}
+                  onPostUpdate={(updated) => handlePostUpdate(post.id, updated)}
                 />
               ))
             )}
@@ -257,7 +315,7 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
                     {members.map((member) => (
                       <li
                         key={member.id}
-                        className="flex items-center gap-3 px-6 py-4"
+                        className="flex items-center gap-3 px-4 py-4 sm:px-6"
                       >
                         <Avatar
                           src={member.avatarUrl ?? undefined}
@@ -267,7 +325,7 @@ export function CommunityDetailScreen({ data, currentUserId }: CommunityDetailSc
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="truncate font-medium text-fg-primary">
                               {member.fullName ?? "Builder"}
-                              {member.userId === currentUserId && (
+                              {member.userId === currentUser.id && (
                                 <span className="text-fg-muted"> (you)</span>
                               )}
                             </p>

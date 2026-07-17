@@ -1,19 +1,42 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireProfile } from "@/lib/auth/session";
+import { requireProfile, getCurrentProfile } from "@/lib/auth/session";
 import { createNotification, slugify } from "@/lib/supabase/notify";
 import { createCommunitySubscriptionCheckout } from "@/lib/actions/billing";
 import { logCommunityContribution } from "@/lib/engine/mission-progress";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
-import type { CommunityPost, CommunityPostComment } from "@/types/database.types";
+import type {
+  CommunityCommentWithAuthor,
+  CommunityDetail,
+  CommunityPostWithMeta,
+} from "@/lib/core";
+import { fetchCommunityDetail } from "@/lib/core/communities";
 
 function revalidateCommunity(slug?: string) {
   revalidatePath("/community");
   revalidatePath("/dashboard");
   revalidatePath("/", "layout");
   if (slug) revalidatePath(`/community/${slug}`);
+}
+
+function authorFromProfile(profile: {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+}) {
+  return {
+    id: profile.id,
+    fullName: profile.full_name,
+    avatarUrl: profile.avatar_url,
+  };
+}
+
+export async function refreshCommunityDetail(slug: string): Promise<CommunityDetail | null> {
+  const supabase = await createClient();
+  const profile = await getCurrentProfile();
+  return fetchCommunityDetail(supabase, slug, profile?.id ?? null);
 }
 
 async function requireCommunityMembership(
@@ -143,7 +166,7 @@ export async function leaveCommunity(communityId: string): Promise<ActionResult>
 export async function createCommunityPost(
   communityId: string,
   content: string
-): Promise<ActionResult & { post?: CommunityPost }> {
+): Promise<ActionResult & { post?: CommunityPostWithMeta }> {
   const supabase = await createClient();
   const profile = await requireProfile();
 
@@ -184,7 +207,16 @@ export async function createCommunityPost(
   }
 
   revalidateCommunity(community?.slug);
-  return { post };
+  return {
+    post: {
+      ...post,
+      author: authorFromProfile(profile),
+      likeCount: 0,
+      commentCount: 0,
+      likedByCurrentUser: false,
+      comments: [],
+    } satisfies CommunityPostWithMeta,
+  };
 }
 
 export async function togglePostLike(postId: string): Promise<ActionResult & { liked?: boolean }> {
@@ -248,7 +280,7 @@ export async function togglePostLike(postId: string): Promise<ActionResult & { l
 export async function createPostComment(
   postId: string,
   content: string
-): Promise<ActionResult & { comment?: CommunityPostComment }> {
+): Promise<ActionResult & { comment?: CommunityCommentWithAuthor }> {
   const supabase = await createClient();
   const profile = await requireProfile();
 
@@ -297,5 +329,10 @@ export async function createPostComment(
   await logCommunityContribution(supabase, profile.id, post.community_id, "comment", 5);
 
   revalidateCommunity(community?.slug);
-  return { comment };
+  return {
+    comment: {
+      ...comment,
+      author: authorFromProfile(profile),
+    } satisfies CommunityCommentWithAuthor,
+  };
 }

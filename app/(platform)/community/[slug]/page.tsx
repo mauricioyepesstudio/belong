@@ -20,5 +20,14 @@ export default async function CommunityDetailPage({ params }: PageProps) {
 
   if (!data) notFound();
 
-  return <CommunityDetailScreen data={data} currentUserId={profile.id} />;
+  return (
+    <CommunityDetailScreen
+      data={data}
+      currentUser={{
+        id: profile.id,
+        fullName: profile.full_name,
+        avatarUrl: profile.avatar_url,
+      }}
+    />
+  );
 }

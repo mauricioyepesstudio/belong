@@ -5,6 +5,7 @@ import {
   createProjectDiscussion,
   replyToProjectDiscussion,
 } from "@/lib/actions/project-workspace";
+import { TypingIndicator, useTypingIndicator } from "@/engines/core/realtime";
 import {
   Avatar,
   Button,
@@ -18,37 +19,71 @@ import {
 } from "@/systems/design-system";
 import { formatInitials, formatDistanceToNow } from "@/lib/format";
 import { MessageSquare } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 export function ProjectDiscussionsTab({
   projectId,
   discussions: initial,
   isMember,
+  currentUserId,
+  currentUserName,
 }: {
   projectId: string;
   discussions: ProjectDiscussion[];
   isMember: boolean;
+  currentUserId: string;
+  currentUserName: string | null;
 }) {
   const { toast } = useToast();
   const [discussions, setDiscussions] = useState(initial);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [activeDiscussionId, setActiveDiscussionId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const { typingUsers, broadcastTyping } = useTypingIndicator({
+    discussionId: activeDiscussionId ?? "",
+    userId: currentUserId,
+    fullName: currentUserName,
+  });
+
+  useEffect(() => {
+    setDiscussions(initial);
+  }, [initial]);
 
   const handleCreate = () => {
     if (!title.trim() || !content.trim()) return;
+    const draftTitle = title.trim();
+    const draftContent = content.trim();
     startTransition(async () => {
       const result = await createProjectDiscussion(projectId, {
-        title: title.trim(),
-        content: content.trim(),
+        title: draftTitle,
+        content: draftContent,
       });
       if (result.error) toast(result.error, "error");
       else {
         toast("Discussion started", "success");
         setTitle("");
         setContent("");
-        window.location.reload();
+        if (result.discussionId) {
+          setDiscussions((prev) => [
+            {
+              id: result.discussionId!,
+              projectId,
+              authorId: currentUserId,
+              title: draftTitle,
+              content: draftContent,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              authorName: currentUserName,
+              authorAvatar: null,
+              replyCount: 0,
+              replies: [],
+            },
+            ...prev,
+          ]);
+        }
       }
     });
   };
@@ -62,7 +97,29 @@ export function ProjectDiscussionsTab({
       else {
         toast("Reply posted", "success");
         setReplyDrafts((d) => ({ ...d, [discussionId]: "" }));
-        window.location.reload();
+        setDiscussions((prev) =>
+          prev.map((d) =>
+            d.id === discussionId
+              ? {
+                  ...d,
+                  replyCount: d.replyCount + 1,
+                  replies: [
+                    ...d.replies,
+                    {
+                      id: `temp-${Date.now()}`,
+                      discussionId,
+                      authorId: currentUserId,
+                      parentReplyId: null,
+                      content: text,
+                      createdAt: new Date().toISOString(),
+                      authorName: currentUserName,
+                      authorAvatar: null,
+                    },
+                  ],
+                }
+              : d
+          )
+        );
       }
     });
   };
@@ -144,12 +201,19 @@ export function ProjectDiscussionsTab({
                 </ul>
               )}
 
+              {activeDiscussionId === d.id && (
+                <TypingIndicator users={typingUsers} className="mt-3" />
+              )}
+
               <div className="mt-4 flex gap-2">
                 <Input
                   value={replyDrafts[d.id] ?? ""}
-                  onChange={(e) =>
-                    setReplyDrafts((prev) => ({ ...prev, [d.id]: e.target.value }))
-                  }
+                  onFocus={() => setActiveDiscussionId(d.id)}
+                  onChange={(e) => {
+                    setReplyDrafts((prev) => ({ ...prev, [d.id]: e.target.value }));
+                    setActiveDiscussionId(d.id);
+                    broadcastTyping();
+                  }}
                   placeholder="Reply..."
                   disabled={isPending}
                 />

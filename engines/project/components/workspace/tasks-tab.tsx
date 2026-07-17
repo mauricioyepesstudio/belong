@@ -13,7 +13,7 @@ import {
   useToast,
 } from "@/systems/design-system";
 import { FolderKanban, Plus } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 const COLUMNS: { id: ProjectTaskStatus; label: string }[] = [
   { id: "todo", label: "Todo" },
@@ -43,6 +43,10 @@ export function ProjectTasksTab({
   const [title, setTitle] = useState("");
   const [isPending, startTransition] = useTransition();
   const [draggingId, setDraggingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setTasks(initialTasks);
+  }, [initialTasks]);
 
   const tasksByStatus = (status: ProjectTaskStatus) =>
     tasks.filter((t) => t.status === status).sort((a, b) => a.sortOrder - b.sortOrder);

@@ -24,7 +24,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
+import { ConnectionStatus, LiveBadge, useMissionRealtime } from "@/engines/core/realtime";
 
 const statusVariant: Record<string, "brand" | "outline" | "default"> = {
   pending: "outline",
@@ -36,8 +37,19 @@ export function MissionDetailScreen({ data }: { data: DailyMissionDetailData }) 
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const [missionStatus, setMissionStatus] = useState(data.mission.status);
 
   const { mission, participants, objectives, progress, rewards, isOwner, isParticipant } = data;
+
+  useMissionRealtime({
+    missionId: mission.id,
+    onMissionUpdate: (row) => {
+      const next = row.status;
+      if (next === "pending" || next === "completed" || next === "skipped") {
+        setMissionStatus(next);
+      }
+    },
+  });
 
   const handleComplete = () => {
     startTransition(async () => {
@@ -67,12 +79,16 @@ export function MissionDetailScreen({ data }: { data: DailyMissionDetailData }) 
       title={mission.title}
       description={mission.description ?? undefined}
       action={
-        <Link href="/dashboard">
+        <div className="flex flex-wrap items-center gap-2">
+          <LiveBadge label="Live mission" />
+          <ConnectionStatus />
+          <Link href="/dashboard">
           <Button variant="ghost">
             <ArrowLeft className="h-4 w-4" aria-hidden />
             Back to dashboard
           </Button>
-        </Link>
+          </Link>
+        </div>
       }
     >
       <div className="grid gap-6 lg:grid-cols-3">
@@ -80,8 +96,8 @@ export function MissionDetailScreen({ data }: { data: DailyMissionDetailData }) 
           <Card>
             <CardContent className="space-y-6 pt-6">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant={statusVariant[mission.status] ?? "outline"} className="capitalize">
-                  {mission.status}
+                <Badge variant={statusVariant[missionStatus] ?? "outline"} className="capitalize">
+                  {missionStatus}
                 </Badge>
                 <span className="text-caption text-fg-muted">
                   {mission.mission_date}

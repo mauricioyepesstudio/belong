@@ -13,6 +13,7 @@
     "test:project-e2e": "supabase db query --linked -f scripts/validate-project-flow.sql",
     "test:mission-e2e": "supabase db query --linked -f scripts/validate-mission-flow.sql",
     "test:reputation-e2e": "supabase db query --linked -f scripts/validate-reputation-flow.sql",
+    "test:realtime-e2e": "supabase db query --linked -f scripts/validate-realtime-flow.sql",
     "db:push": "supabase db push",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > types/database.generated.ts"

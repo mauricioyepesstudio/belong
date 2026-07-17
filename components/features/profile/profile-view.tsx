@@ -22,6 +22,11 @@ import { MapPin, Pencil, Users, FolderKanban } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { StaggerItem, StaggerList } from "@/components/motion/fade-in";
+import {
+  ConnectionStatus,
+  LiveBadge,
+  useIdentityRealtime,
+} from "@/engines/core/realtime";
 
 type ProfileViewProps = {
   profile: UserProfile;
@@ -30,10 +35,33 @@ type ProfileViewProps = {
   reputation: ReputationProfile;
 };
 
-export function ProfileView({ profile, stats, missions, reputation }: ProfileViewProps) {
+export function ProfileView({ profile, stats, missions, reputation: initialReputation }: ProfileViewProps) {
   const [tab, setTab] = useState("reputation");
+  const [reputation, setReputation] = useState(initialReputation);
   const primaryMission = missions.find((m) => m.is_primary) ?? missions[0];
   const TierIcon = TIER_ICONS[profile.subscription_tier ?? "free"];
+
+  useIdentityRealtime({
+    userId: profile.id,
+    onImpactInsert: (event) => {
+      setReputation((prev) => ({
+        ...prev,
+        totalImpact: prev.totalImpact + event.points,
+        recentEvents: [event, ...prev.recentEvents].slice(0, 12),
+        eventTotals: prev.eventTotals.some((t) => t.module === event.module)
+          ? prev.eventTotals.map((t) =>
+              t.module === event.module
+                ? { ...t, points: t.points + event.points, count: t.count + 1 }
+                : t
+            )
+          : [...prev.eventTotals, { module: event.module, points: event.points, count: 1 }],
+        scores: {
+          ...prev.scores,
+          reputationScore: prev.scores.reputationScore + event.points,
+        },
+      }));
+    },
+  });
 
   return (
     <FeatureScreen
@@ -41,7 +69,9 @@ export function ProfileView({ profile, stats, missions, reputation }: ProfileVie
       title={profile.full_name ?? "Your profile"}
       description="Live reputation dashboard — every action across BELONG builds your impact."
       action={
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <LiveBadge label="Live reputation" />
+          <ConnectionStatus />
           <Link href="/creator">
             <Button variant="ghost">Creator hub</Button>
           </Link>

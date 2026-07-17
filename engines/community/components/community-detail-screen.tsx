@@ -26,6 +26,14 @@ import {
 } from "@/systems/design-system";
 import { formatCents } from "@/engines/billing";
 import { formatInitials } from "@/lib/format";
+import {
+  ConnectionStatus,
+  LiveBadge,
+  dedupeById,
+  fetchAuthorMeta,
+  mapCommunityPostRow,
+  useCommunityRealtime,
+} from "@/engines/core/realtime";
 import { ArrowLeft, MessageSquarePlus, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -74,6 +82,38 @@ export function CommunityDetailScreen({ data, currentUser }: CommunityDetailScre
     setMemberCount(fresh.memberCount);
     setMembers(fresh.members);
   }, [community.slug]);
+
+  const { activeUsers } = useCommunityRealtime({
+    communityId: community.id,
+    userId: currentUser.id,
+    userName: currentUser.fullName,
+    onPostInsert: (row) => {
+      void fetchAuthorMeta(String(row.author_id)).then((author) => {
+        const post = mapCommunityPostRow(row, author);
+        setPosts((prev) => dedupeById(prev, post));
+      });
+    },
+    onCommentInsert: (row) => {
+      const postId = String(row.post_id);
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId
+            ? { ...post, commentCount: post.commentCount + 1 }
+            : post
+        )
+      );
+    },
+    onLikeInsert: (row) => {
+      const postId = String(row.post_id);
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId ? { ...post, likeCount: post.likeCount + 1 } : post
+        )
+      );
+    },
+    onMemberInsert: () => setMemberCount((count) => count + 1),
+    onMemberDelete: () => setMemberCount((count) => Math.max(0, count - 1)),
+  });
 
   const handleJoin = () => {
     startTransition(async () => {
@@ -175,6 +215,8 @@ export function CommunityDetailScreen({ data, currentUser }: CommunityDetailScre
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     {community.tag && <Badge variant="outline">{community.tag}</Badge>}
+                    <LiveBadge count={activeUsers} label="Active" />
+                    <ConnectionStatus />
                     {membership && (
                       <Badge
                         variant={

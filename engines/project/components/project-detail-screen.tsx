@@ -38,6 +38,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import type { ProjectStatus } from "@/types/database.types";
+import {
+  ConnectionStatus,
+  LiveBadge,
+  dedupeById,
+  fetchAuthorMeta,
+  mapProjectActivityRow,
+  mapProjectDiscussionRow,
+  mapProjectPostRow,
+  mapProjectTaskRow,
+  useProjectRealtime,
+} from "@/engines/core/realtime";
 
 type CurrentUser = {
   id: string;
@@ -79,6 +90,7 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
   const [memberCount, setMemberCount] = useState(data.memberCount);
   const [members, setMembers] = useState(data.members);
   const [workspace, setWorkspace] = useState(data.workspace);
+  const [progress, setProgress] = useState(project.progress);
   const [status, setStatus] = useState(project.status);
   const [fundingEnabled, setFundingEnabled] = useState(project.funding_enabled);
 
@@ -88,6 +100,7 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
     setMemberCount(data.memberCount);
     setMembers(data.members);
     setWorkspace(data.workspace);
+    setProgress(data.project.progress);
     setStatus(data.project.status);
     setFundingEnabled(data.project.funding_enabled);
   }, [data]);
@@ -112,9 +125,127 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
     setMemberCount(fresh.memberCount);
     setMembers(fresh.members);
     setWorkspace(fresh.workspace);
+    setProgress(fresh.project.progress);
     setStatus(fresh.project.status);
     setFundingEnabled(fresh.project.funding_enabled);
   }, [project.id]);
+
+  const { activeUsers } = useProjectRealtime({
+    projectId: project.id,
+    userId: currentUser.id,
+    userName: currentUser.fullName,
+    onPostInsert: (row) => {
+      void fetchAuthorMeta(String(row.author_id)).then((author) => {
+        const post = mapProjectPostRow(row, author);
+        setPosts((prev) => dedupeById(prev, post));
+      });
+    },
+    onCommentInsert: (row) => {
+      const postId = String(row.post_id);
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId
+            ? { ...post, commentCount: post.commentCount + 1 }
+            : post
+        )
+      );
+    },
+    onLikeInsert: (row) => {
+      const postId = String(row.post_id);
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId ? { ...post, likeCount: post.likeCount + 1 } : post
+        )
+      );
+    },
+    onMemberInsert: () => setMemberCount((count) => count + 1),
+    onMemberDelete: () => setMemberCount((count) => Math.max(0, count - 1)),
+    onTaskInsert: (row) => {
+      const task = mapProjectTaskRow(row);
+      setWorkspace((prev) => ({
+        ...prev,
+        tasks: dedupeById(prev.tasks, task),
+        analytics: {
+          ...prev.analytics,
+          totalTasks: prev.analytics.totalTasks + 1,
+        },
+      }));
+    },
+    onTaskUpdate: (row) => {
+      const task = mapProjectTaskRow(row);
+      setWorkspace((prev) => {
+        const wasDone = prev.tasks.find((t) => t.id === task.id)?.status === "done";
+        const isDone = task.status === "done";
+        let completedTasks = prev.analytics.completedTasks;
+        if (!wasDone && isDone) completedTasks += 1;
+        if (wasDone && !isDone) completedTasks = Math.max(0, completedTasks - 1);
+        return {
+          ...prev,
+          tasks: prev.tasks.map((t) => (t.id === task.id ? { ...t, ...task } : t)),
+          analytics: { ...prev.analytics, completedTasks },
+        };
+      });
+    },
+    onActivityInsert: (row) => {
+      const item = mapProjectActivityRow(row);
+      setWorkspace((prev) => ({
+        ...prev,
+        activity: dedupeById(prev.activity, item),
+      }));
+    },
+    onDiscussionInsert: (row) => {
+      const discussion = mapProjectDiscussionRow(row);
+      setWorkspace((prev) => ({
+        ...prev,
+        discussions: dedupeById(prev.discussions, discussion),
+      }));
+    },
+    onDiscussionReplyInsert: (row) => {
+      const discussionId = String(row.discussion_id);
+      setWorkspace((prev) => ({
+        ...prev,
+        discussions: prev.discussions.map((d) =>
+          d.id === discussionId
+            ? {
+                ...d,
+                replies: [
+                  ...d.replies,
+                  {
+                    id: String(row.id),
+                    discussionId,
+                    authorId: String(row.author_id),
+                    parentReplyId: row.parent_reply_id ? String(row.parent_reply_id) : null,
+                    content: String(row.content),
+                    createdAt: String(row.created_at),
+                    authorName: null,
+                    authorAvatar: null,
+                  },
+                ],
+              }
+            : d
+        ),
+      }));
+    },
+    onGoalUpdate: (row) => {
+      const goalId = String(row.id);
+      setWorkspace((prev) => ({
+        ...prev,
+        goals: prev.goals.map((g) =>
+          g.id === goalId
+            ? {
+                ...g,
+                progressPercent: Number(row.progress_percent ?? g.progressPercent),
+                status: (row.status as typeof g.status) ?? g.status,
+              }
+            : g
+        ),
+      }));
+    },
+    onProjectUpdate: (row) => {
+      if (row.progress !== undefined) setProgress(Number(row.progress));
+      if (row.status) setStatus(row.status as ProjectStatus);
+    },
+  });
 
   const handleJoin = () => {
     startTransition(async () => {
@@ -251,6 +382,8 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
                     <Link href={`/community/${community.slug}`}>
                       <Badge variant="outline">{community.name}</Badge>
                     </Link>
+                    <LiveBadge count={activeUsers} label="Active" />
+                    <ConnectionStatus />
                   </div>
                   <p className="mt-2 text-caption text-fg-muted">
                     {memberCount} member{memberCount === 1 ? "" : "s"}
@@ -262,9 +395,9 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
                   <div className="mt-3 max-w-xs space-y-1">
                     <div className="flex justify-between text-xs text-fg-muted">
                       <span>Progress</span>
-                      <span>{project.progress}%</span>
+                      <span>{progress}%</span>
                     </div>
-                    <ProgressBar value={project.progress} animate={false} />
+                    <ProgressBar value={progress} animate={false} />
                   </div>
                   {fundingEnabled && project.funding_goal_cents && (
                     <div className="mt-3 max-w-xs space-y-1">
@@ -354,7 +487,9 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
           />
         </div>
 
-        {tab === "overview" && <ProjectOverviewTab data={{ ...data, workspace }} />}
+        {tab === "overview" && (
+          <ProjectOverviewTab data={{ ...data, project: { ...project, progress, status }, workspace }} />
+        )}
 
         {tab === "activity" && (
           <div className="space-y-6">
@@ -424,6 +559,8 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
             projectId={project.id}
             discussions={workspace.discussions}
             isMember={isMember}
+            currentUserId={currentUser.id}
+            currentUserName={currentUser.fullName}
           />
         )}
 

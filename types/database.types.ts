@@ -938,6 +938,81 @@ export interface Database {
         };
         Relationships: [];
       };
+      community_posts: {
+        Row: {
+          id: string;
+          community_id: string;
+          author_id: string;
+          content: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          community_id: string;
+          author_id: string;
+          content: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          community_id?: string;
+          author_id?: string;
+          content?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      community_post_likes: {
+        Row: {
+          id: string;
+          post_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          post_id?: string;
+          user_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      community_post_comments: {
+        Row: {
+          id: string;
+          post_id: string;
+          author_id: string;
+          content: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          author_id: string;
+          content: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          post_id?: string;
+          author_id?: string;
+          content?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -987,6 +1062,9 @@ export interface Database {
 export type UserProfile = Database["public"]["Tables"]["users"]["Row"];
 export type Mission = Database["public"]["Tables"]["missions"]["Row"];
 export type Community = Database["public"]["Tables"]["communities"]["Row"];
+export type CommunityPost = Database["public"]["Tables"]["community_posts"]["Row"];
+export type CommunityPostLike = Database["public"]["Tables"]["community_post_likes"]["Row"];
+export type CommunityPostComment = Database["public"]["Tables"]["community_post_comments"]["Row"];
 export type Project = Database["public"]["Tables"]["projects"]["Row"];
 export type Event = Database["public"]["Tables"]["events"]["Row"];
 export type Message = Database["public"]["Tables"]["messages"]["Row"];

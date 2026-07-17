@@ -4,8 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
 import type { ActionResult } from "@/lib/actions/types";
 import {
+  incrementQuarterlyProgress,
   incrementWeeklyGoalByTitle,
   recordMissionActivity,
+  recordMissionCompletionImpact,
 } from "@/lib/engine/mission-progress";
 import { revalidatePath } from "next/cache";
 
@@ -15,7 +17,7 @@ export async function completeDailyMission(missionId: string): Promise<ActionRes
 
   const { data: mission } = await supabase
     .from("daily_missions")
-    .select("id, status, user_id")
+    .select("id, status, user_id, impact_points, weekly_goal_id")
     .eq("id", missionId)
     .single();
 
@@ -40,10 +42,13 @@ export async function completeDailyMission(missionId: string): Promise<ActionRes
   await incrementWeeklyGoalByTitle(supabase, profile.id, "Build with purpose");
   await incrementWeeklyGoalByTitle(supabase, profile.id, "daily missions");
   await incrementWeeklyGoalByTitle(supabase, profile.id, "Progress on");
+  await incrementQuarterlyProgress(supabase, profile.id);
+  await recordMissionCompletionImpact(supabase, profile.id, mission.impact_points);
 
   revalidatePath("/dashboard");
   revalidatePath("/profile");
   revalidatePath(`/missions/${missionId}`);
+  revalidatePath("/", "layout");
   return {};
 }
 
@@ -59,16 +64,50 @@ export async function createCustomDailyMission(data: {
 
   const missionDate = new Date().toISOString().slice(0, 10);
 
-  const { data: inserted, error } = await supabase.from("daily_missions").insert({
-    user_id: profile.id,
-    title,
-    description: data.description?.trim() || null,
-    action_href: "/dashboard",
-    impact_points: 10,
-    mission_date: missionDate,
-    sort_order: 99,
-    status: "pending",
-  }).select("id").single();
+  const { data: lifeMission } = await supabase
+    .from("missions")
+    .select("id")
+    .eq("user_id", profile.id)
+    .eq("is_primary", true)
+    .neq("state", "archived")
+    .maybeSingle();
+
+  const weekStart = (() => {
+    const d = new Date();
+    const day = d.getUTCDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    d.setUTCDate(d.getUTCDate() + diff);
+    return d.toISOString().slice(0, 10);
+  })();
+
+  const { data: weeklyGoal } = lifeMission
+    ? await supabase
+        .from("weekly_goals")
+        .select("id")
+        .eq("user_id", profile.id)
+        .eq("week_start", weekStart)
+        .eq("status", "active")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
+
+  const { data: inserted, error } = await supabase
+    .from("daily_missions")
+    .insert({
+      user_id: profile.id,
+      title,
+      description: data.description?.trim() || null,
+      action_href: "/dashboard",
+      impact_points: 10,
+      mission_date: missionDate,
+      sort_order: 99,
+      status: "pending",
+      mission_id: lifeMission?.id ?? null,
+      weekly_goal_id: weeklyGoal?.id ?? null,
+    })
+    .select("id")
+    .single();
 
   if (error) return { error: error.message };
 

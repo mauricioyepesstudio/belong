@@ -1,7 +1,7 @@
 "use client";
 
 import type { HomeEngineData } from "@/engines/belong/data";
-import { MissionCard } from "@/engines/mission";
+import { LifeMissionPanel } from "@/engines/mission/components/life-mission-panel";
 import { Avatar } from "@/components/ui/avatar";
 import { FadeIn } from "@/components/motion/fade-in";
 import { Badge, ProgressBar } from "@/systems/design-system";
@@ -26,9 +26,9 @@ function profileCompleteness(profile: HomeEngineData["profile"]): number {
 export function ProfileHeader({
   profile,
   stats,
-  primaryMission,
+  missionEngine,
   impactScore,
-}: Pick<HomeEngineData, "profile" | "stats" | "primaryMission"> & {
+}: Pick<HomeEngineData, "profile" | "stats" | "missionEngine"> & {
   impactScore: number;
 }) {
   const completeness = profileCompleteness(profile);
@@ -148,9 +148,14 @@ export function ProfileHeader({
 
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
             <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
-              <p className="text-label text-fg-muted">Your mission</p>
+              <p className="text-label text-fg-muted">Life mission</p>
               <div className="mt-3">
-                <MissionCard profile={profile} mission={primaryMission} compact />
+                <LifeMissionPanel
+                  profile={profile}
+                  lifeMission={missionEngine.lifeMission}
+                  progress={missionEngine.lifeMissionProgress}
+                  compact
+                />
               </div>
             </div>
             <div className="min-w-[200px]">

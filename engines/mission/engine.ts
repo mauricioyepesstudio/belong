@@ -3,6 +3,14 @@ import type { UserProfile } from "@/types/database.types";
 import type { UserStats } from "@/lib/core/stats";
 import { getBuildGoalOption } from "@/engines/mission/config";
 import type { MissionEngineData } from "@/engines/mission/types";
+import {
+  ensureMissionHierarchy,
+  fetchLifeMissionBundle,
+  fetchQuarterlyGoals,
+  computeQuarterlyProgress,
+  todayUtc,
+  weekBounds,
+} from "@/engines/mission/hierarchy";
 
 type MissionTemplate = {
   title: string;
@@ -19,21 +27,6 @@ type WeeklyTemplate = {
   impact_points: number;
   target_count: number;
 };
-
-function todayUtc(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function weekBounds(date = new Date()): { start: string; end: string } {
-  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  const day = d.getUTCDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setUTCDate(d.getUTCDate() + diff);
-  const start = d.toISOString().slice(0, 10);
-  const endDate = new Date(d);
-  endDate.setUTCDate(endDate.getUTCDate() + 6);
-  return { start, end: endDate.toISOString().slice(0, 10) };
-}
 
 export function buildDailyMissionTemplates(
   profile: UserProfile,
@@ -102,8 +95,8 @@ export function buildDailyMissionTemplates(
     title: goal ? `Move toward: ${goal.label}` : "Clarify your mission",
     description: goal
       ? `Take one action aligned with your ${goal.label.toLowerCase()} goal.`
-      : "Write or refine what you are building in settings.",
-    action_href: goal ? "/profile" : "/settings",
+      : "Define your life mission on the dashboard.",
+    action_href: goal ? "/dashboard" : "/dashboard",
     impact_points: 15,
     sort_order: 4,
   });
@@ -149,82 +142,32 @@ export function buildWeeklyGoalTemplates(
   ];
 }
 
-export async function ensureDailyMissions(
-  supabase: SupabaseServerClient,
-  userId: string,
-  profile: UserProfile,
-  stats: UserStats
-) {
-  const missionDate = todayUtc();
-  const { count } = await supabase
-    .from("daily_missions")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .eq("mission_date", missionDate);
-
-  if ((count ?? 0) >= 3) return;
-
-  const templates = buildDailyMissionTemplates(profile, stats);
-  const rows = templates.map((t) => ({
-    user_id: userId,
-    title: t.title,
-    description: t.description,
-    action_href: t.action_href,
-    impact_points: t.impact_points,
-    mission_date: missionDate,
-    sort_order: t.sort_order,
-  }));
-
-  await supabase.from("daily_missions").upsert(rows, {
-    onConflict: "user_id,mission_date,title",
-    ignoreDuplicates: true,
-  });
-}
-
-export async function ensureWeeklyGoals(
-  supabase: SupabaseServerClient,
-  userId: string,
-  profile: UserProfile,
-  stats: UserStats
-) {
-  const { start, end } = weekBounds();
-
-  const { count } = await supabase
-    .from("weekly_goals")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .eq("week_start", start);
-
-  if ((count ?? 0) >= 2) return;
-
-  const templates = buildWeeklyGoalTemplates(profile, stats);
-  const rows = templates.map((t) => ({
-    user_id: userId,
-    title: t.title,
-    description: t.description,
-    target_count: t.target_count,
-    action_href: t.action_href,
-    impact_points: t.impact_points,
-    week_start: start,
-    week_end: end,
-  }));
-
-  await supabase.from("weekly_goals").insert(rows);
-}
-
 export async function fetchMissionEngineData(
   supabase: SupabaseServerClient,
   userId: string,
   profile: UserProfile,
   stats: UserStats
 ): Promise<MissionEngineData> {
-  await ensureDailyMissions(supabase, userId, profile, stats);
-  await ensureWeeklyGoals(supabase, userId, profile, stats);
+  const { lifeMission, lifeMissionProgress } = await fetchLifeMissionBundle(
+    supabase,
+    userId
+  );
+
+  const missionId = lifeMission?.id ?? null;
+
+  await ensureMissionHierarchy(
+    supabase,
+    userId,
+    profile,
+    stats,
+    missionId,
+    lifeMission
+  );
 
   const missionDate = todayUtc();
   const { start } = weekBounds();
 
-  const [{ data: dailyMissions }, { data: weeklyGoals }, { data: momentum }] =
+  const [{ data: dailyMissions }, { data: weeklyGoals }, { data: momentum }, quarterlyGoals] =
     await Promise.all([
       supabase
         .from("daily_missions")
@@ -240,6 +183,7 @@ export async function fetchMissionEngineData(
         .in("status", ["active", "completed"])
         .order("created_at"),
       supabase.from("user_momentum").select("*").eq("user_id", userId).maybeSingle(),
+      fetchQuarterlyGoals(supabase, userId),
     ]);
 
   const daily = dailyMissions ?? [];
@@ -255,6 +199,8 @@ export async function fetchMissionEngineData(
         )
       : 0;
 
+  const quarterlyProgress = computeQuarterlyProgress(quarterlyGoals);
+
   return {
     dailyMissions: daily,
     weeklyGoals: weekly,
@@ -269,5 +215,9 @@ export async function fetchMissionEngineData(
     dailyCompleted,
     dailyTotal: daily.length,
     weeklyProgress,
+    lifeMission,
+    lifeMissionProgress,
+    quarterlyGoals,
+    quarterlyProgress,
   };
 }

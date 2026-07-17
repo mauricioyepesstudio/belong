@@ -169,7 +169,8 @@ export async function fetchImpactEngineData(
     projects: number;
     communities: number;
   },
-  hasMission: boolean
+  hasMission: boolean,
+  missionProgressPercent = 0
 ): Promise<ImpactEngineData> {
   const [extended, weeklyImpact] = await Promise.all([
     fetchImpactMetrics(supabase, userId, profile),
@@ -187,6 +188,7 @@ export async function fetchImpactEngineData(
     eventsAttended: extended.eventsAttended,
     messagesSent: extended.messagesSent,
     hasMission,
+    missionProgressPercent,
     profileComplete,
     fundingRaisedCents: extended.fundingRaisedCents,
     earningsCents: extended.earningsCents,

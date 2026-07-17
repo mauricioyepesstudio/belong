@@ -11,6 +11,7 @@ export type PaymentStatus = "pending" | "succeeded" | "failed" | "refunded";
 export type ListingStatus = "draft" | "active" | "sold" | "archived";
 export type DailyMissionStatus = "pending" | "completed" | "skipped";
 export type WeeklyGoalStatus = "active" | "completed" | "expired";
+export type QuarterlyGoalStatus = "active" | "completed" | "expired";
 export type OnboardingSessionStatus = "in_progress" | "completed" | "abandoned";
 export type MissionState =
   | "draft"
@@ -707,6 +708,8 @@ export interface Database {
           mission_date: string;
           completed_at: string | null;
           sort_order: number;
+          mission_id: string | null;
+          weekly_goal_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -720,6 +723,8 @@ export interface Database {
           mission_date?: string;
           completed_at?: string | null;
           sort_order?: number;
+          mission_id?: string | null;
+          weekly_goal_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -733,6 +738,8 @@ export interface Database {
           mission_date?: string;
           completed_at?: string | null;
           sort_order?: number;
+          mission_id?: string | null;
+          weekly_goal_id?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -772,6 +779,8 @@ export interface Database {
           week_start: string;
           week_end: string;
           completed_at: string | null;
+          mission_id: string | null;
+          quarterly_goal_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -787,6 +796,8 @@ export interface Database {
           week_start: string;
           week_end: string;
           completed_at?: string | null;
+          mission_id?: string | null;
+          quarterly_goal_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -802,7 +813,51 @@ export interface Database {
           week_start?: string;
           week_end?: string;
           completed_at?: string | null;
+          mission_id?: string | null;
+          quarterly_goal_id?: string | null;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      quarterly_goals: {
+        Row: {
+          id: string;
+          user_id: string;
+          mission_id: string;
+          title: string;
+          description: string | null;
+          progress_percent: number;
+          due_date: string;
+          status: QuarterlyGoalStatus;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          mission_id: string;
+          title: string;
+          description?: string | null;
+          progress_percent?: number;
+          due_date: string;
+          status?: QuarterlyGoalStatus;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          mission_id?: string;
+          title?: string;
+          description?: string | null;
+          progress_percent?: number;
+          due_date?: string;
+          status?: QuarterlyGoalStatus;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -1128,6 +1183,7 @@ export interface Database {
       listing_status: ListingStatus;
       daily_mission_status: DailyMissionStatus;
       weekly_goal_status: WeeklyGoalStatus;
+      quarterly_goal_status: QuarterlyGoalStatus;
       mission_state: MissionState;
       onboarding_session_status: OnboardingSessionStatus;
     };

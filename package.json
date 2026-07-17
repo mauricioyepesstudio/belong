@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "test:community-e2e": "supabase db query --linked -f scripts/validate-community-flow.sql",
     "test:project-e2e": "supabase db query --linked -f scripts/validate-project-flow.sql",
+    "test:mission-e2e": "supabase db query --linked -f scripts/validate-mission-flow.sql",
     "db:push": "supabase db push",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > types/database.generated.ts"

@@ -10,6 +10,10 @@ import { CommunitiesRow } from "./dashboard/communities-row";
 import { WeeklyGoal } from "./dashboard/weekly-goal";
 import { RecentActivity } from "./dashboard/global-impact";
 import { DashboardActions } from "./dashboard/dashboard-actions";
+import { QuarterlyGoalsSection } from "@/engines/mission/components/quarterly-goals-section";
+import { LifeMissionPanel } from "@/engines/mission/components/life-mission-panel";
+import { ScrollReveal } from "@/components/motion/fade-in";
+import { GlassCard, SectionHeader } from "./dashboard/primitives";
 
 export function HomeDashboard(data: HomeEngineData) {
   const {
@@ -24,7 +28,6 @@ export function HomeDashboard(data: HomeEngineData) {
     weeklyProgress,
     momentum,
     recentActivity,
-    primaryMission,
   } = data;
 
   const [missionOpen, setMissionOpen] = useState(false);
@@ -35,12 +38,16 @@ export function HomeDashboard(data: HomeEngineData) {
     document.getElementById("missions")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const scrollToLifeMission = () => {
+    document.getElementById("life-mission")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="mx-auto max-w-5xl space-y-16 pb-8 md:space-y-20">
       <ProfileHeader
         profile={profile}
         stats={stats}
-        primaryMission={primaryMission}
+        missionEngine={missionEngine}
         impactScore={impactEngine.score.score}
       />
 
@@ -56,6 +63,28 @@ export function HomeDashboard(data: HomeEngineData) {
       />
 
       <ImpactScore impactEngine={impactEngine} />
+
+      <div id="life-mission">
+        <ScrollReveal>
+          <section>
+            <SectionHeader label="Mission Engine" title="Life mission" />
+            <GlassCard className="p-6 md:p-8">
+              <LifeMissionPanel
+                profile={profile}
+                lifeMission={missionEngine.lifeMission}
+                progress={missionEngine.lifeMissionProgress}
+              />
+            </GlassCard>
+          </section>
+        </ScrollReveal>
+      </div>
+
+      <QuarterlyGoalsSection
+        goals={missionEngine.quarterlyGoals}
+        quarterlyProgress={missionEngine.quarterlyProgress}
+        hasLifeMission={Boolean(missionEngine.lifeMission)}
+        onDefineMission={scrollToLifeMission}
+      />
 
       <div id="missions">
         <ActiveMissions

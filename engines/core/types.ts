@@ -123,7 +123,7 @@ export interface ImpactEngineAdapter extends EngineLifecycle {
   readonly name: typeof ENGINE_NAMES.impact;
   fetch(
     context: CoreEngineContext,
-    mission: Pick<MissionEngineResult, "dailyMissions">,
+    mission: Pick<MissionEngineResult, "dailyMissions" | "lifeMissionProgress">,
     options?: CoreEngineOptions
   ): Promise<ImpactEngineResult>;
 }

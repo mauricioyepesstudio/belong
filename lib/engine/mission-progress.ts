@@ -8,6 +8,55 @@ export function getWeekStartUtc(): string {
   return d.toISOString().slice(0, 10);
 }
 
+export async function incrementQuarterlyProgress(
+  supabase: SupabaseServerClient,
+  userId: string,
+  increment = 4
+) {
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: goals } = await supabase
+    .from("quarterly_goals")
+    .select("id, progress_percent")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .gte("due_date", today)
+    .order("due_date", { ascending: true })
+    .limit(1);
+
+  const goal = goals?.[0];
+  if (!goal) return;
+
+  const next = Math.min(100, goal.progress_percent + increment);
+  await supabase
+    .from("quarterly_goals")
+    .update({
+      progress_percent: next,
+      status: next >= 100 ? "completed" : "active",
+      completed_at: next >= 100 ? new Date().toISOString() : null,
+    })
+    .eq("id", goal.id);
+}
+
+export async function recordMissionCompletionImpact(
+  supabase: SupabaseServerClient,
+  userId: string,
+  impactPoints: number
+) {
+  const { data: user } = await supabase
+    .from("users")
+    .select("founder_reputation")
+    .eq("id", userId)
+    .single();
+
+  if (!user) return;
+
+  const boost = Math.max(1, Math.floor(impactPoints / 5));
+  await supabase
+    .from("users")
+    .update({ founder_reputation: user.founder_reputation + boost })
+    .eq("id", userId);
+}
+
 export async function incrementWeeklyGoalByTitle(
   supabase: SupabaseServerClient,
   userId: string,

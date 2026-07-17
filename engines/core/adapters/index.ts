@@ -38,7 +38,7 @@ export function createMissionEngineAdapter(): MissionEngineAdapter {
 export function createImpactEngineAdapter(): ImpactEngineAdapter {
   return {
     name: ENGINE_NAMES.impact,
-    async fetch(context, _mission, options) {
+    async fetch(context, mission, options) {
       const runtime = context.runtime;
       if (!runtime) {
         throw new Error("ImpactEngineAdapter requires CoreEngineContext.runtime");
@@ -49,7 +49,8 @@ export function createImpactEngineAdapter(): ImpactEngineAdapter {
         context.userId,
         context.profile,
         runtime.stats,
-        runtime.hasMission
+        runtime.hasMission,
+        mission?.lifeMissionProgress?.completionPercent ?? 0
       );
     },
   };

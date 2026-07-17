@@ -59,6 +59,8 @@ export async function getDailyMissionDetail(
     mission_date: missionRow.mission_date,
     completed_at: missionRow.completed_at,
     sort_order: missionRow.sort_order,
+    mission_id: missionRow.mission_id,
+    weekly_goal_id: missionRow.weekly_goal_id,
   };
 
   const repository = new MissionRepository(supabase);

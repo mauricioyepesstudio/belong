@@ -6,6 +6,7 @@ export type ImpactMetrics = {
   messagesSent: number;
   hasMission: boolean;
   profileComplete: boolean;
+  missionProgressPercent?: number;
   fundingRaisedCents: number;
   earningsCents: number;
   subscriptionTier: "free" | "pro" | "creator";
@@ -32,6 +33,9 @@ export function calculateImpactScore(metrics: ImpactMetrics): ImpactScore {
   add("Events attended", metrics.eventsAttended * 10);
   add("Messages sent", Math.min(metrics.messagesSent, 100));
   if (metrics.hasMission) add("Mission defined", 30);
+  if (metrics.missionProgressPercent && metrics.missionProgressPercent > 0) {
+    add("Mission execution", Math.floor(metrics.missionProgressPercent / 4));
+  }
   if (metrics.profileComplete) add("Profile complete", 25);
   add("Project funding raised", Math.floor(metrics.fundingRaisedCents / 200));
   add("Creator earnings", Math.floor(metrics.earningsCents / 1000));

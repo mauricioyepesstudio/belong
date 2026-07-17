@@ -11,6 +11,7 @@ import type {
   ProjectPostWithMeta,
 } from "@/lib/core";
 import { fetchProjectDetail } from "@/lib/core/projects";
+import { recordImpactEvent } from "@/engines/identity/reputation";
 
 function revalidateProject(projectId?: string) {
   revalidatePath("/projects");
@@ -145,6 +146,15 @@ export async function createProject(data: {
     return { error: memberError.message };
   }
 
+  await recordImpactEvent(supabase, {
+    userId: profile.id,
+    module: "project",
+    eventType: "project_created",
+    points: 18,
+    sourceId: project.id,
+    metadata: { name: data.name.trim() },
+  });
+
   revalidateProject(project.id);
   return { id: project.id };
 }
@@ -209,6 +219,16 @@ export async function updateProject(
 
   if (error) return { error: error.message };
 
+  if (data.status === "completed") {
+    await recordImpactEvent(supabase, {
+      userId: profile.id,
+      module: "project",
+      eventType: "project_completed",
+      points: 30,
+      sourceId: projectId,
+    });
+  }
+
   revalidateProject(projectId);
   return {};
 }
@@ -252,6 +272,15 @@ export async function joinProject(projectId: string): Promise<ActionResult> {
       metadata: { project_id: projectId },
     });
   }
+
+  await recordImpactEvent(supabase, {
+    userId: profile.id,
+    module: "project",
+    eventType: "project_join",
+    points: 8,
+    sourceId: projectId,
+    metadata: { project_name: project.name },
+  });
 
   revalidateProject(projectId);
   return {};
@@ -313,6 +342,15 @@ export async function createProjectPost(
     .single();
 
   if (error) return { error: error.message };
+
+  await recordImpactEvent(supabase, {
+    userId: profile.id,
+    module: "project",
+    eventType: "project_post",
+    points: 6,
+    sourceId: projectId,
+    metadata: { post_id: post.id },
+  });
 
   if (project && project.owner_id !== profile.id) {
     await createNotification(supabase, {
@@ -421,6 +459,15 @@ export async function createProjectPostComment(
     .single();
 
   if (error) return { error: error.message };
+
+  await recordImpactEvent(supabase, {
+    userId: profile.id,
+    module: "project",
+    eventType: "project_comment",
+    points: 4,
+    sourceId: post.project_id,
+    metadata: { post_id: postId, comment_id: comment.id },
+  });
 
   if (post.author_id !== profile.id) {
     await createNotification(supabase, {

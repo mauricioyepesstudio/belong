@@ -44,7 +44,13 @@ export async function completeDailyMission(missionId: string): Promise<ActionRes
   await incrementWeeklyGoalByTitle(supabase, profile.id, "daily missions");
   await incrementWeeklyGoalByTitle(supabase, profile.id, "Progress on");
   await incrementQuarterlyProgress(supabase, profile.id);
-  await recordMissionCompletionImpact(supabase, profile.id, mission.impact_points);
+  await recordMissionCompletionImpact(
+    supabase,
+    profile.id,
+    mission.impact_points,
+    missionId,
+    mission.title
+  );
 
   await createNotification(supabase, {
     userId: profile.id,

@@ -1,6 +1,7 @@
 "use client";
 
 import type { HomeEngineData } from "@/engines/belong/data";
+import type { ReputationProfile } from "@/engines/identity/reputation";
 import { ScrollReveal } from "@/components/motion/fade-in";
 import { Badge, EmptyState, ProgressBar } from "@/systems/design-system";
 import { CalendarDays, Target, TrendingUp } from "lucide-react";
@@ -9,8 +10,10 @@ import { GlassCard, SectionHeader } from "./primitives";
 
 export function ImpactScore({
   impactEngine,
+  reputation,
 }: {
   impactEngine: HomeEngineData["impactEngine"];
+  reputation: ReputationProfile;
 }) {
   const lifetimeScore = impactEngine.score.score ?? 0;
   const { weeklyImpact } = impactEngine;
@@ -25,14 +28,14 @@ export function ImpactScore({
     <ScrollReveal>
       <section>
         <SectionHeader
-          label="Impact"
+          label="Identity & Reputation"
           title="Impact Score"
           action={
             <Link
               href="/profile"
               className="text-sm text-fg-muted transition-colors hover:text-brand"
             >
-              View details →
+              Full reputation →
             </Link>
           }
         />
@@ -91,15 +94,15 @@ export function ImpactScore({
             </div>
             <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
               <p className="text-2xl font-semibold tabular-nums text-fg-primary">
-                {weeklyImpact.goalsCompleted}
+                {reputation.scores.missionCompletionRate}%
               </p>
-              <p className="mt-1 text-caption">Weekly goals done</p>
+              <p className="mt-1 text-caption">Mission completion rate</p>
             </div>
             <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
               <p className="text-2xl font-semibold tabular-nums text-fg-primary">
-                {weeklyImpact.contributionsLogged}
+                {reputation.scores.collaborationScore}
               </p>
-              <p className="mt-1 text-caption">Community contributions</p>
+              <p className="mt-1 text-caption">Collaboration score</p>
             </div>
           </div>
 

@@ -4,6 +4,7 @@ import type { HomeEngineData } from "@/engines/belong/data";
 import { useState } from "react";
 import { ProfileHeader } from "./dashboard/welcome-hero";
 import { ImpactScore } from "./dashboard/personal-impact";
+import { ReputationSummary } from "@/engines/identity/components/reputation-dashboard";
 import { ActiveMissions } from "./dashboard/active-missions";
 import { ProjectsRow } from "./dashboard/projects-row";
 import { CommunitiesRow } from "./dashboard/communities-row";
@@ -35,6 +36,7 @@ export function HomeDashboard(data: HomeEngineData) {
     smartHome,
     crossModuleLinks,
     primaryRecommendation,
+    reputation,
   } = data;
 
   const [missionOpen, setMissionOpen] = useState(false);
@@ -74,7 +76,9 @@ export function HomeDashboard(data: HomeEngineData) {
         onCommunityOpenChange={setCommunityOpen}
       />
 
-      <ImpactScore impactEngine={impactEngine} />
+      <ReputationSummary reputation={reputation} />
+
+      <ImpactScore impactEngine={impactEngine} reputation={reputation} />
 
       <div id="life-mission">
         <ScrollReveal>

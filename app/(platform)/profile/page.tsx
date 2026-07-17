@@ -11,7 +11,7 @@ export default async function ProfilePage() {
       profile={data.profile}
       stats={data.stats}
       missions={data.missions}
-      impact={data.impact}
+      reputation={data.reputation}
     />
   );
 }

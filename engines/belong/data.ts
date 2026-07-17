@@ -23,6 +23,8 @@ import {
 import { generatePrimaryRecommendation, type CoachRecommendation } from "@/engines/belong/recommendation";
 import { detectOpportunities, suggestConnections } from "@/engines/ai/opportunities";
 import type { ConnectionSuggestion } from "@/engines/ai/coach-types";
+import type { ReputationProfile } from "@/engines/identity/reputation";
+import { fetchReputationProfile } from "@/engines/identity/reputation";
 import type { UserProfile, Mission, Notification } from "@/types/database.types";
 
 export type HomeEngineData = {
@@ -44,6 +46,7 @@ export type HomeEngineData = {
   primaryRecommendation: CoachRecommendation;
   connectionSuggestions: ConnectionSuggestion[];
   recentNotifications: Notification[];
+  reputation: ReputationProfile;
 };
 
 export async function getHomeEngineData(): Promise<HomeEngineData> {
@@ -117,6 +120,15 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
     connectionSuggestions,
   });
 
+  const reputation = await fetchReputationProfile(
+    supabase,
+    profile.id,
+    profile,
+    result.stats,
+    Boolean(result.mission.lifeMission),
+    result.mission.lifeMissionProgress?.completionPercent ?? 0
+  );
+
   return {
     profile: result.profile,
     stats: result.stats,
@@ -136,5 +148,6 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
     primaryRecommendation,
     connectionSuggestions,
     recentNotifications,
+    reputation,
   };
 }

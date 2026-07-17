@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
 import { createNotification } from "@/lib/supabase/notify";
 import { incrementWeeklyGoalByTitle } from "@/lib/engine/mission-progress";
+import { recordImpactEvent } from "@/engines/identity/reputation";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
 
@@ -96,6 +97,20 @@ export async function respondToConnection(
     });
     await incrementWeeklyGoalByTitle(supabase, profile.id, "Expand your network");
     await incrementWeeklyGoalByTitle(supabase, connection.requester_id, "Expand your network");
+    await recordImpactEvent(supabase, {
+      userId: profile.id,
+      module: "system",
+      eventType: "connection_accepted",
+      points: 12,
+      sourceId: connectionId,
+    });
+    await recordImpactEvent(supabase, {
+      userId: connection.requester_id,
+      module: "system",
+      eventType: "connection_accepted",
+      points: 12,
+      sourceId: connectionId,
+    });
   }
 
   revalidatePath("/community");

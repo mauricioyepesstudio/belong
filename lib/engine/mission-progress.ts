@@ -1,5 +1,6 @@
 import type { SupabaseServerClient } from "@/lib/core/types";
 import { createNotification } from "@/lib/supabase/notify";
+import { recordImpactEvent } from "@/engines/identity/reputation";
 
 export function getWeekStartUtc(): string {
   const d = new Date();
@@ -17,7 +18,7 @@ export async function incrementQuarterlyProgress(
   const today = new Date().toISOString().slice(0, 10);
   const { data: goals } = await supabase
     .from("quarterly_goals")
-    .select("id, progress_percent")
+    .select("id, progress_percent, title")
     .eq("user_id", userId)
     .eq("status", "active")
     .gte("due_date", today)
@@ -39,18 +40,21 @@ export async function incrementQuarterlyProgress(
     .eq("id", goal.id);
 
   if (completed) {
-    const { data: goalRow } = await supabase
-      .from("quarterly_goals")
-      .select("title")
-      .eq("id", goal.id)
-      .single();
-
     await createNotification(supabase, {
       userId,
       title: "Quarterly goal completed",
-      body: goalRow?.title ?? "You completed a quarterly goal.",
+      body: goal.title ?? "You completed a quarterly goal.",
       type: "system",
       metadata: { goal_id: goal.id, kind: "quarterly_goal" },
+    });
+
+    await recordImpactEvent(supabase, {
+      userId,
+      module: "mission",
+      eventType: "quarterly_goal_completed",
+      points: 50,
+      sourceId: goal.id,
+      metadata: { title: goal.title },
     });
   }
 }
@@ -58,21 +62,18 @@ export async function incrementQuarterlyProgress(
 export async function recordMissionCompletionImpact(
   supabase: SupabaseServerClient,
   userId: string,
-  impactPoints: number
+  impactPoints: number,
+  missionId: string,
+  title?: string
 ) {
-  const { data: user } = await supabase
-    .from("users")
-    .select("founder_reputation")
-    .eq("id", userId)
-    .single();
-
-  if (!user) return;
-
-  const boost = Math.max(1, Math.floor(impactPoints / 5));
-  await supabase
-    .from("users")
-    .update({ founder_reputation: user.founder_reputation + boost })
-    .eq("id", userId);
+  await recordImpactEvent(supabase, {
+    userId,
+    module: "mission",
+    eventType: "mission_completed",
+    points: impactPoints,
+    sourceId: missionId,
+    metadata: title ? { title } : {},
+  });
 }
 
 export async function incrementWeeklyGoalByTitle(
@@ -83,7 +84,7 @@ export async function incrementWeeklyGoalByTitle(
   const start = getWeekStartUtc();
   const { data: goals } = await supabase
     .from("weekly_goals")
-    .select("id, current_count, target_count, title")
+    .select("id, current_count, target_count, title, impact_points")
     .eq("user_id", userId)
     .eq("week_start", start)
     .eq("status", "active");
@@ -109,6 +110,15 @@ export async function incrementWeeklyGoalByTitle(
         type: "system",
         metadata: { goal_id: goal.id, kind: "weekly_goal" },
       });
+
+      await recordImpactEvent(supabase, {
+        userId,
+        module: "mission",
+        eventType: "weekly_goal_completed",
+        points: goal.impact_points,
+        sourceId: goal.id,
+        metadata: { title: goal.title },
+      });
     }
   }
 }
@@ -131,6 +141,13 @@ export async function recordMissionActivity(
       weekly_completions: (momentum?.weekly_completions ?? 0) + 1,
     })
     .eq("user_id", userId);
+
+  await recordImpactEvent(supabase, {
+    userId,
+    module: "mission",
+    eventType: "streak_activity",
+    points: 3,
+  });
 }
 
 export async function syncUserSkill(
@@ -154,25 +171,23 @@ export async function logCommunityContribution(
   contributionType: string,
   points = 5
 ) {
-  await supabase.from("community_contributions").insert({
-    user_id: userId,
-    community_id: communityId,
-    contribution_type: contributionType,
+  const eventType =
+    contributionType === "join"
+      ? "community_join"
+      : contributionType === "post"
+        ? "community_post"
+        : contributionType === "comment"
+          ? "community_comment"
+          : contributionType === "like"
+            ? "community_like"
+            : "community_post";
+
+  await recordImpactEvent(supabase, {
+    userId,
+    module: "community",
+    eventType,
     points,
+    sourceId: communityId,
+    metadata: { community_id: communityId, contribution_type: contributionType },
   });
-
-  const { data: user } = await supabase
-    .from("users")
-    .select("community_contribution_points")
-    .eq("id", userId)
-    .single();
-
-  if (user) {
-    await supabase
-      .from("users")
-      .update({
-        community_contribution_points: user.community_contribution_points + points,
-      })
-      .eq("id", userId);
-  }
 }

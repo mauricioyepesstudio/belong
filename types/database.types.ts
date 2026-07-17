@@ -12,6 +12,22 @@ export type ListingStatus = "draft" | "active" | "sold" | "archived";
 export type DailyMissionStatus = "pending" | "completed" | "skipped";
 export type WeeklyGoalStatus = "active" | "completed" | "expired";
 export type QuarterlyGoalStatus = "active" | "completed" | "expired";
+export type ImpactEventModule = "mission" | "community" | "project" | "system";
+export type ImpactEventType =
+  | "mission_completed"
+  | "weekly_goal_completed"
+  | "quarterly_goal_completed"
+  | "community_join"
+  | "community_post"
+  | "community_comment"
+  | "community_like"
+  | "project_created"
+  | "project_join"
+  | "project_post"
+  | "project_comment"
+  | "project_completed"
+  | "streak_activity"
+  | "connection_accepted";
 export type OnboardingSessionStatus = "in_progress" | "completed" | "abandoned";
 export type MissionState =
   | "draft"
@@ -1143,6 +1159,39 @@ export interface Database {
         };
         Relationships: [];
       };
+      impact_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          module: ImpactEventModule;
+          event_type: ImpactEventType;
+          points: number;
+          source_id: string | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          module: ImpactEventModule;
+          event_type: ImpactEventType;
+          points?: number;
+          source_id?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          module?: ImpactEventModule;
+          event_type?: ImpactEventType;
+          points?: number;
+          source_id?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -1184,6 +1233,8 @@ export interface Database {
       daily_mission_status: DailyMissionStatus;
       weekly_goal_status: WeeklyGoalStatus;
       quarterly_goal_status: QuarterlyGoalStatus;
+      impact_event_module: ImpactEventModule;
+      impact_event_type: ImpactEventType;
       mission_state: MissionState;
       onboarding_session_status: OnboardingSessionStatus;
     };
@@ -1206,3 +1257,4 @@ export type Connection = Database["public"]["Tables"]["connections"]["Row"];
 export type Subscription = Database["public"]["Tables"]["subscriptions"]["Row"];
 export type Payment = Database["public"]["Tables"]["payments"]["Row"];
 export type MarketplaceListing = Database["public"]["Tables"]["marketplace_listings"]["Row"];
+export type ImpactEventRow = Database["public"]["Tables"]["impact_events"]["Row"];

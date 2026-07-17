@@ -2,6 +2,7 @@ import { DEFAULT_INSIGHTS_LIMIT, DEFAULT_RECOMMENDATIONS_LIMIT, MISSION_STATES }
 import { toInsertRecord, toMissionDomain, toUpdatePatch } from "./mapper";
 import type { MissionEngineService } from "./mission-engine";
 import { MissionRepository } from "./repository";
+import { ensureDefaultOrganization } from "@/lib/core/organizations";
 import type { SupabaseServerClient } from "@/lib/core/types";
 import type {
   CreateMissionInput,
@@ -52,7 +53,16 @@ export class MissionEngineServiceImpl implements MissionEngineService {
       await this.repository.clearPrimary(context.userId);
     }
 
-    const created = await this.repository.insert(mission);
+    const organizationId = await ensureDefaultOrganization(
+      this.repository.getClient(),
+      context.userId,
+      null
+    );
+
+    const created = await this.repository.insert({
+      ...mission,
+      organization_id: organizationId,
+    });
 
     if (milestones.length) {
       await this.repository.insertMilestones(

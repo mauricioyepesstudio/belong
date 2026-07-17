@@ -16,7 +16,7 @@ describe("identity reputation calculate", () => {
 
   it("computes composite reputation scores", () => {
     const scores = computeReputationScores({
-      eventPointsByModule: { mission: 40, community: 30, project: 20, system: 0 },
+      eventPointsByModule: { mission: 40, community: 30, project: 20, organization: 0, system: 0 },
       eventCountsByType: { project_join: 2, community_comment: 3 },
       founderReputation: 50,
       connections: 5,

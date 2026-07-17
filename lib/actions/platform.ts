@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
+import { ensureDefaultOrganization } from "@/lib/core/organizations";
 import { createIdentityEngineService, IdentityValidationError } from "@/engines/identity/server";
 import { syncUserSkill } from "@/lib/engine/mission-progress";
 import { revalidatePath } from "next/cache";
@@ -131,11 +132,17 @@ export async function updateMission(data: {
       .eq("id", existing.id);
     if (error) return { error: error.message };
   } else {
+    const organizationId = await ensureDefaultOrganization(
+      supabase,
+      profile.id,
+      profile.full_name
+    );
     const { error } = await supabase.from("missions").insert({
       user_id: profile.id,
       title: data.title.trim(),
       description: data.description?.trim() || null,
       is_primary: true,
+      organization_id: organizationId,
     });
     if (error) return { error: error.message };
   }

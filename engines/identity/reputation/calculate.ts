@@ -18,6 +18,9 @@ export const IMPACT_EVENT_POINTS: Partial<Record<ImpactEventType, number>> = {
   project_file_uploaded: 6,
   project_goal_completed: 15,
   project_milestone_completed: 12,
+  organization_created: 20,
+  organization_join: 10,
+  organization_invite_accepted: 8,
   streak_activity: 3,
   connection_accepted: 12,
 };
@@ -26,6 +29,7 @@ export const MODULE_LABELS: Record<ImpactEventModule, string> = {
   mission: "Mission Engine",
   community: "Community",
   project: "Projects",
+  organization: "Organizations",
   system: "Platform",
 };
 

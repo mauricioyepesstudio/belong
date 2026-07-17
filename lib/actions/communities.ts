@@ -13,6 +13,7 @@ import type {
   CommunityPostWithMeta,
 } from "@/lib/core";
 import { fetchCommunityDetail } from "@/lib/core/communities";
+import { ensureDefaultOrganization } from "@/lib/core/organizations";
 
 function revalidateCommunity(slug?: string) {
   revalidatePath("/community");
@@ -59,11 +60,16 @@ export async function createCommunity(data: {
   name: string;
   description?: string;
   tag?: string;
+  organizationId?: string;
 }): Promise<ActionResult> {
   const supabase = await createClient();
   const profile = await requireProfile();
 
   if (!data.name.trim()) return { error: "Name is required" };
+
+  const organizationId =
+    data.organizationId ??
+    (await ensureDefaultOrganization(supabase, profile.id, profile.full_name));
 
   const { data: community, error } = await supabase
     .from("communities")
@@ -73,6 +79,7 @@ export async function createCommunity(data: {
       description: data.description?.trim() || null,
       tag: data.tag?.trim() || null,
       owner_id: profile.id,
+      organization_id: organizationId,
     })
     .select("id, slug")
     .single();

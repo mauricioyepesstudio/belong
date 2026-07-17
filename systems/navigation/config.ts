@@ -1,5 +1,6 @@
 import {
   Bell,
+  Building2,
   Calendar,
   Crown,
   FolderKanban,
@@ -14,6 +15,7 @@ import type { NavItem } from "@/types";
 
 export const mainNav: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Organizations", href: "/organizations", icon: Building2 },
   { label: "Community", href: "/community", icon: Users },
   { label: "Projects", href: "/projects", icon: FolderKanban },
   { label: "Events", href: "/events", icon: Calendar },
@@ -40,6 +42,7 @@ export const authRoutes = ["/login", "/register", "/forgot-password"] as const;
 
 export const platformRoutes = [
   "/dashboard",
+  "/organizations",
   "/missions",
   "/community",
   "/projects",

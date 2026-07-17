@@ -2,6 +2,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type ConnectionStatus = "pending" | "accepted" | "declined";
 export type CommunityMemberRole = "member" | "admin" | "owner";
+export type OrganizationMemberRole = "owner" | "admin" | "manager" | "member" | "guest";
 export type ProjectStatus = "planning" | "active" | "completed" | "archived";
 export type NotificationType = "connection" | "project" | "event" | "community" | "message" | "system" | "payment";
 export type SubscriptionTier = "free" | "pro" | "creator";
@@ -12,7 +13,7 @@ export type ListingStatus = "draft" | "active" | "sold" | "archived";
 export type DailyMissionStatus = "pending" | "completed" | "skipped";
 export type WeeklyGoalStatus = "active" | "completed" | "expired";
 export type QuarterlyGoalStatus = "active" | "completed" | "expired";
-export type ImpactEventModule = "mission" | "community" | "project" | "system";
+export type ImpactEventModule = "mission" | "community" | "project" | "organization" | "system";
 export type ImpactEventType =
   | "mission_completed"
   | "weekly_goal_completed"
@@ -31,6 +32,9 @@ export type ImpactEventType =
   | "project_file_uploaded"
   | "project_goal_completed"
   | "project_milestone_completed"
+  | "organization_created"
+  | "organization_join"
+  | "organization_invite_accepted"
   | "streak_activity"
   | "connection_accepted";
 export type ProjectTaskStatus = "todo" | "in_progress" | "review" | "done";
@@ -137,6 +141,7 @@ export interface Database {
           activated_at: string | null;
           completed_at: string | null;
           archived_at: string | null;
+          organization_id: string;
           created_at: string;
           updated_at: string;
         };
@@ -152,6 +157,7 @@ export interface Database {
           activated_at?: string | null;
           completed_at?: string | null;
           archived_at?: string | null;
+          organization_id: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -167,6 +173,7 @@ export interface Database {
           activated_at?: string | null;
           completed_at?: string | null;
           archived_at?: string | null;
+          organization_id?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -232,6 +239,72 @@ export interface Database {
         };
         Relationships: [];
       };
+      organizations: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          logo_url: string | null;
+          website: string | null;
+          owner_id: string;
+          impact_score: number;
+          reputation_level: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          logo_url?: string | null;
+          website?: string | null;
+          owner_id: string;
+          impact_score?: number;
+          reputation_level?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          logo_url?: string | null;
+          website?: string | null;
+          owner_id?: string;
+          impact_score?: number;
+          reputation_level?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      organization_members: {
+        Row: {
+          id: string;
+          organization_id: string;
+          user_id: string;
+          role: OrganizationMemberRole;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          user_id: string;
+          role?: OrganizationMemberRole;
+          joined_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          user_id?: string;
+          role?: OrganizationMemberRole;
+          joined_at?: string;
+        };
+        Relationships: [];
+      };
       communities: {
         Row: {
           id: string;
@@ -240,6 +313,7 @@ export interface Database {
           description: string | null;
           tag: string | null;
           owner_id: string;
+          organization_id: string;
           is_paid: boolean;
           subscription_price_cents: number | null;
           stripe_price_id: string | null;
@@ -254,6 +328,7 @@ export interface Database {
           description?: string | null;
           tag?: string | null;
           owner_id: string;
+          organization_id: string;
           is_paid?: boolean;
           subscription_price_cents?: number | null;
           stripe_price_id?: string | null;
@@ -268,6 +343,7 @@ export interface Database {
           description?: string | null;
           tag?: string | null;
           owner_id?: string;
+          organization_id?: string;
           is_paid?: boolean;
           subscription_price_cents?: number | null;
           stripe_price_id?: string | null;
@@ -315,6 +391,7 @@ export interface Database {
           funding_goal_cents: number | null;
           funding_raised_cents: number;
           mission_id: string | null;
+          organization_id: string;
           created_at: string;
           updated_at: string;
         };
@@ -331,6 +408,7 @@ export interface Database {
           funding_goal_cents?: number | null;
           funding_raised_cents?: number;
           mission_id?: string | null;
+          organization_id: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -347,6 +425,7 @@ export interface Database {
           funding_goal_cents?: number | null;
           funding_raised_cents?: number;
           mission_id?: string | null;
+          organization_id?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -1504,6 +1583,7 @@ export interface Database {
 
 export type UserProfile = Database["public"]["Tables"]["users"]["Row"];
 export type Mission = Database["public"]["Tables"]["missions"]["Row"];
+export type Organization = Database["public"]["Tables"]["organizations"]["Row"];
 export type Community = Database["public"]["Tables"]["communities"]["Row"];
 export type CommunityPost = Database["public"]["Tables"]["community_posts"]["Row"];
 export type CommunityPostLike = Database["public"]["Tables"]["community_post_likes"]["Row"];

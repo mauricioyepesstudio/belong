@@ -14,6 +14,7 @@ export type MissionRecord = {
   activated_at: string | null;
   completed_at: string | null;
   archived_at: string | null;
+  organization_id: string;
   created_at: string;
   updated_at: string;
 };
@@ -40,6 +41,7 @@ export type InsertMissionRecord = {
   activated_at?: string | null;
   completed_at?: string | null;
   archived_at?: string | null;
+  organization_id: string;
 };
 
 export type UpdateMissionRecord = Partial<
@@ -67,6 +69,10 @@ export type InsertMilestoneRecord = {
 
 export class MissionRepository {
   constructor(private readonly supabase: SupabaseServerClient) {}
+
+  getClient(): SupabaseServerClient {
+    return this.supabase;
+  }
 
   async findById(userId: string, missionId: string): Promise<MissionRecord | null> {
     const { data, error } = await this.supabase

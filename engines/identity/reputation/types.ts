@@ -1,6 +1,6 @@
 import type { Json } from "@/types/database.types";
 
-export type ImpactEventModule = "mission" | "community" | "project" | "system";
+export type ImpactEventModule = "mission" | "community" | "project" | "organization" | "system";
 
 export type ImpactEventType =
   | "mission_completed"
@@ -20,6 +20,9 @@ export type ImpactEventType =
   | "project_file_uploaded"
   | "project_goal_completed"
   | "project_milestone_completed"
+  | "organization_created"
+  | "organization_join"
+  | "organization_invite_accepted"
   | "streak_activity"
   | "connection_accepted";
 

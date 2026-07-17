@@ -13,6 +13,7 @@ import type {
 import { fetchProjectDetail } from "@/lib/core/projects";
 import { recordImpactEvent } from "@/engines/identity/reputation";
 import { logProjectActivity } from "@/lib/actions/project-workspace";
+import { ensureDefaultOrganization } from "@/lib/core/organizations";
 
 function revalidateProject(projectId?: string) {
   revalidatePath("/projects");
@@ -120,6 +121,18 @@ export async function createProject(data: {
   const deadlineError = validateDeadline(data.deadline);
   if (deadlineError) return deadlineError;
 
+  const { data: community } = await supabase
+    .from("communities")
+    .select("organization_id")
+    .eq("id", data.communityId)
+    .single();
+
+  if (!community) return { error: "Community not found" };
+
+  const organizationId =
+    community.organization_id ??
+    (await ensureDefaultOrganization(supabase, profile.id, profile.full_name));
+
   const { data: lifeMission } = await supabase
     .from("missions")
     .select("id")
@@ -136,6 +149,7 @@ export async function createProject(data: {
       deadline: data.deadline || null,
       owner_id: profile.id,
       community_id: data.communityId,
+      organization_id: organizationId,
       status: "planning",
       progress: 0,
       mission_id: lifeMission?.id ?? null,

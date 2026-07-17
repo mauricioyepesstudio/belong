@@ -3,6 +3,7 @@ import { MISSION_STATES } from "@/engines/mission/constants";
 import { createMissionEngineService } from "@/engines/mission/service";
 import { fetchMissionEngineData } from "@/engines/mission/engine";
 import { fetchUserStats } from "@/lib/core";
+import { ensureDefaultOrganization } from "@/lib/core/organizations";
 import { getWeekStartUtc } from "@/lib/engine/mission-progress";
 import { syncUserSkill } from "@/lib/engine/mission-progress";
 import { slugify } from "@/lib/supabase/notify";
@@ -294,6 +295,11 @@ export class OnboardingEngineServiceImpl implements OnboardingEngineService {
           communityId = membership.community_id;
         } else {
           const communityName = `${draft.fullName?.trim() || profile.full_name || "My"} Community`;
+          const organizationId = await ensureDefaultOrganization(
+            this.supabase,
+            context.userId,
+            profile.full_name
+          );
           const { data: community, error: communityError } = await this.supabase
             .from("communities")
             .insert({
@@ -301,6 +307,7 @@ export class OnboardingEngineServiceImpl implements OnboardingEngineService {
               slug: slugify(communityName),
               description: "Created during onboarding",
               owner_id: context.userId,
+              organization_id: organizationId,
             })
             .select("id")
             .single();
@@ -317,6 +324,16 @@ export class OnboardingEngineServiceImpl implements OnboardingEngineService {
           communityId = community.id;
         }
 
+        const { data: communityOrg } = await this.supabase
+          .from("communities")
+          .select("organization_id")
+          .eq("id", communityId!)
+          .single();
+
+        const organizationId =
+          communityOrg?.organization_id ??
+          (await ensureDefaultOrganization(this.supabase, context.userId, profile.full_name));
+
         const { data: project, error: projectError } = await this.supabase
           .from("projects")
           .insert({
@@ -325,6 +342,7 @@ export class OnboardingEngineServiceImpl implements OnboardingEngineService {
             deadline: draft.project.deadline || null,
             owner_id: context.userId,
             community_id: communityId,
+            organization_id: organizationId,
             status: "planning",
             progress: 0,
           })

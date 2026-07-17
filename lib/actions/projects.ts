@@ -12,6 +12,7 @@ import type {
 } from "@/lib/core";
 import { fetchProjectDetail } from "@/lib/core/projects";
 import { recordImpactEvent } from "@/engines/identity/reputation";
+import { logProjectActivity } from "@/lib/actions/project-workspace";
 
 function revalidateProject(projectId?: string) {
   revalidatePath("/projects");
@@ -119,6 +120,14 @@ export async function createProject(data: {
   const deadlineError = validateDeadline(data.deadline);
   if (deadlineError) return deadlineError;
 
+  const { data: lifeMission } = await supabase
+    .from("missions")
+    .select("id")
+    .eq("user_id", profile.id)
+    .eq("is_primary", true)
+    .neq("state", "archived")
+    .maybeSingle();
+
   const { data: project, error } = await supabase
     .from("projects")
     .insert({
@@ -129,6 +138,7 @@ export async function createProject(data: {
       community_id: data.communityId,
       status: "planning",
       progress: 0,
+      mission_id: lifeMission?.id ?? null,
     })
     .select("id")
     .single();
@@ -282,6 +292,14 @@ export async function joinProject(projectId: string): Promise<ActionResult> {
     metadata: { project_name: project.name },
   });
 
+  await logProjectActivity(supabase, {
+    projectId,
+    actorId: profile.id,
+    activityType: "member_joined",
+    title: `${profile.full_name ?? "Someone"} joined the project`,
+    metadata: { user_id: profile.id },
+  });
+
   revalidateProject(projectId);
   return {};
 }
@@ -349,6 +367,14 @@ export async function createProjectPost(
     eventType: "project_post",
     points: 6,
     sourceId: projectId,
+    metadata: { post_id: post.id },
+  });
+
+  await logProjectActivity(supabase, {
+    projectId,
+    actorId: profile.id,
+    activityType: "post_created",
+    title: `${profile.full_name ?? "Someone"} shared an update`,
     metadata: { post_id: post.id },
   });
 
@@ -531,6 +557,20 @@ export async function inviteToProject(
     body: `You were added to ${project.name}`,
     type: "project",
     metadata: { project_id: projectId },
+  });
+
+  const { data: invitee } = await supabase
+    .from("users")
+    .select("full_name")
+    .eq("id", userId)
+    .single();
+
+  await logProjectActivity(supabase, {
+    projectId,
+    actorId: profile.id,
+    activityType: "member_joined",
+    title: `${invitee?.full_name ?? "A member"} was invited to the project`,
+    metadata: { user_id: userId },
   });
 
   revalidateProject(projectId);

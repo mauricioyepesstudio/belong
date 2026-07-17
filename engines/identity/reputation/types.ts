@@ -15,6 +15,11 @@ export type ImpactEventType =
   | "project_post"
   | "project_comment"
   | "project_completed"
+  | "project_task_created"
+  | "project_task_completed"
+  | "project_file_uploaded"
+  | "project_goal_completed"
+  | "project_milestone_completed"
   | "streak_activity"
   | "connection_accepted";
 

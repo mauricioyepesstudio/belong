@@ -1,4 +1,4 @@
--- E2E validation for Sprint 2B project workspace (run via: npm run test:project-e2e)
+-- E2E validation for project workspace (run via: npm run test:project-e2e)
 -- Uses existing user + community; cleans up test data on completion.
 
 DO $$
@@ -7,6 +7,9 @@ DECLARE
   v_community_id uuid;
   v_project_id uuid;
   v_post_id uuid;
+  v_task_id uuid;
+  v_goal_id uuid;
+  v_activity_count int;
   v_member_count int;
   v_like_count int;
   v_comment_count int;
@@ -72,19 +75,45 @@ BEGIN
   INSERT INTO public.project_post_comments (post_id, author_id, content)
   VALUES (v_post_id, v_user_id, 'E2E validation comment');
 
+  INSERT INTO public.project_tasks (project_id, creator_id, title, status, priority)
+  VALUES (v_project_id, v_user_id, 'E2E validation task', 'todo', 'medium')
+  RETURNING id INTO v_task_id;
+
+  UPDATE public.project_tasks
+  SET status = 'done', completed_at = now()
+  WHERE id = v_task_id;
+
+  INSERT INTO public.project_goals (project_id, creator_id, title, goal_type, progress_percent)
+  VALUES (v_project_id, v_user_id, 'E2E weekly goal', 'weekly', 50)
+  RETURNING id INTO v_goal_id;
+
+  INSERT INTO public.project_activity (project_id, actor_id, activity_type, title)
+  VALUES (v_project_id, v_user_id, 'task_created', 'E2E task created');
+
   SELECT count(*) INTO v_member_count FROM public.project_members WHERE project_id = v_project_id;
   SELECT count(*) INTO v_like_count FROM public.project_post_likes WHERE post_id = v_post_id;
   SELECT count(*) INTO v_comment_count FROM public.project_post_comments WHERE post_id = v_post_id;
+  SELECT count(*) INTO v_activity_count FROM public.project_activity WHERE project_id = v_project_id;
 
   IF v_member_count < 1 THEN RAISE EXCEPTION 'Members list empty'; END IF;
   IF v_like_count <> 1 THEN RAISE EXCEPTION 'Like count mismatch'; END IF;
   IF v_comment_count <> 1 THEN RAISE EXCEPTION 'Comment count mismatch'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.project_tasks WHERE id = v_task_id AND status = 'done') THEN
+    RAISE EXCEPTION 'Task was not completed';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.project_goals WHERE id = v_goal_id) THEN
+    RAISE EXCEPTION 'Goal was not saved';
+  END IF;
+  IF v_activity_count < 1 THEN RAISE EXCEPTION 'Activity feed empty'; END IF;
 
+  DELETE FROM public.project_activity WHERE project_id = v_project_id;
+  DELETE FROM public.project_goals WHERE project_id = v_project_id;
+  DELETE FROM public.project_tasks WHERE project_id = v_project_id;
   DELETE FROM public.project_post_comments WHERE post_id = v_post_id;
   DELETE FROM public.project_post_likes WHERE post_id = v_post_id;
   DELETE FROM public.project_posts WHERE id = v_post_id;
   DELETE FROM public.project_members WHERE project_id = v_project_id;
   DELETE FROM public.projects WHERE id = v_project_id;
 
-  RAISE NOTICE 'Sprint 2B project workspace validation passed for project %', v_project_id;
+  RAISE NOTICE 'Project workspace validation passed for project %', v_project_id;
 END $$;

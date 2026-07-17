@@ -26,8 +26,17 @@ export type ImpactEventType =
   | "project_post"
   | "project_comment"
   | "project_completed"
+  | "project_task_created"
+  | "project_task_completed"
+  | "project_file_uploaded"
+  | "project_goal_completed"
+  | "project_milestone_completed"
   | "streak_activity"
   | "connection_accepted";
+export type ProjectTaskStatus = "todo" | "in_progress" | "review" | "done";
+export type ProjectTaskPriority = "low" | "medium" | "high" | "urgent";
+export type ProjectGoalType = "weekly" | "quarterly";
+export type ProjectGoalStatus = "active" | "completed" | "expired";
 export type OnboardingSessionStatus = "in_progress" | "completed" | "abandoned";
 export type MissionState =
   | "draft"
@@ -305,6 +314,7 @@ export interface Database {
           funding_enabled: boolean;
           funding_goal_cents: number | null;
           funding_raised_cents: number;
+          mission_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -320,6 +330,7 @@ export interface Database {
           funding_enabled?: boolean;
           funding_goal_cents?: number | null;
           funding_raised_cents?: number;
+          mission_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -335,6 +346,7 @@ export interface Database {
           funding_enabled?: boolean;
           funding_goal_cents?: number | null;
           funding_raised_cents?: number;
+          mission_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1156,6 +1168,255 @@ export interface Database {
           content?: string;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      project_tasks: {
+        Row: {
+          id: string;
+          project_id: string;
+          creator_id: string;
+          assignee_id: string | null;
+          title: string;
+          description: string | null;
+          status: ProjectTaskStatus;
+          priority: ProjectTaskPriority;
+          deadline: string | null;
+          sort_order: number;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          creator_id: string;
+          assignee_id?: string | null;
+          title: string;
+          description?: string | null;
+          status?: ProjectTaskStatus;
+          priority?: ProjectTaskPriority;
+          deadline?: string | null;
+          sort_order?: number;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          creator_id?: string;
+          assignee_id?: string | null;
+          title?: string;
+          description?: string | null;
+          status?: ProjectTaskStatus;
+          priority?: ProjectTaskPriority;
+          deadline?: string | null;
+          sort_order?: number;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      project_milestones: {
+        Row: {
+          id: string;
+          project_id: string;
+          title: string;
+          description: string | null;
+          target_date: string | null;
+          completed_at: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          title: string;
+          description?: string | null;
+          target_date?: string | null;
+          completed_at?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          title?: string;
+          description?: string | null;
+          target_date?: string | null;
+          completed_at?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      project_files: {
+        Row: {
+          id: string;
+          project_id: string;
+          uploader_id: string;
+          file_name: string;
+          storage_path: string;
+          file_size: number;
+          mime_type: string | null;
+          version: number;
+          parent_file_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          uploader_id: string;
+          file_name: string;
+          storage_path: string;
+          file_size?: number;
+          mime_type?: string | null;
+          version?: number;
+          parent_file_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          uploader_id?: string;
+          file_name?: string;
+          storage_path?: string;
+          file_size?: number;
+          mime_type?: string | null;
+          version?: number;
+          parent_file_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      project_discussions: {
+        Row: {
+          id: string;
+          project_id: string;
+          author_id: string;
+          title: string;
+          content: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          author_id: string;
+          title: string;
+          content: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          author_id?: string;
+          title?: string;
+          content?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      project_discussion_replies: {
+        Row: {
+          id: string;
+          discussion_id: string;
+          author_id: string;
+          parent_reply_id: string | null;
+          content: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          discussion_id: string;
+          author_id: string;
+          parent_reply_id?: string | null;
+          content: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          discussion_id?: string;
+          author_id?: string;
+          parent_reply_id?: string | null;
+          content?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      project_goals: {
+        Row: {
+          id: string;
+          project_id: string;
+          creator_id: string;
+          title: string;
+          description: string | null;
+          goal_type: ProjectGoalType;
+          progress_percent: number;
+          due_date: string | null;
+          status: ProjectGoalStatus;
+          completed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          creator_id: string;
+          title: string;
+          description?: string | null;
+          goal_type?: ProjectGoalType;
+          progress_percent?: number;
+          due_date?: string | null;
+          status?: ProjectGoalStatus;
+          completed_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          creator_id?: string;
+          title?: string;
+          description?: string | null;
+          goal_type?: ProjectGoalType;
+          progress_percent?: number;
+          due_date?: string | null;
+          status?: ProjectGoalStatus;
+          completed_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      project_activity: {
+        Row: {
+          id: string;
+          project_id: string;
+          actor_id: string | null;
+          activity_type: string;
+          title: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          actor_id?: string | null;
+          activity_type: string;
+          title: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          actor_id?: string | null;
+          activity_type?: string;
+          title?: string;
+          metadata?: Json;
+          created_at?: string;
         };
         Relationships: [];
       };

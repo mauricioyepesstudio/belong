@@ -6,6 +6,7 @@ import type {
   UserProfile,
 } from "@/types/database.types";
 import type { SupabaseServerClient } from "./types";
+import { fetchProjectWorkspaceBundle } from "./project-workspace";
 
 export type ProjectCommunitySummary = Pick<Community, "id" | "name" | "slug">;
 
@@ -50,6 +51,7 @@ export type ProjectDetail = {
   membership: { role: string; joinedAt: string } | null;
   members: ProjectMember[];
   posts: ProjectPostWithMeta[];
+  workspace: Awaited<ReturnType<typeof fetchProjectWorkspaceBundle>>;
 };
 
 export async function attachProjectMemberCounts(
@@ -347,6 +349,15 @@ export async function fetchProjectDetail(
 
   if (!communityResult.data || !ownerResult.data) return null;
 
+  const workspace = await fetchProjectWorkspaceBundle(
+    supabase,
+    project.id,
+    project.owner_id,
+    project.mission_id ?? null,
+    members.map((m) => m.userId),
+    project.progress
+  );
+
   return {
     project,
     community: communityResult.data,
@@ -355,5 +366,6 @@ export async function fetchProjectDetail(
     membership,
     members,
     posts,
+    workspace,
   };
 }

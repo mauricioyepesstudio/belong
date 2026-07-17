@@ -10,14 +10,20 @@ import {
 import { enableProjectFunding } from "@/lib/actions/billing";
 import { formatCents, FundProjectModal } from "@/engines/billing";
 import { ProjectPostCard } from "./project-post-card";
+import { ProjectOverviewTab } from "./workspace/overview-tab";
+import { ProjectActivityTab } from "./workspace/activity-tab";
+import { ProjectTasksTab } from "./workspace/tasks-tab";
+import { ProjectMembersTab } from "./workspace/members-tab";
+import { ProjectFilesTab } from "./workspace/files-tab";
+import { ProjectDiscussionsTab } from "./workspace/discussions-tab";
+import { ProjectGoalsTab } from "./workspace/goals-tab";
+import { ProjectAnalyticsTab } from "./workspace/analytics-tab";
 import type { ProjectDetail, ProjectMember, ProjectPostWithMeta } from "@/lib/core";
 import {
-  Avatar,
   Badge,
   Button,
   Card,
   CardContent,
-  EmptyState,
   FeatureScreen,
   Input,
   Label,
@@ -27,8 +33,7 @@ import {
   Textarea,
   useToast,
 } from "@/systems/design-system";
-import { formatInitials } from "@/lib/format";
-import { ArrowLeft, DollarSign, FolderKanban, MessageSquarePlus, Users } from "lucide-react";
+import { ArrowLeft, DollarSign, FolderKanban, MessageSquarePlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
@@ -62,7 +67,7 @@ const statusOptions: { value: ProjectStatus; label: string }[] = [
 export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [tab, setTab] = useState("feed");
+  const [tab, setTab] = useState("overview");
   const [postBody, setPostBody] = useState("");
   const [fundOpen, setFundOpen] = useState(false);
   const [backOpen, setBackOpen] = useState(false);
@@ -73,6 +78,7 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
   const [membership, setMembership] = useState(data.membership);
   const [memberCount, setMemberCount] = useState(data.memberCount);
   const [members, setMembers] = useState(data.members);
+  const [workspace, setWorkspace] = useState(data.workspace);
   const [status, setStatus] = useState(project.status);
   const [fundingEnabled, setFundingEnabled] = useState(project.funding_enabled);
 
@@ -81,12 +87,14 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
     setMembership(data.membership);
     setMemberCount(data.memberCount);
     setMembers(data.members);
+    setWorkspace(data.workspace);
     setStatus(data.project.status);
     setFundingEnabled(data.project.funding_enabled);
   }, [data]);
 
   const isMember = Boolean(membership);
   const isOwner = project.owner_id === currentUser.id;
+  const isAdmin = membership?.role === "admin" || isOwner;
 
   const fundingProgress =
     project.funding_goal_cents && project.funding_goal_cents > 0
@@ -103,6 +111,7 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
     setMembership(fresh.membership);
     setMemberCount(fresh.memberCount);
     setMembers(fresh.members);
+    setWorkspace(fresh.workspace);
     setStatus(fresh.project.status);
     setFundingEnabled(fresh.project.funding_enabled);
   }, [project.id]);
@@ -331,16 +340,25 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
         <div className="mt-6 overflow-x-auto">
           <Tabs
             tabs={[
-              { id: "feed", label: "Activity", count: posts.length },
+              { id: "overview", label: "Overview" },
+              { id: "activity", label: "Activity", count: workspace.activity.length + posts.length },
+              { id: "tasks", label: "Tasks", count: workspace.tasks.length },
               { id: "members", label: "Members", count: memberCount },
+              { id: "files", label: "Files", count: workspace.files.length },
+              { id: "discussions", label: "Discussions", count: workspace.discussions.length },
+              { id: "goals", label: "Goals", count: workspace.goals.length },
+              { id: "analytics", label: "Analytics" },
             ]}
             active={tab}
             onChange={setTab}
           />
         </div>
 
-        {tab === "feed" ? (
-          <div className="mt-6 space-y-4">
+        {tab === "overview" && <ProjectOverviewTab data={{ ...data, workspace }} />}
+
+        {tab === "activity" && (
+          <div className="space-y-6">
+            <ProjectActivityTab activity={workspace.activity} postsCount={posts.length} />
             {isMember && (
               <Card>
                 <CardContent className="pt-6">
@@ -364,35 +382,6 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
                 </CardContent>
               </Card>
             )}
-
-            {!isMember && posts.length === 0 && (
-              <EmptyState
-                icon={MessageSquarePlus}
-                title="Join to participate"
-                description="Become a project member to post, comment, and like updates."
-                action={{ label: "Join project", onClick: handleJoin }}
-                className="py-10"
-              />
-            )}
-
-            {!isMember && posts.length > 0 && (
-              <EmptyState
-                icon={MessageSquarePlus}
-                title="Join to interact"
-                description="You can read updates below. Join the project to post, comment, and like."
-                action={{ label: "Join project", onClick: handleJoin }}
-                className="border-0 bg-transparent py-4"
-              />
-            )}
-
-            {posts.length === 0 && isMember && (
-              <EmptyState
-                icon={MessageSquarePlus}
-                title="No activity yet"
-                description="Be the first to share an update on this project."
-              />
-            )}
-
             {posts.map((post) => (
               <ProjectPostCard
                 key={post.id}
@@ -402,51 +391,51 @@ export function ProjectDetailScreen({ data, currentUser }: ProjectDetailScreenPr
               />
             ))}
           </div>
-        ) : (
-          <div className="mt-6">
-            {members.length === 0 ? (
-              <EmptyState
-                icon={Users}
-                title="No members yet"
-                description="This project is waiting for its first members."
-              />
-            ) : (
-              <Card>
-                <CardContent className="divide-y divide-border-subtle p-0 pt-2">
-                  <ul>
-                    {members.map((member) => (
-                      <li key={member.key} className="flex items-center gap-3 px-4 py-4 sm:px-6">
-                        <Avatar
-                          src={member.avatarUrl ?? undefined}
-                          fallback={formatInitials(member.fullName)}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="truncate font-medium text-fg-primary">
-                              {member.fullName ?? "Builder"}
-                              {member.userId === currentUser.id && (
-                                <span className="text-fg-muted"> (you)</span>
-                              )}
-                            </p>
-                            <Badge
-                              variant={member.role === "owner" ? "brand" : "outline"}
-                              className="capitalize"
-                            >
-                              {member.role}
-                            </Badge>
-                          </div>
-                          {member.bio && (
-                            <p className="mt-0.5 truncate text-caption text-fg-muted">{member.bio}</p>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-          </div>
         )}
+
+        {tab === "tasks" && (
+          <ProjectTasksTab
+            projectId={project.id}
+            tasks={workspace.tasks}
+            isMember={isMember}
+          />
+        )}
+
+        {tab === "members" && (
+          <ProjectMembersTab
+            projectId={project.id}
+            members={members}
+            currentUserId={currentUser.id}
+            isOwner={isOwner}
+            isAdmin={isAdmin}
+          />
+        )}
+
+        {tab === "files" && (
+          <ProjectFilesTab
+            projectId={project.id}
+            files={workspace.files}
+            isMember={isMember}
+          />
+        )}
+
+        {tab === "discussions" && (
+          <ProjectDiscussionsTab
+            projectId={project.id}
+            discussions={workspace.discussions}
+            isMember={isMember}
+          />
+        )}
+
+        {tab === "goals" && (
+          <ProjectGoalsTab
+            projectId={project.id}
+            goals={workspace.goals}
+            isMember={isMember}
+          />
+        )}
+
+        {tab === "analytics" && <ProjectAnalyticsTab analytics={workspace.analytics} />}
       </FeatureScreen>
 
       <Modal

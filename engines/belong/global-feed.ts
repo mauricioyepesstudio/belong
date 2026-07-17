@@ -40,7 +40,18 @@ export type GlobalImpactFeed = {
 
 export type UserActivityItem = {
   id: string;
-  type: "contribution" | "mission" | "goal" | "project" | "community" | "connection" | "event";
+  type:
+    | "contribution"
+    | "mission"
+    | "goal"
+    | "project"
+    | "community"
+    | "connection"
+    | "event"
+    | "post"
+    | "comment"
+    | "member"
+    | "achievement";
   title: string;
   subtitle?: string;
   points?: number;
@@ -51,23 +62,28 @@ export type UserActivityItem = {
 export async function fetchUserRecentActivity(
   supabase: SupabaseServerClient,
   userId: string,
-  limit = 12
+  limit = 20
 ): Promise<UserActivityItem[]> {
+  const perSource = Math.max(6, Math.ceil(limit / 2));
+
   const [
     { data: contributions },
     { data: completedMissions },
     { data: completedGoals },
+    { data: completedQuarterly },
     { data: projects },
     { data: memberships },
     { data: connections },
     { data: registrations },
+    { data: userCommunities },
+    { data: userProjects },
   ] = await Promise.all([
     supabase
       .from("community_contributions")
       .select("id, contribution_type, points, created_at, community_id")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(limit),
+      .limit(perSource),
     supabase
       .from("daily_missions")
       .select("id, title, impact_points, completed_at")
@@ -75,7 +91,7 @@ export async function fetchUserRecentActivity(
       .eq("status", "completed")
       .not("completed_at", "is", null)
       .order("completed_at", { ascending: false })
-      .limit(limit),
+      .limit(perSource),
     supabase
       .from("weekly_goals")
       .select("id, title, impact_points, completed_at")
@@ -83,57 +99,172 @@ export async function fetchUserRecentActivity(
       .eq("status", "completed")
       .not("completed_at", "is", null)
       .order("completed_at", { ascending: false })
-      .limit(limit),
+      .limit(perSource),
+    supabase
+      .from("quarterly_goals")
+      .select("id, title, completed_at")
+      .eq("user_id", userId)
+      .eq("status", "completed")
+      .not("completed_at", "is", null)
+      .order("completed_at", { ascending: false })
+      .limit(perSource),
     supabase
       .from("projects")
       .select("id, name, status, created_at, updated_at")
       .eq("owner_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(limit),
+      .order("updated_at", { ascending: false })
+      .limit(perSource),
     supabase
       .from("community_members")
       .select("id, community_id, joined_at, role")
       .eq("user_id", userId)
       .order("joined_at", { ascending: false })
-      .limit(limit),
+      .limit(perSource),
     supabase
       .from("connections")
       .select("id, requester_id, recipient_id, status, updated_at")
       .eq("status", "accepted")
       .or(`requester_id.eq.${userId},recipient_id.eq.${userId}`)
       .order("updated_at", { ascending: false })
-      .limit(limit),
+      .limit(perSource),
     supabase
       .from("event_registrations")
       .select("event_id, registered_at")
       .eq("user_id", userId)
       .order("registered_at", { ascending: false })
-      .limit(limit),
+      .limit(perSource),
+    supabase.from("community_members").select("community_id").eq("user_id", userId),
+    supabase.from("project_members").select("project_id").eq("user_id", userId),
   ]);
 
-  const communityIds = new Set<string>();
+  const joinedCommunityIds = (userCommunities ?? []).map((m) => m.community_id);
+  const joinedProjectIds = (userProjects ?? []).map((m) => m.project_id);
+
+  const [
+    { data: communityPosts },
+    { data: projectPosts },
+    { data: communityComments },
+    { data: projectComments },
+    { data: newMembers },
+  ] = await Promise.all([
+    joinedCommunityIds.length
+      ? supabase
+          .from("community_posts")
+          .select("id, content, community_id, author_id, created_at")
+          .in("community_id", joinedCommunityIds)
+          .order("created_at", { ascending: false })
+          .limit(perSource)
+      : Promise.resolve({
+          data: [] as {
+            id: string;
+            content: string;
+            community_id: string;
+            author_id: string;
+            created_at: string;
+          }[],
+        }),
+    joinedProjectIds.length
+      ? supabase
+          .from("project_posts")
+          .select("id, content, project_id, author_id, created_at")
+          .in("project_id", joinedProjectIds)
+          .order("created_at", { ascending: false })
+          .limit(perSource)
+      : Promise.resolve({
+          data: [] as {
+            id: string;
+            content: string;
+            project_id: string;
+            author_id: string;
+            created_at: string;
+          }[],
+        }),
+    joinedCommunityIds.length
+      ? supabase
+          .from("community_post_comments")
+          .select("id, content, post_id, author_id, created_at")
+          .order("created_at", { ascending: false })
+          .limit(perSource)
+      : Promise.resolve({
+          data: [] as {
+            id: string;
+            content: string;
+            post_id: string;
+            author_id: string;
+            created_at: string;
+          }[],
+        }),
+    joinedProjectIds.length
+      ? supabase
+          .from("project_post_comments")
+          .select("id, content, post_id, author_id, created_at")
+          .order("created_at", { ascending: false })
+          .limit(perSource)
+      : Promise.resolve({
+          data: [] as {
+            id: string;
+            content: string;
+            post_id: string;
+            author_id: string;
+            created_at: string;
+          }[],
+        }),
+    joinedCommunityIds.length
+      ? supabase
+          .from("community_members")
+          .select("id, community_id, user_id, joined_at, role")
+          .in("community_id", joinedCommunityIds)
+          .neq("user_id", userId)
+          .order("joined_at", { ascending: false })
+          .limit(perSource)
+      : Promise.resolve({
+          data: [] as {
+            id: string;
+            community_id: string;
+            user_id: string;
+            joined_at: string;
+            role: string;
+          }[],
+        }),
+  ]);
+
+  const communityIds = new Set<string>(joinedCommunityIds);
   for (const c of contributions ?? []) communityIds.add(c.community_id);
   for (const m of memberships ?? []) communityIds.add(m.community_id);
+
+  const projectIdSet = new Set<string>(joinedProjectIds);
+  for (const p of projects ?? []) projectIdSet.add(p.id);
+  for (const p of projectPosts ?? []) projectIdSet.add(p.project_id);
 
   const eventIds = [...new Set((registrations ?? []).map((r) => r.event_id))];
   const connectionUserIds = new Set<string>();
   for (const c of connections ?? []) {
     connectionUserIds.add(c.requester_id === userId ? c.recipient_id : c.requester_id);
   }
+  for (const m of newMembers ?? []) connectionUserIds.add(m.user_id);
+  for (const p of communityPosts ?? []) connectionUserIds.add(p.author_id);
+  for (const p of projectPosts ?? []) connectionUserIds.add(p.author_id);
+  for (const c of communityComments ?? []) connectionUserIds.add(c.author_id);
+  for (const c of projectComments ?? []) connectionUserIds.add(c.author_id);
 
-  const [{ data: communities }, { data: events }, { data: users }] = await Promise.all([
-    communityIds.size
-      ? supabase.from("communities").select("id, name, slug").in("id", [...communityIds])
-      : Promise.resolve({ data: [] as { id: string; name: string; slug: string }[] }),
-    eventIds.length
-      ? supabase.from("events").select("id, title").in("id", eventIds)
-      : Promise.resolve({ data: [] as { id: string; title: string }[] }),
-    connectionUserIds.size
-      ? supabase.from("users").select("id, full_name").in("id", [...connectionUserIds])
-      : Promise.resolve({ data: [] as { id: string; full_name: string | null }[] }),
-  ]);
+  const [{ data: communities }, { data: projectRows }, { data: events }, { data: users }] =
+    await Promise.all([
+      communityIds.size
+        ? supabase.from("communities").select("id, name, slug").in("id", [...communityIds])
+        : Promise.resolve({ data: [] as { id: string; name: string; slug: string }[] }),
+      projectIdSet.size
+        ? supabase.from("projects").select("id, name").in("id", [...projectIdSet])
+        : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+      eventIds.length
+        ? supabase.from("events").select("id, title").in("id", eventIds)
+        : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+      connectionUserIds.size
+        ? supabase.from("users").select("id, full_name").in("id", [...connectionUserIds])
+        : Promise.resolve({ data: [] as { id: string; full_name: string | null }[] }),
+    ]);
 
   const communityMap = new Map((communities ?? []).map((c) => [c.id, c]));
+  const projectMap = new Map((projectRows ?? []).map((p) => [p.id, p.name]));
   const eventMap = new Map((events ?? []).map((e) => [e.id, e.title]));
   const userMap = new Map((users ?? []).map((u) => [u.id, u.full_name ?? "Builder"]));
 
@@ -164,7 +295,15 @@ export async function fetchUserRecentActivity(
       title: g.title,
       subtitle: "Weekly goal completed",
       points: g.impact_points,
-      href: "/dashboard",
+      href: "/dashboard#weekly-goals",
+      createdAt: g.completed_at!,
+    })),
+    ...(completedQuarterly ?? []).map((g) => ({
+      id: `qgoal-${g.id}`,
+      type: "achievement" as const,
+      title: g.title,
+      subtitle: "Quarterly goal achieved",
+      href: "/dashboard#life-mission",
       createdAt: g.completed_at!,
     })),
     ...(projects ?? []).map((p) => ({
@@ -173,7 +312,51 @@ export async function fetchUserRecentActivity(
       title: p.name,
       subtitle: `Project ${p.status}`,
       href: `/projects/${p.id}`,
+      createdAt: p.updated_at,
+    })),
+    ...(communityPosts ?? []).map((p) => ({
+      id: `cpost-${p.id}`,
+      type: "post" as const,
+      title: p.content.slice(0, 80) + (p.content.length > 80 ? "…" : ""),
+      subtitle: `${userMap.get(p.author_id) ?? "Someone"} in ${communityMap.get(p.community_id)?.name ?? "community"}`,
+      href: communityMap.get(p.community_id)?.slug
+        ? `/community/${communityMap.get(p.community_id)!.slug}`
+        : "/community",
       createdAt: p.created_at,
+    })),
+    ...(projectPosts ?? []).map((p) => ({
+      id: `ppost-${p.id}`,
+      type: "post" as const,
+      title: p.content.slice(0, 80) + (p.content.length > 80 ? "…" : ""),
+      subtitle: `${userMap.get(p.author_id) ?? "Someone"} in ${projectMap.get(p.project_id) ?? "project"}`,
+      href: `/projects/${p.project_id}`,
+      createdAt: p.created_at,
+    })),
+    ...(communityComments ?? []).map((c) => ({
+      id: `ccomment-${c.id}`,
+      type: "comment" as const,
+      title: c.content.slice(0, 80) + (c.content.length > 80 ? "…" : ""),
+      subtitle: `${userMap.get(c.author_id) ?? "Someone"} commented`,
+      href: "/community",
+      createdAt: c.created_at,
+    })),
+    ...(projectComments ?? []).map((c) => ({
+      id: `pcomment-${c.id}`,
+      type: "comment" as const,
+      title: c.content.slice(0, 80) + (c.content.length > 80 ? "…" : ""),
+      subtitle: `${userMap.get(c.author_id) ?? "Someone"} commented`,
+      href: "/projects",
+      createdAt: c.created_at,
+    })),
+    ...(newMembers ?? []).map((m) => ({
+      id: `member-${m.id}`,
+      type: "member" as const,
+      title: `${userMap.get(m.user_id) ?? "Builder"} joined`,
+      subtitle: communityMap.get(m.community_id)?.name ?? "community",
+      href: communityMap.get(m.community_id)?.slug
+        ? `/community/${communityMap.get(m.community_id)!.slug}`
+        : "/community",
+      createdAt: m.joined_at,
     })),
     ...(memberships ?? []).map((m) => ({
       id: `community-${m.id}`,

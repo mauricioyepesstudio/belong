@@ -22,6 +22,7 @@ function getPageTitle(pathname: string): string {
   if (pathname.startsWith("/pricing")) return "Pricing";
   if (pathname.startsWith("/billing")) return "Billing";
   if (pathname.startsWith("/profile")) return "Profile";
+  if (pathname.startsWith("/search")) return "Search";
   return "BELONG";
 }
 
@@ -41,9 +42,9 @@ export function AppTopNav({ profile, unreadNotifications = 0 }: AppTopNavProps) 
 
         <div className="flex items-center gap-1">
           <Link
-            href="/community"
+            href="/search"
             className="flex h-9 w-9 items-center justify-center rounded-xl text-fg-muted transition-colors hover:bg-bg-hover hover:text-fg-primary focus-ring"
-            aria-label="Search community"
+            aria-label="Search"
           >
             <Search className="h-[18px] w-[18px]" aria-hidden />
           </Link>

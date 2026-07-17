@@ -1,6 +1,5 @@
 "use client";
 
-import type { HomeEngineData } from "@/engines/belong/data";
 import type { UserActivityItem } from "@/engines/belong/global-feed";
 import { ScrollReveal } from "@/components/motion/fade-in";
 import { Badge, EmptyState } from "@/systems/design-system";
@@ -20,10 +19,7 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { GlassCard, SectionHeader } from "./primitives";
 
-const activityConfig: Record<
-  UserActivityItem["type"],
-  { icon: LucideIcon; label: string }
-> = {
+const activityConfig: Record<UserActivityItem["type"], { icon: LucideIcon; label: string }> = {
   contribution: { icon: Users, label: "Contribution" },
   mission: { icon: CheckCircle2, label: "Mission" },
   goal: { icon: Target, label: "Weekly goal" },
@@ -37,24 +33,35 @@ const activityConfig: Record<
   achievement: { icon: Award, label: "Achievement" },
 };
 
-export function RecentActivity({
+export function UnifiedFeed({
   activity,
   onExploreCommunities,
 }: {
-  activity: HomeEngineData["recentActivity"];
+  activity: UserActivityItem[];
   onExploreCommunities: () => void;
 }) {
   return (
     <ScrollReveal delay={0.1}>
-      <section>
-        <SectionHeader label="Activity" title="Recent activity" />
+      <section id="unified-feed">
+        <SectionHeader
+          label="Unified feed"
+          title="Everything in one stream"
+          action={
+            <Link
+              href="/notifications"
+              className="text-sm text-fg-muted transition-colors hover:text-brand"
+            >
+              All notifications →
+            </Link>
+          }
+        />
 
         {activity.length === 0 ? (
           <GlassCard>
             <EmptyState
               icon={Activity}
-              title="No activity yet"
-              description="Complete missions, join communities, or start a project — your impact story begins here."
+              title="Your feed is warming up"
+              description="Complete a mission, post in a community, or join a project — activity from every module appears here."
               action={{ label: "Explore communities", onClick: onExploreCommunities }}
               className="border-0 bg-transparent py-12"
             />

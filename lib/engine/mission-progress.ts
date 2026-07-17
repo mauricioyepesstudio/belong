@@ -1,4 +1,5 @@
 import type { SupabaseServerClient } from "@/lib/core/types";
+import { createNotification } from "@/lib/supabase/notify";
 
 export function getWeekStartUtc(): string {
   const d = new Date();
@@ -27,14 +28,31 @@ export async function incrementQuarterlyProgress(
   if (!goal) return;
 
   const next = Math.min(100, goal.progress_percent + increment);
+  const completed = next >= 100;
   await supabase
     .from("quarterly_goals")
     .update({
       progress_percent: next,
-      status: next >= 100 ? "completed" : "active",
-      completed_at: next >= 100 ? new Date().toISOString() : null,
+      status: completed ? "completed" : "active",
+      completed_at: completed ? new Date().toISOString() : null,
     })
     .eq("id", goal.id);
+
+  if (completed) {
+    const { data: goalRow } = await supabase
+      .from("quarterly_goals")
+      .select("title")
+      .eq("id", goal.id)
+      .single();
+
+    await createNotification(supabase, {
+      userId,
+      title: "Quarterly goal completed",
+      body: goalRow?.title ?? "You completed a quarterly goal.",
+      type: "system",
+      metadata: { goal_id: goal.id, kind: "quarterly_goal" },
+    });
+  }
 }
 
 export async function recordMissionCompletionImpact(
@@ -73,14 +91,25 @@ export async function incrementWeeklyGoalByTitle(
   for (const goal of goals ?? []) {
     if (!goal.title.toLowerCase().includes(titleFragment.toLowerCase())) continue;
     const next = goal.current_count + 1;
+    const completed = next >= goal.target_count;
     await supabase
       .from("weekly_goals")
       .update({
         current_count: next,
-        status: next >= goal.target_count ? "completed" : "active",
-        completed_at: next >= goal.target_count ? new Date().toISOString() : null,
+        status: completed ? "completed" : "active",
+        completed_at: completed ? new Date().toISOString() : null,
       })
       .eq("id", goal.id);
+
+    if (completed) {
+      await createNotification(supabase, {
+        userId,
+        title: "Weekly goal completed",
+        body: goal.title,
+        type: "system",
+        metadata: { goal_id: goal.id, kind: "weekly_goal" },
+      });
+    }
   }
 }
 

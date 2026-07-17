@@ -1,7 +1,6 @@
 "use client";
 
 import type { HomeEngineData } from "@/engines/belong/data";
-import { LifeMissionPanel } from "@/engines/mission/components/life-mission-panel";
 import { Avatar } from "@/components/ui/avatar";
 import { FadeIn } from "@/components/motion/fade-in";
 import { Badge, ProgressBar } from "@/systems/design-system";
@@ -26,9 +25,8 @@ function profileCompleteness(profile: HomeEngineData["profile"]): number {
 export function ProfileHeader({
   profile,
   stats,
-  missionEngine,
   impactScore,
-}: Pick<HomeEngineData, "profile" | "stats" | "missionEngine"> & {
+}: Pick<HomeEngineData, "profile" | "stats"> & {
   impactScore: number;
 }) {
   const completeness = profileCompleteness(profile);
@@ -146,19 +144,8 @@ export function ProfileHeader({
             </Link>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
-              <p className="text-label text-fg-muted">Life mission</p>
-              <div className="mt-3">
-                <LifeMissionPanel
-                  profile={profile}
-                  lifeMission={missionEngine.lifeMission}
-                  progress={missionEngine.lifeMissionProgress}
-                  compact
-                />
-              </div>
-            </div>
-            <div className="min-w-[200px]">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-[200px] flex-1">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-fg-muted">Profile {completeness}% complete</span>
                 {completeness < 100 && (
@@ -169,6 +156,13 @@ export function ProfileHeader({
               </div>
               <ProgressBar value={completeness} className="mt-2 h-1.5" />
             </div>
+            <Link
+              href="#smart-home"
+              className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-brand/30 bg-brand/10 px-4 py-2.5 text-sm font-medium text-brand transition-colors hover:bg-brand/15"
+            >
+              <Sparkles className="h-4 w-4" aria-hidden />
+              What should I do now?
+            </Link>
           </div>
         </div>
       </GlassCard>

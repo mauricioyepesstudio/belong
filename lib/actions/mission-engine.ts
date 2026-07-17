@@ -10,6 +10,7 @@ import {
   recordMissionCompletionImpact,
 } from "@/lib/engine/mission-progress";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "@/lib/supabase/notify";
 
 export async function completeDailyMission(missionId: string): Promise<ActionResult> {
   const supabase = await createClient();
@@ -17,7 +18,7 @@ export async function completeDailyMission(missionId: string): Promise<ActionRes
 
   const { data: mission } = await supabase
     .from("daily_missions")
-    .select("id, status, user_id, impact_points, weekly_goal_id")
+    .select("id, status, user_id, impact_points, weekly_goal_id, title")
     .eq("id", missionId)
     .single();
 
@@ -44,6 +45,14 @@ export async function completeDailyMission(missionId: string): Promise<ActionRes
   await incrementWeeklyGoalByTitle(supabase, profile.id, "Progress on");
   await incrementQuarterlyProgress(supabase, profile.id);
   await recordMissionCompletionImpact(supabase, profile.id, mission.impact_points);
+
+  await createNotification(supabase, {
+    userId: profile.id,
+    title: "Mission completed",
+    body: `${mission.title} — +${mission.impact_points} impact`,
+    type: "system",
+    metadata: { mission_id: missionId, kind: "mission_completed" },
+  });
 
   revalidatePath("/dashboard");
   revalidatePath("/profile");

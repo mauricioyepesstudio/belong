@@ -5,3 +5,4 @@ export * from "./events";
 export * from "./communities";
 export * from "./stats";
 export * from "./impact";
+export * from "./search";

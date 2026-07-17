@@ -13,6 +13,7 @@ import {
   buildDailyMissionTemplates,
   buildWeeklyGoalTemplates,
 } from "@/engines/mission/engine";
+import { createNotification } from "@/lib/supabase/notify";
 
 export function todayUtc(): string {
   return new Date().toISOString().slice(0, 10);
@@ -216,7 +217,9 @@ export async function ensureDailyMissionsLinked(
         .maybeSingle()
     : { data: null };
 
-  if ((count ?? 0) >= 3) {
+  const priorCount = count ?? 0;
+
+  if (priorCount >= 3) {
     if (missionId) {
       await supabase
         .from("daily_missions")
@@ -248,6 +251,26 @@ export async function ensureDailyMissionsLinked(
     onConflict: "user_id,mission_date,title",
     ignoreDuplicates: true,
   });
+
+  const { data: todayMissions } = await supabase
+    .from("daily_missions")
+    .select("id, title")
+    .eq("user_id", userId)
+    .eq("mission_date", missionDate)
+    .eq("status", "pending")
+    .order("sort_order", { ascending: true })
+    .limit(1);
+
+  const firstMission = todayMissions?.[0];
+  if (firstMission && priorCount === 0) {
+    await createNotification(supabase, {
+      userId,
+      title: "Today's mission is ready",
+      body: firstMission.title,
+      type: "system",
+      metadata: { mission_id: firstMission.id, kind: "mission_due" },
+    });
+  }
 }
 
 export async function fetchQuarterlyGoals(

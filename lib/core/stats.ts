@@ -6,6 +6,7 @@ export type UserStats = {
   projects: number;
   communities: number;
   unreadNotifications: number;
+  unreadMessages: number;
 };
 
 export async function fetchUserStats(
@@ -19,6 +20,7 @@ export async function fetchUserStats(
     { data: memberProjects },
     { count: communities },
     { count: unreadNotifications },
+    { data: participations },
   ] = await Promise.all([
     supabase
       .from("connections")
@@ -41,7 +43,23 @@ export async function fetchUserStats(
       .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
       .is("read_at", null),
+    supabase
+      .from("conversation_participants")
+      .select("conversation_id")
+      .eq("user_id", userId),
   ]);
+
+  const conversationIds = (participations ?? []).map((p) => p.conversation_id);
+  let unreadMessages = 0;
+  if (conversationIds.length) {
+    const { count } = await supabase
+      .from("messages")
+      .select("*", { count: "exact", head: true })
+      .in("conversation_id", conversationIds)
+      .neq("sender_id", userId)
+      .is("read_at", null);
+    unreadMessages = count ?? 0;
+  }
 
   const projectIds = new Set([
     ...(ownedProjects?.map((p) => p.id) ?? []),
@@ -54,5 +72,6 @@ export async function fetchUserStats(
     projects: projectIds.size,
     communities: communities ?? 0,
     unreadNotifications: unreadNotifications ?? 0,
+    unreadMessages,
   };
 }

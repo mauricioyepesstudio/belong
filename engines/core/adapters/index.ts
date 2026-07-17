@@ -140,7 +140,7 @@ export function createAIEngineAdapter(): AIEngineAdapter {
         projects: snapshot.projects.total,
         communities: snapshot.community.joined.length,
         unreadNotifications: runtime?.stats.unreadNotifications ?? 0,
-        unreadMessages: 0,
+        unreadMessages: runtime?.stats.unreadMessages ?? 0,
         hasMission: runtime?.hasMission ?? false,
         buildGoal: context.profile.build_goal,
         impactLevel: snapshot.impact.score.level,

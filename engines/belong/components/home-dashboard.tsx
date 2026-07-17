@@ -8,8 +8,11 @@ import { ActiveMissions } from "./dashboard/active-missions";
 import { ProjectsRow } from "./dashboard/projects-row";
 import { CommunitiesRow } from "./dashboard/communities-row";
 import { WeeklyGoal } from "./dashboard/weekly-goal";
-import { RecentActivity } from "./dashboard/global-impact";
 import { DashboardActions } from "./dashboard/dashboard-actions";
+import { SmartHome } from "./dashboard/smart-home";
+import { DashboardTimeline } from "./dashboard/dashboard-timeline";
+import { CrossModuleNav } from "./dashboard/cross-module-nav";
+import { UnifiedFeed } from "./dashboard/unified-feed";
 import { QuarterlyGoalsSection } from "@/engines/mission/components/quarterly-goals-section";
 import { LifeMissionPanel } from "@/engines/mission/components/life-mission-panel";
 import { ScrollReveal } from "@/components/motion/fade-in";
@@ -28,6 +31,10 @@ export function HomeDashboard(data: HomeEngineData) {
     weeklyProgress,
     momentum,
     recentActivity,
+    timeline,
+    smartHome,
+    crossModuleLinks,
+    primaryRecommendation,
   } = data;
 
   const [missionOpen, setMissionOpen] = useState(false);
@@ -47,9 +54,14 @@ export function HomeDashboard(data: HomeEngineData) {
       <ProfileHeader
         profile={profile}
         stats={stats}
-        missionEngine={missionEngine}
         impactScore={impactEngine.score.score}
       />
+
+      <SmartHome recommendation={primaryRecommendation} items={smartHome} />
+
+      <CrossModuleNav links={crossModuleLinks} />
+
+      <DashboardTimeline timeline={timeline} />
 
       <DashboardActions
         joinedCommunities={communities}
@@ -104,14 +116,16 @@ export function HomeDashboard(data: HomeEngineData) {
         onJoinCommunity={() => setCommunityOpen(true)}
       />
 
-      <WeeklyGoal
-        weeklyGoals={weeklyGoals}
-        weeklyProgress={weeklyProgress}
-        momentum={momentum}
-        onViewMissions={scrollToMissions}
-      />
+      <div id="weekly-goals">
+        <WeeklyGoal
+          weeklyGoals={weeklyGoals}
+          weeklyProgress={weeklyProgress}
+          momentum={momentum}
+          onViewMissions={scrollToMissions}
+        />
+      </div>
 
-      <RecentActivity
+      <UnifiedFeed
         activity={recentActivity}
         onExploreCommunities={() => setCommunityOpen(true)}
       />

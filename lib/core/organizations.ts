@@ -7,6 +7,11 @@ import type {
   UserProfile,
 } from "@/types/database.types";
 import type { SupabaseServerClient } from "./types";
+import {
+  nextLevelThreshold,
+  progressToNextLevel,
+  reputationLevelFromScore,
+} from "@/engines/identity/reputation/calculate";
 
 export type UserOrganization = Organization & {
   role: OrganizationMemberRole;
@@ -48,6 +53,15 @@ export type OrganizationAnalytics = {
   participationRate: number;
 };
 
+export type OrganizationReputation = {
+  impactScore: number;
+  reputationLevel: string;
+  progressToNext: number;
+  nextThreshold: number;
+  totalEvents: number;
+  memberContributions: number;
+};
+
 export type OrganizationDetail = {
   organization: Organization;
   owner: Pick<UserProfile, "id" | "full_name" | "avatar_url">;
@@ -59,6 +73,7 @@ export type OrganizationDetail = {
   missions: Mission[];
   impact: OrganizationImpact;
   analytics: OrganizationAnalytics;
+  reputation: OrganizationReputation;
 };
 
 const MANAGER_ROLES: OrganizationMemberRole[] = ["owner", "admin", "manager"];
@@ -240,6 +255,40 @@ function computeOrganizationAnalytics(input: {
   };
 }
 
+async function fetchOrganizationReputation(
+  supabase: SupabaseServerClient,
+  organization: Organization,
+  memberUserIds: string[]
+): Promise<OrganizationReputation> {
+  const [{ count: orgEventCount }, { data: memberEvents }] = await Promise.all([
+    supabase
+      .from("impact_events")
+      .select("*", { count: "exact", head: true })
+      .eq("source_id", organization.id),
+    memberUserIds.length
+      ? supabase
+          .from("impact_events")
+          .select("points")
+          .in("user_id", memberUserIds)
+          .eq("module", "organization")
+      : Promise.resolve({ data: [] as { points: number }[] }),
+  ]);
+
+  const memberContributions = (memberEvents ?? []).reduce((sum, row) => sum + row.points, 0);
+  const impactScore = organization.impact_score;
+  const reputationLevel =
+    organization.reputation_level || reputationLevelFromScore(impactScore);
+
+  return {
+    impactScore,
+    reputationLevel,
+    progressToNext: progressToNextLevel(impactScore),
+    nextThreshold: nextLevelThreshold(impactScore),
+    totalEvents: orgEventCount ?? 0,
+    memberContributions,
+  };
+}
+
 export async function fetchOrganizationDetail(
   supabase: SupabaseServerClient,
   slug: string,
@@ -296,6 +345,12 @@ export async function fetchOrganizationDetail(
     missions: missions ?? [],
   });
 
+  const reputation = await fetchOrganizationReputation(
+    supabase,
+    organization,
+    members.map((m) => m.userId)
+  );
+
   return {
     organization,
     owner: owner ?? { id: organization.owner_id, full_name: null, avatar_url: null },
@@ -307,6 +362,7 @@ export async function fetchOrganizationDetail(
     missions: missions ?? [],
     impact,
     analytics,
+    reputation,
   };
 }
 

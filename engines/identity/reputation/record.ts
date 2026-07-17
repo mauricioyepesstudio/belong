@@ -1,7 +1,7 @@
 import type { SupabaseServerClient } from "@/lib/core/types";
 import type { Json } from "@/types/database.types";
 import type { ImpactEvent, ImpactEventModule, RecordImpactEventInput } from "./types";
-import { defaultPointsForEvent } from "./calculate";
+import { defaultPointsForEvent, reputationLevelFromScore } from "./calculate";
 
 function mapRow(row: {
   id: string;
@@ -103,6 +103,25 @@ async function applyEventSideEffects(
         .from("users")
         .update({ founder_reputation: user.founder_reputation + Math.max(5, Math.floor(points / 3)) })
         .eq("id", userId);
+    }
+  }
+
+  if (input.module === "organization" && sourceId) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("impact_score")
+      .eq("id", sourceId)
+      .single();
+
+    if (org) {
+      const newScore = org.impact_score + points;
+      await supabase
+        .from("organizations")
+        .update({
+          impact_score: newScore,
+          reputation_level: reputationLevelFromScore(newScore),
+        })
+        .eq("id", sourceId);
     }
   }
 }

@@ -4,6 +4,7 @@
 DO $$
 DECLARE
   v_user_id uuid;
+  v_org_id uuid;
   v_community_id uuid;
   v_project_id uuid;
   v_post_id uuid;
@@ -26,13 +27,33 @@ BEGIN
   LIMIT 1;
 
   IF v_community_id IS NULL THEN
-    INSERT INTO public.communities (name, slug, description, tag, owner_id)
+    SELECT om.organization_id INTO v_org_id
+    FROM public.organization_members om
+    WHERE om.user_id = v_user_id
+    ORDER BY om.joined_at ASC
+    LIMIT 1;
+
+    IF v_org_id IS NULL THEN
+      INSERT INTO public.organizations (name, slug, owner_id)
+      VALUES (
+        'E2E Project Validate Org',
+        'e2e-project-org-' || to_char(clock_timestamp(), 'YYYYMMDDHH24MISS'),
+        v_user_id
+      )
+      RETURNING id INTO v_org_id;
+
+      INSERT INTO public.organization_members (organization_id, user_id, role)
+      VALUES (v_org_id, v_user_id, 'owner');
+    END IF;
+
+    INSERT INTO public.communities (name, slug, description, tag, owner_id, organization_id)
     VALUES (
       'E2E Project Validate Community',
       'e2e-project-validate-' || to_char(clock_timestamp(), 'YYYYMMDDHH24MISS'),
       'Automated project validation',
       'Testing',
-      v_user_id
+      v_user_id,
+      v_org_id
     )
     RETURNING id INTO v_community_id;
 
@@ -40,8 +61,12 @@ BEGIN
     VALUES (v_community_id, v_user_id, 'owner');
   END IF;
 
-  INSERT INTO public.projects (name, description, owner_id, community_id, status, progress)
-  VALUES ('E2E Validate Project', 'Automated validation', v_user_id, v_community_id, 'planning', 0)
+  SELECT organization_id INTO v_org_id
+  FROM public.communities
+  WHERE id = v_community_id;
+
+  INSERT INTO public.projects (name, description, owner_id, community_id, organization_id, status, progress)
+  VALUES ('E2E Validate Project', 'Automated validation', v_user_id, v_community_id, v_org_id, 'planning', 0)
   RETURNING id INTO v_project_id;
 
   INSERT INTO public.project_members (project_id, user_id, role)

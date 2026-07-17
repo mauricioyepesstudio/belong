@@ -4,6 +4,7 @@
 DO $$
 DECLARE
   v_user_id uuid;
+  v_org_id uuid;
   v_community_id uuid;
   v_slug text;
   v_post_id uuid;
@@ -18,8 +19,27 @@ BEGIN
 
   v_slug := 'e2e-validate-' || to_char(clock_timestamp(), 'YYYYMMDDHH24MISS');
 
-  INSERT INTO public.communities (name, slug, description, tag, owner_id)
-  VALUES ('E2E Validate Community', v_slug, 'Automated validation', 'Testing', v_user_id)
+  SELECT om.organization_id INTO v_org_id
+  FROM public.organization_members om
+  WHERE om.user_id = v_user_id
+  ORDER BY om.joined_at ASC
+  LIMIT 1;
+
+  IF v_org_id IS NULL THEN
+    INSERT INTO public.organizations (name, slug, owner_id)
+    VALUES (
+      'E2E Validate Org',
+      'e2e-validate-org-' || to_char(clock_timestamp(), 'YYYYMMDDHH24MISS'),
+      v_user_id
+    )
+    RETURNING id INTO v_org_id;
+
+    INSERT INTO public.organization_members (organization_id, user_id, role)
+    VALUES (v_org_id, v_user_id, 'owner');
+  END IF;
+
+  INSERT INTO public.communities (name, slug, description, tag, owner_id, organization_id)
+  VALUES ('E2E Validate Community', v_slug, 'Automated validation', 'Testing', v_user_id, v_org_id)
   RETURNING id INTO v_community_id;
 
   INSERT INTO public.community_members (community_id, user_id, role)

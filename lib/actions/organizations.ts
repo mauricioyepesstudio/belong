@@ -91,11 +91,6 @@ export async function createOrganization(data: {
     metadata: { organization_name: data.name.trim() },
   });
 
-  await supabase
-    .from("organizations")
-    .update({ impact_score: 20 })
-    .eq("id", organization.id);
-
   revalidateOrganization(organization.slug);
   return { slug: organization.slug };
 }

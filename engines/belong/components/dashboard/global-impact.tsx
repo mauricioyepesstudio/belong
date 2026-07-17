@@ -1,6 +1,7 @@
 "use client";
 
 import type { HomeEngineData } from "@/engines/belong/data";
+import type { UserActivityItem } from "@/engines/belong/global-feed";
 import { ScrollReveal } from "@/components/motion/fade-in";
 import { Badge, EmptyState } from "@/systems/design-system";
 import { formatDistanceToNow } from "@/lib/format";
@@ -17,14 +18,17 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { GlassCard, SectionHeader } from "./primitives";
 
-const activityIcons: Record<string, LucideIcon> = {
-  contribution: Users,
-  mission: CheckCircle2,
-  goal: Target,
-  project: FolderKanban,
-  community: Users,
-  connection: UserPlus,
-  event: CalendarDays,
+const activityConfig: Record<
+  UserActivityItem["type"],
+  { icon: LucideIcon; label: string }
+> = {
+  contribution: { icon: Users, label: "Contribution" },
+  mission: { icon: CheckCircle2, label: "Mission" },
+  goal: { icon: Target, label: "Weekly goal" },
+  project: { icon: FolderKanban, label: "Project" },
+  community: { icon: Users, label: "Community" },
+  connection: { icon: UserPlus, label: "Connection" },
+  event: { icon: CalendarDays, label: "Event" },
 };
 
 export function RecentActivity({
@@ -52,7 +56,8 @@ export function RecentActivity({
         ) : (
           <GlassCard className="divide-y divide-white/[0.06]">
             {activity.map((item) => {
-              const Icon = activityIcons[item.type] ?? Activity;
+              const config = activityConfig[item.type];
+              const Icon = config.icon;
               return (
                 <Link
                   key={item.id}
@@ -63,7 +68,15 @@ export function RecentActivity({
                     <Icon className="h-4 w-4 text-fg-muted" aria-hidden />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium capitalize text-fg-primary">{item.title}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className="text-micro">
+                        {config.label}
+                      </Badge>
+                      {item.points != null && item.points > 0 && (
+                        <span className="text-micro text-brand">+{item.points} impact</span>
+                      )}
+                    </div>
+                    <p className="mt-2 text-sm font-medium text-fg-primary">{item.title}</p>
                     {item.subtitle && (
                       <p className="mt-0.5 text-caption capitalize">{item.subtitle}</p>
                     )}
@@ -71,11 +84,6 @@ export function RecentActivity({
                       {formatDistanceToNow(item.createdAt)}
                     </p>
                   </div>
-                  {item.points != null && item.points > 0 && (
-                    <Badge variant="outline" className="shrink-0">
-                      +{item.points}
-                    </Badge>
-                  )}
                 </Link>
               );
             })}

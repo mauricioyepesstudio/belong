@@ -10,6 +10,7 @@ import type {
   CoreEngineContext,
   CoreEngineOptions,
   CoreEngineResult,
+  DiscoverCommunity,
   ImpactEngineAdapter,
   MissionEngineAdapter,
   MissionEngineResult,
@@ -83,9 +84,26 @@ export function createCommunityEngineAdapter(): CommunityEngineAdapter {
         .limit(24);
 
       const joinedIds = new Set(joined.map((c) => c.id));
-      const discover = (discoverAll ?? [])
+      const discoverBase = (discoverAll ?? [])
         .filter((c) => !joinedIds.has(c.id))
         .slice(0, limit);
+
+      const discoverCounts = new Map<string, number>();
+      if (discoverBase.length > 0) {
+        const { data: discoverMembers } = await context.supabase
+          .from("community_members")
+          .select("community_id")
+          .in("community_id", discoverBase.map((c) => c.id));
+
+        for (const row of discoverMembers ?? []) {
+          discoverCounts.set(row.community_id, (discoverCounts.get(row.community_id) ?? 0) + 1);
+        }
+      }
+
+      const discover: DiscoverCommunity[] = discoverBase.map((c) => ({
+        ...c,
+        memberCount: discoverCounts.get(c.id) ?? 0,
+      }));
 
       return { joined, discover };
     },

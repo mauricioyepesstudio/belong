@@ -4,7 +4,7 @@ import { completeDailyMission } from "@/lib/actions/mission-engine";
 import type { HomeEngineData } from "@/engines/belong/data";
 import { ScrollReveal } from "@/components/motion/fade-in";
 import { Badge, Button, EmptyState, useToast } from "@/systems/design-system";
-import { ArrowRight, Check, Target, Zap } from "lucide-react";
+import { ArrowRight, Check, CheckCircle2, Flame, Target, Zap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
@@ -20,7 +20,9 @@ export function ActiveMissions({
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const active = missionEngine.dailyMissions.filter((m) => m.status === "pending");
+
+  const pending = missionEngine.dailyMissions.filter((m) => m.status === "pending");
+  const completed = missionEngine.dailyMissions.filter((m) => m.status === "completed");
 
   const complete = (id: string) => {
     startTransition(async () => {
@@ -40,26 +42,54 @@ export function ActiveMissions({
           label="Missions"
           title="Today's missions"
           action={
-            <Button variant="ghost" size="sm" onClick={onNewMission} className="text-fg-muted hover:text-brand">
-              <Zap className="h-4 w-4" aria-hidden />
-              New mission
-            </Button>
+            <div className="flex items-center gap-3">
+              {missionEngine.momentum.current_streak > 0 && (
+                <span className="inline-flex items-center gap-1.5 text-sm text-fg-muted">
+                  <Flame className="h-4 w-4 text-orange-400" aria-hidden />
+                  {missionEngine.momentum.current_streak} day streak
+                </span>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onNewMission}
+                className="text-fg-muted hover:text-brand"
+              >
+                <Zap className="h-4 w-4" aria-hidden />
+                New mission
+              </Button>
+            </div>
           }
         />
 
-        {active.length === 0 ? (
+        {pending.length === 0 && completed.length === 0 ? (
           <GlassCard>
             <EmptyState
               icon={Target}
-              title="No active missions"
-              description="Create a mission to track what you're working on today, or explore communities to unlock daily missions."
+              title="No missions for today"
+              description="Create a custom mission or explore communities — daily missions are generated when you visit your dashboard."
               action={{ label: "New mission", onClick: onNewMission }}
               className="border-0 bg-transparent py-12"
             />
           </GlassCard>
+        ) : pending.length === 0 ? (
+          <GlassCard className="p-8 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-success/10">
+              <CheckCircle2 className="h-7 w-7 text-success" aria-hidden />
+            </div>
+            <h3 className="text-heading mt-6 text-fg-primary">All missions complete</h3>
+            <p className="text-body mt-2 text-fg-muted">
+              You finished {completed.length} mission{completed.length === 1 ? "" : "s"} today.
+              {missionEngine.momentum.current_streak > 0 &&
+                ` Keep your ${missionEngine.momentum.current_streak}-day streak going tomorrow.`}
+            </p>
+            <Button variant="outline" className="mt-6 rounded-2xl" onClick={onNewMission}>
+              Add another mission
+            </Button>
+          </GlassCard>
         ) : (
           <ul className="space-y-3">
-            {active.map((mission) => (
+            {pending.map((mission) => (
               <li key={mission.id}>
                 <GlassCard hover className="p-5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -97,11 +127,28 @@ export function ActiveMissions({
           </ul>
         )}
 
-        {missionEngine.dailyMissions.some((m) => m.status === "completed") && (
+        {completed.length > 0 && pending.length > 0 && (
+          <div className="mt-6">
+            <p className="mb-3 text-micro font-medium uppercase tracking-widest text-fg-faint">
+              Completed today ({completed.length})
+            </p>
+            <ul className="space-y-2">
+              {completed.map((mission) => (
+                <li
+                  key={mission.id}
+                  className="flex items-center justify-between rounded-xl border border-success/15 bg-success/5 px-4 py-3 opacity-80"
+                >
+                  <span className="text-sm text-fg-secondary line-through">{mission.title}</span>
+                  <CheckCircle2 className="h-4 w-4 text-success" aria-hidden />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {missionEngine.dailyTotal > 0 && (
           <p className="mt-4 text-center text-micro text-fg-faint">
             {missionEngine.dailyCompleted}/{missionEngine.dailyTotal} completed today
-            {missionEngine.momentum.current_streak > 0 &&
-              ` · ${missionEngine.momentum.current_streak} day streak`}
           </p>
         )}
       </section>

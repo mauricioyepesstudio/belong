@@ -174,6 +174,7 @@ export class CoreEngineImpl implements CoreEngine {
 
       const result: CoreEngineResult = {
         profile: context.profile,
+        stats: runtime.stats,
         primaryMission: runtime.primaryMission,
         mission: snapshot.mission as MissionEngineResult,
         impact: snapshot.impact as ImpactEngineResult,

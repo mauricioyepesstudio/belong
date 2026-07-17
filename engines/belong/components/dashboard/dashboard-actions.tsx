@@ -3,7 +3,7 @@
 import { joinCommunity } from "@/lib/actions/communities";
 import { createCustomDailyMission } from "@/lib/actions/mission-engine";
 import { createProject } from "@/lib/actions/projects";
-import type { HomeEngineData } from "@/engines/belong/data";
+import type { DiscoverCommunity } from "@/engines/core/types";
 import {
   Badge,
   Button,
@@ -20,7 +20,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 type DashboardActionsProps = {
-  discoverCommunities: HomeEngineData["discoverCommunities"];
+  discoverCommunities: DiscoverCommunity[];
   missionOpen: boolean;
   onMissionOpenChange: (open: boolean) => void;
   projectOpen: boolean;
@@ -224,6 +224,9 @@ export function DashboardActions({
                     {community.description && (
                       <p className="mt-1 text-caption line-clamp-2">{community.description}</p>
                     )}
+                    <p className="mt-2 text-micro text-fg-faint">
+                      {community.memberCount} member{community.memberCount === 1 ? "" : "s"}
+                    </p>
                   </div>
                   <Button
                     size="sm"

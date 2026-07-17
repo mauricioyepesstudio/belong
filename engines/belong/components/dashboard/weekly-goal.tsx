@@ -3,7 +3,7 @@
 import type { HomeEngineData } from "@/engines/belong/data";
 import { ScrollReveal } from "@/components/motion/fade-in";
 import { Badge, Button, EmptyState } from "@/systems/design-system";
-import { ArrowRight, Target } from "lucide-react";
+import { ArrowRight, CheckCircle2, Flame, Target } from "lucide-react";
 import Link from "next/link";
 import { CircularProgress } from "./circular-progress";
 import { GlassCard, SectionHeader } from "./primitives";
@@ -11,13 +11,18 @@ import { GlassCard, SectionHeader } from "./primitives";
 export function WeeklyGoal({
   weeklyGoals,
   weeklyProgress,
+  momentum,
+  onViewMissions,
 }: {
-  weeklyGoals: HomeEngineData["missionEngine"]["weeklyGoals"];
+  weeklyGoals: HomeEngineData["weeklyGoals"];
   weeklyProgress: number;
+  momentum: HomeEngineData["momentum"];
+  onViewMissions: () => void;
 }) {
   const activeGoals = weeklyGoals.filter((g) => g.status === "active");
+  const completedGoals = weeklyGoals.filter((g) => g.status === "completed");
 
-  if (activeGoals.length === 0) {
+  if (activeGoals.length === 0 && completedGoals.length === 0) {
     return (
       <ScrollReveal delay={0.08}>
         <section>
@@ -26,8 +31,8 @@ export function WeeklyGoal({
             <EmptyState
               icon={Target}
               title="No weekly goals yet"
-              description="Weekly goals are created from your profile when you visit the dashboard. Complete daily missions to build momentum."
-              action={{ label: "View missions", href: "#missions" }}
+              description="Weekly goals are created when you visit your dashboard. Complete daily missions to make progress."
+              action={{ label: "View missions", onClick: onViewMissions }}
               className="border-0 bg-transparent py-12"
             />
           </GlassCard>
@@ -43,7 +48,15 @@ export function WeeklyGoal({
           label="Goals"
           title="Weekly goals"
           action={
-            <span className="text-sm tabular-nums text-fg-muted">{weeklyProgress}% overall</span>
+            <div className="flex items-center gap-3 text-sm text-fg-muted">
+              {momentum.current_streak > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <Flame className="h-4 w-4 text-orange-400" aria-hidden />
+                  {momentum.current_streak} day streak
+                </span>
+              )}
+              <span className="tabular-nums">{weeklyProgress}% overall</span>
+            </div>
           }
         />
 
@@ -112,6 +125,26 @@ export function WeeklyGoal({
               </GlassCard>
             );
           })}
+
+          {completedGoals.length > 0 && (
+            <GlassCard className="p-6">
+              <p className="mb-4 flex items-center gap-2 text-sm font-medium text-fg-primary">
+                <CheckCircle2 className="h-4 w-4 text-success" aria-hidden />
+                Completed this week ({completedGoals.length})
+              </p>
+              <ul className="space-y-2">
+                {completedGoals.map((goal) => (
+                  <li
+                    key={goal.id}
+                    className="flex items-center justify-between rounded-xl border border-success/15 bg-success/5 px-4 py-3"
+                  >
+                    <span className="text-sm text-fg-secondary">{goal.title}</span>
+                    <Badge variant="outline">+{goal.impact_points} impact</Badge>
+                  </li>
+                ))}
+              </ul>
+            </GlassCard>
+          )}
         </div>
       </section>
     </ScrollReveal>

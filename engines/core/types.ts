@@ -73,9 +73,11 @@ export type ProjectsEngineResult = {
   total: number;
 };
 
+export type DiscoverCommunity = Community & { memberCount: number };
+
 export type CommunityEngineResult = {
   joined: UserCommunity[];
-  discover: Community[];
+  discover: DiscoverCommunity[];
 };
 
 export type WeeklyGoalsEngineResult = {
@@ -92,6 +94,7 @@ export type AIEngineResult = {
 
 export type CoreEngineResult = {
   profile: UserProfile;
+  stats: UserStats;
   primaryMission: Mission | null;
   mission: MissionEngineResult;
   impact: ImpactEngineResult;

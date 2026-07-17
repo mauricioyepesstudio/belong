@@ -14,21 +14,35 @@ import { DashboardActions } from "./dashboard/dashboard-actions";
 export function HomeDashboard(data: HomeEngineData) {
   const {
     profile,
+    stats,
     impactEngine,
     missionEngine,
     communities,
     discoverCommunities,
     recentProjects,
+    weeklyGoals,
+    weeklyProgress,
+    momentum,
     recentActivity,
+    primaryMission,
   } = data;
 
   const [missionOpen, setMissionOpen] = useState(false);
   const [projectOpen, setProjectOpen] = useState(false);
   const [communityOpen, setCommunityOpen] = useState(false);
 
+  const scrollToMissions = () => {
+    document.getElementById("missions")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="mx-auto max-w-5xl space-y-16 pb-8 md:space-y-20">
-      <ProfileHeader profile={profile} />
+      <ProfileHeader
+        profile={profile}
+        stats={stats}
+        primaryMission={primaryMission}
+        impactScore={impactEngine.score.score}
+      />
 
       <DashboardActions
         discoverCommunities={discoverCommunities}
@@ -61,8 +75,10 @@ export function HomeDashboard(data: HomeEngineData) {
       />
 
       <WeeklyGoal
-        weeklyGoals={missionEngine.weeklyGoals}
-        weeklyProgress={missionEngine.weeklyProgress}
+        weeklyGoals={weeklyGoals}
+        weeklyProgress={weeklyProgress}
+        momentum={momentum}
+        onViewMissions={scrollToMissions}
       />
 
       <RecentActivity

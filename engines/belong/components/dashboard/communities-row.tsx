@@ -3,6 +3,7 @@
 import type { HomeEngineData } from "@/engines/belong/data";
 import { ScrollReveal } from "@/components/motion/fade-in";
 import { Badge, Button } from "@/systems/design-system";
+import { formatDistanceToNow } from "@/lib/format";
 import { Users } from "lucide-react";
 import Link from "next/link";
 import { GlassCard, SectionHeader } from "./primitives";
@@ -18,15 +19,16 @@ export function CommunitiesRow({
     <ScrollReveal delay={0.1}>
       <section>
         <SectionHeader
-          label="My Communities"
+          label="Communities"
           title="Where you belong"
           action={
-            <Link
-              href="/community"
+            <button
+              type="button"
+              onClick={onJoinCommunity}
               className="text-sm text-fg-muted transition-colors hover:text-brand"
             >
-              Explore →
-            </Link>
+              Join more →
+            </button>
           }
         />
 
@@ -40,7 +42,7 @@ export function CommunitiesRow({
             </p>
             <div className="mt-8">
               <Button variant="brand" className="rounded-2xl px-6" onClick={onJoinCommunity}>
-                Join Community
+                Explore Communities
               </Button>
             </div>
           </GlassCard>
@@ -66,9 +68,13 @@ export function CommunitiesRow({
                   {c.description && (
                     <p className="mt-2 flex-1 text-caption line-clamp-2">{c.description}</p>
                   )}
-                  {c.tag && (
-                    <p className="mt-4 text-micro text-fg-faint">{c.tag}</p>
-                  )}
+                  <div className="mt-4 flex flex-wrap items-center gap-2 text-micro text-fg-faint">
+                    <span>
+                      {c.memberCount} member{c.memberCount === 1 ? "" : "s"}
+                    </span>
+                    {c.tag && <span>· {c.tag}</span>}
+                    <span>· Joined {formatDistanceToNow(c.joinedAt)}</span>
+                  </div>
                 </GlassCard>
               </Link>
             ))}

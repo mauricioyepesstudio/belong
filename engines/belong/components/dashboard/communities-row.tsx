@@ -49,7 +49,7 @@ export function CommunitiesRow({
         ) : (
           <div className="-mx-1 flex gap-4 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory">
             {communities.map((c) => (
-              <Link key={c.id} href="/community" className="snap-start shrink-0">
+              <Link key={c.id} href={`/community/${c.slug}`} className="snap-start shrink-0">
                 <GlassCard
                   hover
                   className="group flex h-full w-[280px] flex-col p-6 transition-transform duration-300 hover:scale-[1.02]"

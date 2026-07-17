@@ -12,6 +12,7 @@ import {
   startConversation,
 } from "@/lib/actions/connections";
 import type { PendingConnection, DiscoverUser } from "@/lib/data/connections";
+import type { DiscoverCommunity, UserCommunity } from "@/lib/core";
 import { formatCents, PayModal } from "@/engines/billing";
 import {
   Avatar,
@@ -33,16 +34,13 @@ import {
 } from "@/systems/design-system";
 import { StaggerItem, StaggerList } from "@/components/motion/fade-in";
 import { formatInitials } from "@/lib/format";
-import type { Community, CommunityMemberRole } from "@/types/database.types";
 import { MessageSquare, Plus, UserPlus, Users, DollarSign } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
-type CommunityItem = Community & { role?: CommunityMemberRole };
-
 type CommunityScreenProps = {
-  joined: CommunityItem[];
-  discover: Community[];
+  joined: UserCommunity[];
+  discover: DiscoverCommunity[];
   pending: PendingConnection[];
   people: DiscoverUser[];
 };
@@ -69,9 +67,14 @@ export function CommunityScreen({
         (p.full_name ?? "").toLowerCase().includes(query.toLowerCase())
       );
     }
-    const base: CommunityItem[] = tab === "joined" ? joined : discover;
+    const base = tab === "joined" ? joined : discover;
     if (!query.trim()) return base;
-    return base.filter((c) => c.name.toLowerCase().includes(query.toLowerCase()));
+    return base.filter(
+      (c) =>
+        c.name.toLowerCase().includes(query.toLowerCase()) ||
+        (c.description ?? "").toLowerCase().includes(query.toLowerCase()) ||
+        (c.tag ?? "").toLowerCase().includes(query.toLowerCase())
+    );
   }, [tab, query, joined, discover, people]);
 
   const handleCreate = (formData: FormData) => {
@@ -85,7 +88,8 @@ export function CommunityScreen({
       else {
         toast("Community created", "success");
         setCreateOpen(false);
-        router.refresh();
+        if (result.slug) router.push(`/community/${result.slug}`);
+        else router.refresh();
       }
     });
   };
@@ -316,14 +320,15 @@ export function CommunityScreen({
         ) : (
           <StaggerList>
             <EntityGrid>
-            {(filtered as CommunityItem[]).map((c) => (
+            {(filtered as (UserCommunity | DiscoverCommunity)[]).map((c) => (
               <StaggerItem key={c.id}>
                 <EntityCard
                   icon={Users}
                   title={c.name}
                   description={c.description}
+                  href={`/community/${c.slug}`}
                   badges={
-                    tab === "joined" && c.role ? (
+                    tab === "joined" && "role" in c && c.role ? (
                       <Badge variant={c.role === "admin" || c.role === "owner" ? "brand" : "outline"}>
                         {c.role}
                       </Badge>
@@ -332,28 +337,54 @@ export function CommunityScreen({
                     ) : undefined
                   }
                   meta={
-                    c.tag ? <Badge variant="outline">{c.tag}</Badge> : undefined
+                    <div className="flex flex-wrap items-center gap-2">
+                      {c.tag && <Badge variant="outline">{c.tag}</Badge>}
+                      <span className="text-micro text-fg-muted">
+                        {c.memberCount} member{c.memberCount === 1 ? "" : "s"}
+                      </span>
+                    </div>
                   }
                   footer={
                     tab === "discover" ? (
-                      <Button size="sm" className="w-full" disabled={isPending} onClick={() => handleJoin(c.id)}>
+                      <Button
+                        size="sm"
+                        className="w-full"
+                        disabled={isPending}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleJoin(c.id);
+                        }}
+                      >
                         {c.is_paid ? "Subscribe" : "Join community"}
                       </Button>
-                    ) : c.role === "owner" && !c.is_paid ? (
+                    ) : "role" in c && c.role === "owner" && !c.is_paid ? (
                       <Button
                         size="sm"
                         variant="secondary"
                         className="w-full"
                         disabled={isPending}
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setMonetizeId(c.id);
                           setMonetizeOpen(true);
                         }}
                       >
                         Enable paid access
                       </Button>
-                    ) : c.role && c.role !== "owner" ? (
-                      <Button size="sm" variant="secondary" className="w-full" disabled={isPending} onClick={() => handleLeave(c.id)}>
+                    ) : "role" in c && c.role && c.role !== "owner" ? (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="w-full"
+                        disabled={isPending}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleLeave(c.id);
+                        }}
+                      >
                         Leave
                       </Button>
                     ) : undefined

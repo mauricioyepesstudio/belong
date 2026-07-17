@@ -123,8 +123,8 @@ export async function fetchUserRecentActivity(
 
   const [{ data: communities }, { data: events }, { data: users }] = await Promise.all([
     communityIds.size
-      ? supabase.from("communities").select("id, name").in("id", [...communityIds])
-      : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+      ? supabase.from("communities").select("id, name, slug").in("id", [...communityIds])
+      : Promise.resolve({ data: [] as { id: string; name: string; slug: string }[] }),
     eventIds.length
       ? supabase.from("events").select("id, title").in("id", eventIds)
       : Promise.resolve({ data: [] as { id: string; title: string }[] }),
@@ -133,7 +133,7 @@ export async function fetchUserRecentActivity(
       : Promise.resolve({ data: [] as { id: string; full_name: string | null }[] }),
   ]);
 
-  const communityMap = new Map((communities ?? []).map((c) => [c.id, c.name]));
+  const communityMap = new Map((communities ?? []).map((c) => [c.id, c]));
   const eventMap = new Map((events ?? []).map((e) => [e.id, e.title]));
   const userMap = new Map((users ?? []).map((u) => [u.id, u.full_name ?? "Builder"]));
 
@@ -142,9 +142,11 @@ export async function fetchUserRecentActivity(
       id: `contrib-${c.id}`,
       type: "contribution" as const,
       title: c.contribution_type.replace(/_/g, " "),
-      subtitle: communityMap.get(c.community_id),
+      subtitle: communityMap.get(c.community_id)?.name,
       points: c.points,
-      href: "/community",
+      href: communityMap.get(c.community_id)?.slug
+        ? `/community/${communityMap.get(c.community_id)!.slug}`
+        : "/community",
       createdAt: c.created_at,
     })),
     ...(completedMissions ?? []).map((m) => ({
@@ -176,9 +178,9 @@ export async function fetchUserRecentActivity(
     ...(memberships ?? []).map((m) => ({
       id: `community-${m.id}`,
       type: "community" as const,
-      title: `Joined ${communityMap.get(m.community_id) ?? "community"}`,
+      title: `Joined ${communityMap.get(m.community_id)?.name ?? "community"}`,
       subtitle: m.role,
-      href: "/community",
+      href: `/community/${communityMap.get(m.community_id)?.slug ?? ""}`,
       createdAt: m.joined_at,
     })),
     ...(connections ?? []).map((c) => {

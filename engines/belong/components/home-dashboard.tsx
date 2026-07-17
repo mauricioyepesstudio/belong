@@ -45,6 +45,7 @@ export function HomeDashboard(data: HomeEngineData) {
       />
 
       <DashboardActions
+        joinedCommunities={communities}
         discoverCommunities={discoverCommunities}
         missionOpen={missionOpen}
         onMissionOpenChange={setMissionOpen}

@@ -15,7 +15,7 @@ import { MissionCard } from "@/engines/mission";
 
 // ⚠️ Legacy (do not use in new code)
 import { PageHeader } from "@/components/layout";
-import { ProjectsView } from "@/components/features/projects/projects-view";
+import { ProjectScreen } from "@/engines/project";
 
 // ❌ Forbidden
 import { Button } from "@/components/ui";           // bypass design-system
@@ -105,7 +105,7 @@ import { StatCard } from "@/components/platform/..."; // removed duplicate
 
 | Component | Route | Uses FeatureScreen? |
 |-----------|-------|---------------------|
-| `ProjectsView` | `/projects` | ✅ |
+| `ProjectScreen` | `/projects` | ✅ |
 | `EventsView` | `/events` | ✅ |
 | `NotificationsView` | `/notifications` | ✅ |
 | `MessagesView` | `/messages` | ❌ (custom layout) |
@@ -162,7 +162,8 @@ Full list in `components/ui/index.ts`. Re-exported via design-system.
 | `/` | `(platform)/page.tsx` | `DashboardScreen` | `engines/dashboard/data` |
 | `/dashboard` | redirect → `/` | — | — |
 | `/community` | `(platform)/community/page.tsx` | `CommunityScreen` | `lib/data/communities` |
-| `/projects` | `(platform)/projects/page.tsx` | `ProjectsView` | `lib/data/projects` |
+| `/projects` | `(platform)/projects/page.tsx` | `ProjectScreen` | `lib/data/projects` |
+| `/projects/[id]` | `(platform)/projects/[id]/page.tsx` | `ProjectDetailScreen` | `lib/data/projects` |
 | `/events` | `(platform)/events/page.tsx` | `EventsView` | `lib/data/events` |
 | `/messages` | `(platform)/messages/page.tsx` | `MessagesView` | `lib/data/messages` |
 | `/notifications` | `(platform)/notifications/page.tsx` | `NotificationsView` | `lib/data/notifications` |

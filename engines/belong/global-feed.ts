@@ -172,7 +172,7 @@ export async function fetchUserRecentActivity(
       type: "project" as const,
       title: p.name,
       subtitle: `Project ${p.status}`,
-      href: "/projects",
+      href: `/projects/${p.id}`,
       createdAt: p.created_at,
     })),
     ...(memberships ?? []).map((m) => ({
@@ -343,7 +343,7 @@ export async function fetchGlobalImpactFeed(
       title: p.name,
       userName: userMap.get(p.owner_id) ?? "Builder",
       completedAt: p.updated_at,
-      href: "/projects",
+      href: `/projects/${p.id}`,
     })),
   ]
     .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())

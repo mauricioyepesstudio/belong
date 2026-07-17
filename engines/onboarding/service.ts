@@ -5,6 +5,7 @@ import { fetchMissionEngineData } from "@/engines/mission/engine";
 import { fetchUserStats } from "@/lib/core";
 import { getWeekStartUtc } from "@/lib/engine/mission-progress";
 import { syncUserSkill } from "@/lib/engine/mission-progress";
+import { slugify } from "@/lib/supabase/notify";
 import type { SupabaseServerClient } from "@/lib/core/types";
 import type { BuildGoal, UserProfile } from "@/types/database.types";
 import {
@@ -280,6 +281,42 @@ export class OnboardingEngineServiceImpl implements OnboardingEngineService {
 
       let projectId: string | undefined;
       if (draft.project?.name?.trim()) {
+        let communityId: string | null = null;
+        const { data: membership } = await this.supabase
+          .from("community_members")
+          .select("community_id")
+          .eq("user_id", context.userId)
+          .order("joined_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (membership) {
+          communityId = membership.community_id;
+        } else {
+          const communityName = `${draft.fullName?.trim() || profile.full_name || "My"} Community`;
+          const { data: community, error: communityError } = await this.supabase
+            .from("communities")
+            .insert({
+              name: communityName,
+              slug: slugify(communityName),
+              description: "Created during onboarding",
+              owner_id: context.userId,
+            })
+            .select("id")
+            .single();
+
+          if (communityError) return { error: communityError.message };
+
+          const { error: memberError } = await this.supabase.from("community_members").insert({
+            community_id: community.id,
+            user_id: context.userId,
+            role: "owner",
+          });
+
+          if (memberError) return { error: memberError.message };
+          communityId = community.id;
+        }
+
         const { data: project, error: projectError } = await this.supabase
           .from("projects")
           .insert({
@@ -287,6 +324,7 @@ export class OnboardingEngineServiceImpl implements OnboardingEngineService {
             description: draft.project.description?.trim() || null,
             deadline: draft.project.deadline || null,
             owner_id: context.userId,
+            community_id: communityId,
             status: "planning",
             progress: 0,
           })

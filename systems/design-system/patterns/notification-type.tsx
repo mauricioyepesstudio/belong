@@ -47,7 +47,7 @@ export function getNotificationHref(type: NotificationType, metadata?: Json): st
 
   if (type === "message") return "/messages";
   if (type === "payment") return "/creator";
-  if (projectId) return "/projects";
+  if (projectId) return `/projects/${projectId}`;
   if (communitySlug) return `/community/${communitySlug}`;
   if (communityId) return "/community";
   if (listingId) return "/marketplace";

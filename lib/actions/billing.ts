@@ -387,6 +387,9 @@ export async function enableProjectFunding(
   projectId: string,
   goalCents: number
 ): Promise<ActionResult> {
+  const blocked = stripeGuard();
+  if (blocked) return blocked;
+
   const supabase = await createClient();
   const profile = await requireProfile();
 
@@ -419,6 +422,8 @@ export async function enableProjectFunding(
   if (error) return { error: error.message };
 
   revalidatePath("/projects");
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/dashboard");
   return {};
 }
 

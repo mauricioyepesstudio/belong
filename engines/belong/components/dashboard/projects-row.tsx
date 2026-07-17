@@ -55,7 +55,7 @@ export function ProjectsRow({
             {projects.map((project) => {
               const isOwner = project.owner_id === currentUserId;
               return (
-                <Link key={project.id} href="/projects" className="snap-start shrink-0">
+                <Link key={project.id} href={`/projects/${project.id}`} className="snap-start shrink-0">
                   <GlassCard
                     hover
                     className="group flex h-full w-[280px] flex-col p-6 transition-transform duration-300 hover:scale-[1.02]"
@@ -79,6 +79,7 @@ export function ProjectsRow({
                         <Users className="h-3.5 w-3.5" aria-hidden />
                         {project.memberCount} member{project.memberCount === 1 ? "" : "s"}
                       </span>
+                      {project.community && <span>{project.community.name}</span>}
                       {isOwner && <span>Owner</span>}
                       <span>Updated {formatDistanceToNow(project.updated_at)}</span>
                     </div>

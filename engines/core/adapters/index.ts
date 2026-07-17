@@ -60,8 +60,9 @@ export function createProjectsEngineAdapter(): ProjectsEngineAdapter {
     name: ENGINE_NAMES.projects,
     async fetch(context, options) {
       const all = await getAllProjectsForUser(context.supabase, context.userId);
+      const active = all.filter((p) => p.status === "active" || p.status === "planning");
       const limit = options?.recentProjectLimit ?? 4;
-      return { recent: all.slice(0, limit), total: all.length };
+      return { recent: active.slice(0, limit), total: all.length };
     },
   };
 }

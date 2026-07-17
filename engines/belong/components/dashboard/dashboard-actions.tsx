@@ -4,6 +4,7 @@ import { joinCommunity } from "@/lib/actions/communities";
 import { createCustomDailyMission } from "@/lib/actions/mission-engine";
 import { createProject } from "@/lib/actions/projects";
 import type { DiscoverCommunity } from "@/engines/core/types";
+import type { UserCommunity } from "@/lib/core";
 import {
   Badge,
   Button,
@@ -20,6 +21,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 type DashboardActionsProps = {
+  joinedCommunities: UserCommunity[];
   discoverCommunities: DiscoverCommunity[];
   missionOpen: boolean;
   onMissionOpenChange: (open: boolean) => void;
@@ -30,6 +32,7 @@ type DashboardActionsProps = {
 };
 
 export function DashboardActions({
+  joinedCommunities,
   discoverCommunities,
   missionOpen,
   onMissionOpenChange,
@@ -73,6 +76,7 @@ export function DashboardActions({
     startTransition(async () => {
       const result = await createProject({
         name: formData.get("name") as string,
+        communityId: formData.get("communityId") as string,
         description: (formData.get("description") as string) || undefined,
         deadline: (formData.get("deadline") as string) || undefined,
       });
@@ -80,7 +84,8 @@ export function DashboardActions({
       else {
         toast("Project created", "success");
         onProjectOpenChange(false);
-        router.refresh();
+        if (result.id) router.push(`/projects/${result.id}`);
+        else router.refresh();
       }
     });
   };
@@ -112,6 +117,7 @@ export function DashboardActions({
         <Button
           variant="outline"
           className="rounded-2xl"
+          disabled={joinedCommunities.length === 0}
           onClick={() => onProjectOpenChange(true)}
         >
           <FolderKanban className="h-4 w-4" aria-hidden />
@@ -155,33 +161,71 @@ export function DashboardActions({
       </Modal>
 
       <Modal open={projectOpen} onClose={() => onProjectOpenChange(false)} title="New project">
-        <form action={handleCreateProject} className="space-y-4">
-          <div>
-            <Label htmlFor="project-name">Name</Label>
-            <Input id="project-name" name="name" required placeholder="My project" />
-          </div>
-          <div>
-            <Label htmlFor="project-description">Description (optional)</Label>
-            <Textarea
-              id="project-description"
-              name="description"
-              placeholder="What are you building?"
-              rows={3}
+        {joinedCommunities.length === 0 ? (
+          <div className="space-y-4">
+            <EmptyState
+              icon={FolderKanban}
+              title="Join a community first"
+              description="Projects belong to communities. Join a community before creating a project."
+              action={{
+                label: "Browse communities",
+                onClick: () => {
+                  onProjectOpenChange(false);
+                  onCommunityOpenChange(true);
+                },
+              }}
+              className="border-0 bg-transparent py-4"
             />
           </div>
-          <div>
-            <Label htmlFor="project-deadline">Deadline (optional)</Label>
-            <Input id="project-deadline" name="deadline" type="date" />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="ghost" onClick={() => onProjectOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="brand" disabled={isPending}>
-              Create project
-            </Button>
-          </div>
-        </form>
+        ) : (
+          <form action={handleCreateProject} className="space-y-4">
+            <div>
+              <Label htmlFor="project-community">Community</Label>
+              <select
+                id="project-community"
+                name="communityId"
+                required
+                className="mt-1 flex h-10 w-full rounded-xl border border-border-subtle bg-bg-surface px-3 text-sm text-fg-primary"
+              >
+                {joinedCommunities.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="project-name">Name</Label>
+              <Input id="project-name" name="name" required placeholder="My project" />
+            </div>
+            <div>
+              <Label htmlFor="project-description">Description (optional)</Label>
+              <Textarea
+                id="project-description"
+                name="description"
+                placeholder="What are you building?"
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="project-deadline">Deadline (optional)</Label>
+              <Input
+                id="project-deadline"
+                name="deadline"
+                type="date"
+                min={new Date().toISOString().slice(0, 10)}
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="ghost" onClick={() => onProjectOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="brand" disabled={isPending}>
+                Create project
+              </Button>
+            </div>
+          </form>
+        )}
       </Modal>
 
       <Modal

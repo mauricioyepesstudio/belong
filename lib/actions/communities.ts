@@ -159,7 +159,22 @@ export async function leaveCommunity(communityId: string): Promise<ActionResult>
 
   if (error) return { error: error.message };
 
+  const { data: communityProjects } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("community_id", communityId);
+
+  if (communityProjects?.length) {
+    const projectIds = communityProjects.map((p) => p.id);
+    await supabase
+      .from("project_members")
+      .delete()
+      .eq("user_id", profile.id)
+      .in("project_id", projectIds);
+  }
+
   revalidateCommunity(community?.slug);
+  revalidatePath("/projects");
   return {};
 }
 

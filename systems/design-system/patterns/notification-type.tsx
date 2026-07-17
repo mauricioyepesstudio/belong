@@ -40,6 +40,7 @@ function metaString(metadata: Json | undefined, key: string): string | undefined
 }
 
 export function getNotificationHref(type: NotificationType, metadata?: Json): string {
+  const communitySlug = metaString(metadata, "slug");
   const communityId = metaString(metadata, "community_id");
   const projectId = metaString(metadata, "project_id");
   const listingId = metaString(metadata, "listing_id");
@@ -47,6 +48,7 @@ export function getNotificationHref(type: NotificationType, metadata?: Json): st
   if (type === "message") return "/messages";
   if (type === "payment") return "/creator";
   if (projectId) return "/projects";
+  if (communitySlug) return `/community/${communitySlug}`;
   if (communityId) return "/community";
   if (listingId) return "/marketplace";
 

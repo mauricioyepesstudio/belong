@@ -20,12 +20,15 @@ export async function completeOnboarding(data: {
   if (!user) return { error: "Not authenticated" };
 
   const engine = createOnboardingEngineService(supabase);
-  await engine.start({ userId: user.id });
-  await engine.saveDraft({ userId: user.id }, {
+  const startResult = await engine.start({ userId: user.id });
+  if (startResult.error) return { error: startResult.error };
+
+  const draftResult = await engine.saveDraft({ userId: user.id }, {
     buildGoal: data.buildGoal,
     buildVision: data.buildVision,
     fullName: data.fullName,
   });
+  if (draftResult.error) return { error: draftResult.error };
 
   const result = await engine.complete(
     { userId: user.id },

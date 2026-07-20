@@ -101,8 +101,8 @@ export function CommunityScreen({
       else {
         toast("Community created", "success");
         setCreateOpen(false);
-        setTab("discover");
         router.refresh();
+        if (result.slug) router.push(`/community/${result.slug}`);
       }
     });
   };
@@ -171,7 +171,7 @@ export function CommunityScreen({
     startTransition(async () => {
       const result = await startConversation(userId);
       if (result.error) toast(result.error, "error");
-      else if (result.id) router.push("/messages");
+      else if (result.id) router.push(`/messages?conversation=${result.id}`);
     });
   };
 

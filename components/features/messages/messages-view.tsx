@@ -1,12 +1,12 @@
 "use client";
 
 import { fetchMessages, sendMessage } from "@/lib/actions/messages";
-import { FeatureScreen, Avatar, Button, Card, CardContent, EmptyState, Input } from "@/systems/design-system";
+import { FeatureScreen, Avatar, Button, Card, CardContent, EmptyState, Input, useToast } from "@/systems/design-system";
 import { useRealtimeMessages } from "@/hooks/use-realtime-messages";
 import { formatDistanceToNow, formatInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Message } from "@/types/database.types";
-import { MessageSquare, Search } from "lucide-react";
+import { ArrowLeft, MessageSquare, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 
 type ConversationItem = {
@@ -31,7 +31,9 @@ export function MessagesView({
   activeConversationId,
   currentUserId,
 }: MessagesViewProps) {
+  const { toast } = useToast();
   const [active, setActive] = useState(activeConversationId ?? conversations[0]?.id ?? "");
+  const [mobileShowThread, setMobileShowThread] = useState(Boolean(activeConversationId));
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState(initialMessages);
   const [body, setBody] = useState("");
@@ -47,32 +49,51 @@ export function MessagesView({
 
   const loadMessages = useCallback(async (conversationId: string) => {
     setLoadingMessages(true);
-    const data = await fetchMessages(conversationId);
-    setMessages(data);
-    setLoadingMessages(false);
-  }, []);
+    try {
+      const data = await fetchMessages(conversationId);
+      setMessages(data);
+    } catch {
+      toast("Could not load messages", "error");
+    } finally {
+      setLoadingMessages(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    if (activeConversationId) {
+      setActive(activeConversationId);
+      setMobileShowThread(true);
+    }
+  }, [activeConversationId]);
 
   useEffect(() => {
     if (active) loadMessages(active);
   }, [active, loadMessages]);
 
-  const onRealtimeMessage = useCallback(
-    (message: Message) => {
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === message.id)) return prev;
-        return [...prev, message];
-      });
-    },
-    []
-  );
+  const onRealtimeMessage = useCallback((message: Message) => {
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === message.id)) return prev;
+      return [...prev, message];
+    });
+  }, []);
 
   useRealtimeMessages(active || null, onRealtimeMessage);
 
+  const handleSelectConversation = (conversationId: string) => {
+    setActive(conversationId);
+    setMobileShowThread(true);
+  };
+
   const handleSend = () => {
     if (!body.trim() || !active) return;
+    const text = body.trim();
     startTransition(async () => {
-      const result = await sendMessage(active, body.trim());
-      if (!result.error && result.message) {
+      const result = await sendMessage(active, text);
+      if (result.error) {
+        toast(result.error, "error");
+        return;
+      }
+      if (result.message) {
         setMessages((prev) => {
           if (prev.some((m) => m.id === result.message!.id)) return prev;
           return [...prev, result.message!];
@@ -81,6 +102,66 @@ export function MessagesView({
       }
     });
   };
+
+  const threadPanel = selected ? (
+    <>
+      <div className="flex items-center gap-3 border-b border-border-subtle p-4">
+        <button
+          type="button"
+          className="flex h-9 w-9 items-center justify-center rounded-xl text-fg-muted hover:bg-bg-hover lg:hidden"
+          onClick={() => setMobileShowThread(false)}
+          aria-label="Back to conversations"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <Avatar
+          fallback={formatInitials(selected.name)}
+          size="sm"
+          src={selected.avatarUrl ?? undefined}
+        />
+        <p className="text-sm font-semibold">{selected.name}</p>
+      </div>
+      <CardContent className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
+        {loadingMessages ? (
+          <p className="text-caption text-fg-muted">Loading messages…</p>
+        ) : messages.length === 0 ? (
+          <p className="text-caption text-fg-muted">No messages yet. Say hello!</p>
+        ) : (
+          messages.map((m) => {
+            const isOwn = m.sender_id === currentUserId;
+            return (
+              <div
+                key={m.id}
+                className={cn(
+                  "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
+                  isOwn ? "ml-auto bg-brand text-white" : "bg-bg-surface text-fg-secondary"
+                )}
+              >
+                {m.body}
+              </div>
+            );
+          })
+        )}
+      </CardContent>
+      <div className="flex gap-2 border-t border-border-subtle p-4">
+        <Input
+          placeholder="Type a message..."
+          className="flex-1"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          aria-label="Message input"
+          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+        />
+        <Button onClick={handleSend} disabled={isPending || !body.trim()} isLoading={isPending}>
+          Send
+        </Button>
+      </div>
+    </>
+  ) : (
+    <CardContent className="flex flex-1 items-center justify-center">
+      <p className="text-caption text-fg-muted">Select a conversation</p>
+    </CardContent>
+  );
 
   return (
     <FeatureScreen
@@ -92,21 +173,26 @@ export function MessagesView({
         <EmptyState
           icon={MessageSquare}
           title="No conversations yet"
-          description="Connect with builders from the Community page to start messaging."
+          description="Connect with builders from the Community page, then send a direct message to start chatting."
           action={{ label: "Find people", href: "/community" }}
         />
       ) : (
         <div className="grid h-[calc(100vh-280px)] min-h-[480px] gap-0 overflow-hidden rounded-2xl border border-border lg:grid-cols-5">
-          <div className="border-b border-border-subtle lg:col-span-2 lg:border-b-0 lg:border-r">
+          <div
+            className={cn(
+              "border-b border-border-subtle lg:col-span-2 lg:border-b-0 lg:border-r",
+              mobileShowThread && "hidden lg:block"
+            )}
+          >
             <div className="border-b border-border-subtle p-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-faint" aria-hidden />
                 <Input
                   className="pl-10"
-                  placeholder="Search messages..."
+                  placeholder="Search conversations..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  aria-label="Search messages"
+                  aria-label="Search conversations"
                 />
               </div>
             </div>
@@ -116,7 +202,7 @@ export function MessagesView({
                   key={convo.id}
                   type="button"
                   role="listitem"
-                  onClick={() => setActive(convo.id)}
+                  onClick={() => handleSelectConversation(convo.id)}
                   className={cn(
                     "flex w-full items-center gap-3 border-b border-border-subtle px-4 py-3.5 text-left transition-colors hover:bg-bg-hover",
                     active === convo.id && "bg-bg-active",
@@ -147,58 +233,13 @@ export function MessagesView({
             </div>
           </div>
 
-          <Card className="hidden rounded-none border-0 lg:col-span-3 lg:flex lg:flex-col">
-            {selected ? (
-              <>
-                <div className="flex items-center gap-3 border-b border-border-subtle p-4">
-                  <Avatar
-                    fallback={formatInitials(selected.name)}
-                    size="sm"
-                    src={selected.avatarUrl ?? undefined}
-                  />
-                  <p className="text-sm font-semibold">{selected.name}</p>
-                </div>
-                <CardContent className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
-                  {loadingMessages ? (
-                    <p className="text-caption">Loading messages...</p>
-                  ) : (
-                    messages.map((m) => {
-                      const isOwn = m.sender_id === currentUserId;
-                      return (
-                        <div
-                          key={m.id}
-                          className={cn(
-                            "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
-                            isOwn
-                              ? "ml-auto bg-brand text-white"
-                              : "bg-bg-surface text-fg-secondary"
-                          )}
-                        >
-                          {m.body}
-                        </div>
-                      );
-                    })
-                  )}
-                </CardContent>
-                <div className="flex gap-2 border-t border-border-subtle p-4">
-                  <Input
-                    placeholder="Type a message..."
-                    className="flex-1"
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
-                    aria-label="Message input"
-                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                  />
-                  <Button onClick={handleSend} disabled={isPending || !body.trim()}>
-                    Send
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <CardContent className="flex flex-1 items-center justify-center">
-                <p className="text-caption">Select a conversation</p>
-              </CardContent>
+          <Card
+            className={cn(
+              "flex flex-col rounded-none border-0 lg:col-span-3",
+              !mobileShowThread && "hidden lg:flex"
             )}
+          >
+            {threadPanel}
           </Card>
         </div>
       )}

@@ -33,9 +33,9 @@ export const secondaryNav: NavItem[] = [
 export const mobileNav: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: LayoutDashboard },
   { label: "Community", href: "/community", icon: Users },
+  { label: "Projects", href: "/projects", icon: FolderKanban },
   { label: "Messages", href: "/messages", icon: MessageSquare },
   { label: "Alerts", href: "/notifications", icon: Bell },
-  { label: "Profile", href: "/profile", icon: User },
 ];
 
 export const authRoutes = ["/login", "/register", "/forgot-password"] as const;

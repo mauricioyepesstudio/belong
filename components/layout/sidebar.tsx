@@ -18,9 +18,10 @@ function isActive(pathname: string, href: string) {
 type SidebarProps = {
   profile: UserProfile | null;
   unreadNotifications?: number;
+  unreadMessages?: number;
 };
 
-export function Sidebar({ profile, unreadNotifications = 0 }: SidebarProps) {
+export function Sidebar({ profile, unreadNotifications = 0, unreadMessages = 0 }: SidebarProps) {
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
 
@@ -31,7 +32,8 @@ export function Sidebar({ profile, unreadNotifications = 0 }: SidebarProps) {
     .slice(0, 2)
     .toUpperCase() ?? "?";
 
-  const navWithBadges = withNotificationBadge(mainNav, "/notifications", unreadNotifications);
+  let navWithBadges = withNotificationBadge(mainNav, "/notifications", unreadNotifications);
+  navWithBadges = withNotificationBadge(navWithBadges, "/messages", unreadMessages);
 
   return (
     <aside

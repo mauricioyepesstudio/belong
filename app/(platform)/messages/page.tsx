@@ -5,17 +5,25 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Messages" };
 
-export default async function MessagesPage() {
+type MessagesPageProps = {
+  searchParams: Promise<{ conversation?: string }>;
+};
+
+export default async function MessagesPage({ searchParams }: MessagesPageProps) {
   const profile = await requireProfile();
+  const { conversation: conversationParam } = await searchParams;
   const conversations = await getConversations();
-  const firstId = conversations[0]?.id;
-  const messages = firstId ? await getConversationMessages(firstId) : [];
+  const activeId =
+    conversationParam && conversations.some((c) => c.id === conversationParam)
+      ? conversationParam
+      : conversations[0]?.id;
+  const messages = activeId ? await getConversationMessages(activeId) : [];
 
   return (
     <MessagesView
       conversations={conversations}
       initialMessages={messages}
-      activeConversationId={firstId}
+      activeConversationId={activeId}
       currentUserId={profile.id}
     />
   );

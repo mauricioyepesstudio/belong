@@ -5,9 +5,12 @@ import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button, ErrorMessage, Input, Label } from "@/components/ui";
 import { signInWithEmail } from "@/lib/actions/auth";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 
 export default function LoginForm() {
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
 
@@ -17,7 +20,7 @@ export default function LoginForm() {
     const password = formData.get("password") as string;
 
     startTransition(async () => {
-      const result = await signInWithEmail(email, password);
+      const result = await signInWithEmail(email, password, next ?? undefined);
       if (result?.error) setError(result.error);
     });
   };

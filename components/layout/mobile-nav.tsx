@@ -9,10 +9,17 @@ function isActive(pathname: string, href: string) {
   return isNavActive(pathname, href);
 }
 
-export function MobileNav({ unreadNotifications = 0 }: { unreadNotifications?: number }) {
+export function MobileNav({
+  unreadNotifications = 0,
+  unreadMessages = 0,
+}: {
+  unreadNotifications?: number;
+  unreadMessages?: number;
+}) {
   const pathname = usePathname();
 
-  const nav = withNotificationBadge(mobileNav, "/notifications", unreadNotifications);
+  let nav = withNotificationBadge(mobileNav, "/notifications", unreadNotifications);
+  nav = withNotificationBadge(nav, "/messages", unreadMessages);
 
   return (
     <nav

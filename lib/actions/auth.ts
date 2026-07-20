@@ -4,17 +4,23 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-export type AuthResult = { error?: string };
+export type AuthResult = { error?: string; needsEmailConfirmation?: boolean };
+
+function safeInternalPath(path?: string | null): string | null {
+  if (!path || !path.startsWith("/") || path.startsWith("//")) return null;
+  return path;
+}
 
 export async function signInWithEmail(
   email: string,
-  password: string
+  password: string,
+  next?: string
 ): Promise<AuthResult> {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: error.message };
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect(safeInternalPath(next) ?? "/dashboard");
 }
 
 export async function signUpWithEmail(
@@ -23,7 +29,7 @@ export async function signUpWithEmail(
   fullName: string
 ): Promise<AuthResult> {
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -32,6 +38,7 @@ export async function signUpWithEmail(
     },
   });
   if (error) return { error: error.message };
+  if (!data.session) return { needsEmailConfirmation: true };
   revalidatePath("/", "layout");
   redirect("/onboarding");
 }
@@ -64,4 +71,3 @@ export async function resetPassword(email: string): Promise<AuthResult> {
   if (error) return { error: error.message };
   return {};
 }
-

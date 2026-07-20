@@ -143,8 +143,6 @@ export async function fetchUserRecentActivity(
   const [
     { data: communityPosts },
     { data: projectPosts },
-    { data: communityComments },
-    { data: projectComments },
     { data: newMembers },
   ] = await Promise.all([
     joinedCommunityIds.length
@@ -181,36 +179,6 @@ export async function fetchUserRecentActivity(
         }),
     joinedCommunityIds.length
       ? supabase
-          .from("community_post_comments")
-          .select("id, content, post_id, author_id, created_at")
-          .order("created_at", { ascending: false })
-          .limit(perSource)
-      : Promise.resolve({
-          data: [] as {
-            id: string;
-            content: string;
-            post_id: string;
-            author_id: string;
-            created_at: string;
-          }[],
-        }),
-    joinedProjectIds.length
-      ? supabase
-          .from("project_post_comments")
-          .select("id, content, post_id, author_id, created_at")
-          .order("created_at", { ascending: false })
-          .limit(perSource)
-      : Promise.resolve({
-          data: [] as {
-            id: string;
-            content: string;
-            post_id: string;
-            author_id: string;
-            created_at: string;
-          }[],
-        }),
-    joinedCommunityIds.length
-      ? supabase
           .from("community_members")
           .select("id, community_id, user_id, joined_at, role")
           .in("community_id", joinedCommunityIds)
@@ -224,6 +192,44 @@ export async function fetchUserRecentActivity(
             user_id: string;
             joined_at: string;
             role: string;
+          }[],
+        }),
+  ]);
+
+  const communityPostIds = (communityPosts ?? []).map((p) => p.id);
+  const projectPostIds = (projectPosts ?? []).map((p) => p.id);
+
+  const [{ data: communityComments }, { data: projectComments }] = await Promise.all([
+    communityPostIds.length
+      ? supabase
+          .from("community_post_comments")
+          .select("id, content, post_id, author_id, created_at")
+          .in("post_id", communityPostIds)
+          .order("created_at", { ascending: false })
+          .limit(perSource)
+      : Promise.resolve({
+          data: [] as {
+            id: string;
+            content: string;
+            post_id: string;
+            author_id: string;
+            created_at: string;
+          }[],
+        }),
+    projectPostIds.length
+      ? supabase
+          .from("project_post_comments")
+          .select("id, content, post_id, author_id, created_at")
+          .in("post_id", projectPostIds)
+          .order("created_at", { ascending: false })
+          .limit(perSource)
+      : Promise.resolve({
+          data: [] as {
+            id: string;
+            content: string;
+            post_id: string;
+            author_id: string;
+            created_at: string;
           }[],
         }),
   ]);

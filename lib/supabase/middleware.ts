@@ -72,11 +72,9 @@ export async function updateSession(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    if (profile?.onboarding_completed) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
-    }
+    const url = request.nextUrl.clone();
+    url.pathname = profile?.onboarding_completed ? "/dashboard" : "/onboarding";
+    return NextResponse.redirect(url);
   }
 
   const protectedPrefixes = [...platformRoutes];

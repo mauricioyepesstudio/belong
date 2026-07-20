@@ -1,8 +1,10 @@
 "use client";
 
 import type { ComposerContentType, PublishIntention } from "@/engines/belong/home/types";
+import type { UserCommunity } from "@/lib/core";
+import { createCommunityPost } from "@/lib/actions/communities";
 import type { UserProfile } from "@/types/database.types";
-import { Avatar } from "@/systems/design-system";
+import { Avatar, useToast } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
@@ -21,7 +23,8 @@ import {
   Video,
   Wrench,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import type { LucideIcon } from "lucide-react";
 import { GlassCard } from "../dashboard/primitives";
 
@@ -48,18 +51,26 @@ const INTENTIONS: { id: PublishIntention; label: string; icon: LucideIcon }[] = 
 
 export function HomeComposer({
   profile,
+  communities,
   expanded: controlledExpanded,
   onExpandedChange,
+  onNeedCommunity,
 }: {
   profile: UserProfile;
+  communities: UserCommunity[];
   expanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
+  onNeedCommunity?: () => void;
 }) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [content, setContent] = useState("");
+  const [communityId, setCommunityId] = useState(communities[0]?.id ?? "");
   const [contentType, setContentType] = useState<ComposerContentType>("text");
   const [intention, setIntention] = useState<PublishIntention>("inspire");
   const [showIntention, setShowIntention] = useState(false);
   const [internalExpanded, setInternalExpanded] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isPending, startTransition] = useTransition();
 
   const expanded = controlledExpanded ?? internalExpanded;
   const setExpanded = onExpandedChange ?? setInternalExpanded;
@@ -73,16 +84,45 @@ export function HomeComposer({
       .toUpperCase() ?? "?";
 
   const handleFocus = () => {
+    if (communities.length === 0) {
+      toast("Join a community first to share a post", "error");
+      onNeedCommunity?.();
+      return;
+    }
     setExpanded(true);
-    setTimeout(() => textareaRef.current?.focus(), 0);
   };
 
   const handlePublishClick = () => {
+    if (!content.trim()) {
+      toast("Write something before publishing", "error");
+      return;
+    }
+    if (communities.length === 0) {
+      toast("Join a community first to share a post", "error");
+      onNeedCommunity?.();
+      return;
+    }
+    if (contentType !== "text") {
+      toast("Only text posts are supported from Home right now. Open the community page for other formats.", "error");
+      return;
+    }
     if (!showIntention) {
       setShowIntention(true);
       return;
     }
-    // Publishing wired to backend in a future sprint
+
+    startTransition(async () => {
+      const result = await createCommunityPost(communityId, content.trim());
+      if (result.error) {
+        toast(result.error, "error");
+        return;
+      }
+      toast("Post published", "success");
+      setContent("");
+      setShowIntention(false);
+      setExpanded(false);
+      router.refresh();
+    });
   };
 
   return (
@@ -100,12 +140,29 @@ export function HomeComposer({
                 What do you want to share today?
               </button>
             ) : (
-              <textarea
-                ref={textareaRef}
-                rows={3}
-                placeholder="Share an idea, invite collaborators, or start a conversation…"
-                className="w-full resize-none rounded-2xl border border-border-subtle bg-bg-surface px-4 py-3 text-body text-fg-primary outline-none transition-colors placeholder:text-fg-faint focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
-              />
+              <>
+                {communities.length > 1 && (
+                  <select
+                    value={communityId}
+                    onChange={(e) => setCommunityId(e.target.value)}
+                    className="mb-3 w-full rounded-xl border border-border-subtle bg-bg-surface px-3 py-2 text-sm text-fg-primary"
+                    aria-label="Choose community"
+                  >
+                    {communities.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <textarea
+                  rows={3}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Share an idea, invite collaborators, or start a conversation…"
+                  className="w-full resize-none rounded-2xl border border-border-subtle bg-bg-surface px-4 py-3 text-body text-fg-primary outline-none transition-colors placeholder:text-fg-faint focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
+                />
+              </>
             )}
           </div>
         </div>
@@ -141,9 +198,7 @@ export function HomeComposer({
 
             {showIntention && (
               <div className="mt-4 rounded-2xl border border-brand/20 bg-brand/5 p-4">
-                <p className="mb-3 text-sm font-medium text-fg-primary">
-                  What is your intention?
-                </p>
+                <p className="mb-3 text-sm font-medium text-fg-primary">What is your intention?</p>
                 <div className="flex flex-wrap gap-2">
                   {INTENTIONS.map(({ id, label, icon: Icon }) => {
                     const active = intention === id;
@@ -172,19 +227,22 @@ export function HomeComposer({
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <p className="text-caption text-fg-muted">
-            {expanded
-              ? showIntention
-                ? "Ready to share with intention"
-                : "Choose your intention before publishing"
-              : "Text · Image · Video · Poll · Article · Project · Event · Opportunity"}
+            {communities.length === 0
+              ? "Join a community to publish from Home"
+              : expanded
+                ? showIntention
+                  ? "Ready to share with intention"
+                  : "Choose your intention before publishing"
+                : "Text posts publish to your community"}
           </p>
           {expanded && (
             <button
               type="button"
               onClick={handlePublishClick}
-              className="rounded-2xl bg-brand px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              disabled={isPending}
+              className="rounded-2xl bg-brand px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
             >
-              {showIntention ? "Publish" : "Continue"}
+              {isPending ? "Publishing…" : showIntention ? "Publish" : "Continue"}
             </button>
           )}
         </div>

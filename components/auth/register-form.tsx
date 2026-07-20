@@ -9,19 +9,48 @@ import { useState, useTransition } from "react";
 
 export default function RegisterForm() {
   const [error, setError] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
   const [pending, startTransition] = useTransition();
 
   const handleSubmit = (formData: FormData) => {
     setError("");
+    setEmailSent(false);
     const fullName = formData.get("name") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
     startTransition(async () => {
       const result = await signUpWithEmail(email, password, fullName);
-      if (result?.error) setError(result.error);
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      if (result?.needsEmailConfirmation) {
+        setPendingEmail(email);
+        setEmailSent(true);
+      }
     });
   };
+
+  if (emailSent) {
+    return (
+      <AuthCard
+        title="Check your email"
+        description={`We sent a confirmation link to ${pendingEmail}. Click it to activate your account, then sign in to continue.`}
+        footer={
+          <>
+            Already confirmed?{" "}
+            <Link href="/login" className="text-brand hover:underline">Sign in</Link>
+          </>
+        }
+      >
+        <p className="text-body text-fg-secondary">
+          After confirming, you&apos;ll complete a short onboarding to personalize BELONG for your goals.
+        </p>
+      </AuthCard>
+    );
+  }
 
   return (
     <AuthCard

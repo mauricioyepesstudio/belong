@@ -120,17 +120,28 @@ export function ActivityCard({ activity }: { activity: HomeActivity }) {
 
             <ActivityExtras activity={activity} />
 
-            <div className="mt-5 space-y-4 border-t border-white/[0.06] pt-4">
-              <ActivityReactions reactions={activity.reactions} compact />
-              <div className="flex items-center gap-4 text-caption text-fg-muted">
-                <span className="inline-flex items-center gap-1.5">
-                  <MessageCircle className="h-4 w-4" aria-hidden />
-                  {activity.commentCount} responses
-                </span>
-                {activity.impactPoints != null && activity.impactPoints > 0 && (
-                  <span className="text-brand">+{activity.impactPoints} impact</span>
-                )}
-              </div>
+            <div className="mt-5 border-t border-white/[0.06] pt-4">
+              {Object.keys(activity.reactions).length > 0 ? (
+                <ActivityReactions reactions={activity.reactions} compact />
+              ) : (
+                <Link
+                  href={activity.href}
+                  className="inline-flex text-sm font-medium text-brand hover:underline"
+                >
+                  View and respond →
+                </Link>
+              )}
+              {activity.commentCount > 0 && (
+                <div className="mt-3 flex items-center gap-4 text-caption text-fg-muted">
+                  <span className="inline-flex items-center gap-1.5">
+                    <MessageCircle className="h-4 w-4" aria-hidden />
+                    {activity.commentCount} responses
+                  </span>
+                  {activity.impactPoints != null && activity.impactPoints > 0 && (
+                    <span className="text-brand">+{activity.impactPoints} impact</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

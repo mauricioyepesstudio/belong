@@ -11,6 +11,7 @@ import { usePathname } from "next/navigation";
 type AppTopNavProps = {
   profile: UserProfile | null;
   unreadNotifications?: number;
+  unreadMessages?: number;
 };
 
 function getPageTitle(pathname: string): string {
@@ -26,7 +27,11 @@ function getPageTitle(pathname: string): string {
   return "BELONG";
 }
 
-export function AppTopNav({ profile, unreadNotifications = 0 }: AppTopNavProps) {
+export function AppTopNav({
+  profile,
+  unreadNotifications = 0,
+  unreadMessages = 0,
+}: AppTopNavProps) {
   const pathname = usePathname();
   const title = getPageTitle(pathname);
 
@@ -50,10 +55,13 @@ export function AppTopNav({ profile, unreadNotifications = 0 }: AppTopNavProps) 
           </Link>
           <Link
             href="/messages"
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-fg-muted transition-colors hover:bg-bg-hover hover:text-fg-primary focus-ring"
-            aria-label="Messages"
+            className="relative flex h-9 w-9 items-center justify-center rounded-xl text-fg-muted transition-colors hover:bg-bg-hover hover:text-fg-primary focus-ring"
+            aria-label={`Messages${unreadMessages > 0 ? `, ${unreadMessages} unread` : ""}`}
           >
             <MessageSquare className="h-[18px] w-[18px]" aria-hidden />
+            {unreadMessages > 0 && (
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-brand" aria-hidden />
+            )}
           </Link>
           <Link
             href="/notifications"

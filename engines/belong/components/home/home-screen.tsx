@@ -73,13 +73,17 @@ export function HomeScreen(data: HomeEngineData) {
           <div ref={composerRef}>
             <HomeComposer
               profile={profile}
+              communities={communities}
               expanded={composerExpanded}
               onExpandedChange={setComposerExpanded}
+              onNeedCommunity={() => setCommunityOpen(true)}
             />
           </div>
           <HomeTimeline
             activities={homeTimeline}
+            hasCommunities={communities.length > 0}
             onExplore={() => setCommunityOpen(true)}
+            onCreateCommunity={() => router.push("/community")}
           />
         </div>
 

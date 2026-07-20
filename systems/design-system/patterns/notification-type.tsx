@@ -49,7 +49,11 @@ export function getNotificationHref(type: NotificationType, metadata?: Json): st
 
   if (missionId) return `/missions/${missionId}`;
   if (kind === "weekly_goal" || kind === "quarterly_goal") return "/dashboard#weekly-goals";
-  if (type === "message") return "/messages";
+  if (type === "message") {
+    const conversationId = metaString(metadata, "conversation_id");
+    if (conversationId) return `/messages?conversation=${conversationId}`;
+    return "/messages";
+  }
   if (type === "payment") return "/creator";
   if (projectId) return `/projects/${projectId}`;
   if (communitySlug) return `/community/${communitySlug}`;

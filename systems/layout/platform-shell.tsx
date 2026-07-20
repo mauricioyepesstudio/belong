@@ -8,18 +8,28 @@ type PlatformShellProps = {
   children: React.ReactNode;
   profile: UserProfile | null;
   unreadNotifications?: number;
+  unreadMessages?: number;
 };
 
 export function PlatformShell({
   children,
   profile,
   unreadNotifications = 0,
+  unreadMessages = 0,
 }: PlatformShellProps) {
   return (
     <div className="min-h-screen bg-bg-base">
-      <Sidebar profile={profile} unreadNotifications={unreadNotifications} />
+      <Sidebar
+        profile={profile}
+        unreadNotifications={unreadNotifications}
+        unreadMessages={unreadMessages}
+      />
       <div className="lg:pl-[var(--sidebar-width)]">
-        <AppTopNav profile={profile} unreadNotifications={unreadNotifications} />
+        <AppTopNav
+          profile={profile}
+          unreadNotifications={unreadNotifications}
+          unreadMessages={unreadMessages}
+        />
         <main
           id="main-content"
           className="min-h-[calc(100vh-var(--header-height))] pb-[calc(var(--mobile-nav-height)+1rem)] lg:pb-0"
@@ -29,7 +39,10 @@ export function PlatformShell({
           </div>
         </main>
       </div>
-      <MobileNav unreadNotifications={unreadNotifications} />
+      <MobileNav
+        unreadNotifications={unreadNotifications}
+        unreadMessages={unreadMessages}
+      />
     </div>
   );
 }

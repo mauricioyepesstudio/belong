@@ -14,17 +14,6 @@ const INTENTION_ROTATION: PublishIntention[] = [
   "support",
 ];
 
-function pseudoReactions(seed: string) {
-  const hash = seed.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-  return {
-    helpful: (hash % 12) + 1,
-    inspired: (hash % 8) + 1,
-    collaborate: hash % 5,
-    learned: hash % 6,
-    count_me_in: hash % 4,
-  };
-}
-
 function activityTypeFromLegacy(type: UserActivityItem["type"]): HomeActivityType {
   switch (type) {
     case "post":
@@ -68,8 +57,8 @@ function mapLegacyActivity(item: UserActivityItem, index: number): HomeActivity 
     href: item.href,
     createdAt: item.createdAt,
     contextLabel: parts[1] ?? item.subtitle,
-    reactions: pseudoReactions(item.id),
-    commentCount: item.id.charCodeAt(0) % 5,
+    reactions: {},
+    commentCount: 0,
     impactPoints: item.points,
   };
 }
@@ -91,7 +80,7 @@ function buildEventActivities(events: EventWithMeta[]): HomeActivity[] {
     createdAt: event.starts_at,
     contextLabel: event.registered ? "You're registered" : "Upcoming event",
     meta: { attendees: event.attendeeCount },
-    reactions: pseudoReactions(event.id),
+    reactions: {},
     commentCount: event.attendeeCount,
   }));
 }
@@ -112,34 +101,9 @@ function buildIdeaActivities(opportunities: Opportunity[]): HomeActivity[] {
     href: opp.actionHref,
     createdAt: new Date().toISOString(),
     contextLabel: opp.impactLabel,
-    reactions: pseudoReactions(opp.id),
+    reactions: {},
     commentCount: 0,
   }));
-}
-
-function buildRecommendationActivity(data: {
-  primaryRecommendation: HomeEngineData["primaryRecommendation"];
-}): HomeActivity {
-  const rec = data.primaryRecommendation;
-  return {
-    id: "ai-primary-rec",
-    type: "idea",
-    intention: "inspire",
-    title: rec.title,
-    body: rec.description,
-    excerpt: rec.why,
-    author: {
-      id: "belong-ai",
-      name: "BELONG AI",
-      avatarUrl: null,
-      role: "AI Opportunity",
-    },
-    href: rec.actionHref,
-    createdAt: new Date().toISOString(),
-    contextLabel: "Personalized for you",
-    reactions: { inspired: 3, helpful: 5, learned: 2 },
-    commentCount: 0,
-  };
 }
 
 function buildProjectActivities(data: {
@@ -160,7 +124,7 @@ function buildProjectActivities(data: {
     createdAt: project.updated_at,
     contextLabel: `${project.status} · ${project.memberCount} members`,
     meta: { progress: project.progress },
-    reactions: pseudoReactions(project.id),
+    reactions: {},
     commentCount: project.memberCount,
   }));
 }
@@ -186,7 +150,7 @@ function buildCommunityActivities(data: {
       href: pulse.href,
       createdAt: pulse.createdAt,
       contextLabel: "Trending in your community",
-      reactions: pseudoReactions("pulse"),
+      reactions: {},
       commentCount: 2,
     });
   }
@@ -206,7 +170,7 @@ function buildCommunityActivities(data: {
       href: `/community/${community.slug}`,
       createdAt: community.joinedAt,
       contextLabel: `${community.memberCount} members`,
-      reactions: pseudoReactions(community.id),
+      reactions: {},
       commentCount: 0,
     });
   }
@@ -232,34 +196,9 @@ function buildCollaborationActivities(data: {
     href: s.actionHref,
     createdAt: new Date().toISOString(),
     contextLabel: "Open collaboration request",
-    reactions: { collaborate: 1, count_me_in: 2 },
+    reactions: {},
     commentCount: 0,
   }));
-}
-
-function enrichPostVariants(activities: HomeActivity[]): HomeActivity[] {
-  return activities.map((item, index) => {
-    if (item.type !== "post" || index % 5 !== 0) return item;
-
-    if (index % 10 === 0) {
-      return {
-        ...item,
-        type: "achievement",
-        contextLabel: item.contextLabel ?? "Achievement unlocked",
-      };
-    }
-
-    if (index % 15 === 0) {
-      return {
-        ...item,
-        type: "organization",
-        author: { ...item.author, name: "Organization update" },
-        contextLabel: "Across your organizations",
-      };
-    }
-
-    return item;
-  });
 }
 
 export function buildHomeTimeline(input: {
@@ -272,7 +211,11 @@ export function buildHomeTimeline(input: {
   upcomingEvents: EventWithMeta[];
   opportunities: Opportunity[];
 }): HomeActivity[] {
-  const legacy = enrichPostVariants(input.recentActivity.map(mapLegacyActivity));
+  const legacy = input.recentActivity.map(mapLegacyActivity);
+
+  if (legacy.length === 0 && input.communities.length === 0) {
+    return [];
+  }
 
   const dataSlice = {
     primaryRecommendation: input.primaryRecommendation,
@@ -282,17 +225,18 @@ export function buildHomeTimeline(input: {
     communities: input.communities,
   };
 
-  const items: HomeActivity[] = [
-    buildRecommendationActivity(dataSlice),
-    ...buildCollaborationActivities(dataSlice),
-    ...buildIdeaActivities(input.opportunities),
-    ...buildEventActivities(input.upcomingEvents.slice(0, 2)),
-    ...buildProjectActivities(dataSlice),
-    ...buildCommunityActivities(dataSlice),
-    ...legacy,
-  ];
+  const suggested: HomeActivity[] =
+    input.communities.length > 0
+      ? [
+          ...buildCollaborationActivities(dataSlice).slice(0, 1),
+          ...buildIdeaActivities(input.opportunities.slice(0, 1)),
+          ...buildEventActivities(input.upcomingEvents.slice(0, 1)),
+          ...buildProjectActivities(dataSlice).slice(0, 1),
+          ...buildCommunityActivities(dataSlice).slice(0, 1),
+        ]
+      : [];
 
-  return items
+  return [...legacy, ...suggested]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 24);
 }

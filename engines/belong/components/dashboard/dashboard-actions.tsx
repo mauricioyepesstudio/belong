@@ -247,8 +247,19 @@ export function DashboardActions({
               title={discoverCommunities.length === 0 ? "No communities to join" : "No matches found"}
               description={
                 discoverCommunities.length === 0
-                  ? "You have joined all available communities, or none exist yet."
+                  ? "You have joined all available communities, or none exist yet. Create one from the Community page."
                   : "Try a different search term."
+              }
+              action={
+                discoverCommunities.length === 0
+                  ? {
+                      label: "Create a community",
+                      onClick: () => {
+                        onCommunityOpenChange(false);
+                        router.push("/community");
+                      },
+                    }
+                  : undefined
               }
               className="border-0 bg-transparent py-8"
             />

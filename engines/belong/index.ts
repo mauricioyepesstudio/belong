@@ -8,3 +8,4 @@ export {
 } from "./recommendation";
 export { calculatePersonalImpact, estimateMissionReach, type PersonalImpact } from "./impact-metrics";
 export { HomeDashboard } from "./components/home-dashboard";
+export { HomeScreen } from "./components/home";

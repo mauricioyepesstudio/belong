@@ -1,5 +1,5 @@
 export { getHomeEngineData as getDashboardData, type HomeEngineData as DashboardData } from "@/engines/belong/data";
-export { HomeDashboard as DashboardScreen } from "@/engines/belong/components/home-dashboard";
+export { HomeScreen as DashboardScreen } from "@/engines/belong/components/home";
 
 export type DashboardStats = {
   connections: number;

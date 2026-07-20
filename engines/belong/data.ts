@@ -22,10 +22,18 @@ import {
 } from "@/engines/belong/creator-os";
 import { generatePrimaryRecommendation, type CoachRecommendation } from "@/engines/belong/recommendation";
 import { detectOpportunities, suggestConnections } from "@/engines/ai/opportunities";
-import type { ConnectionSuggestion } from "@/engines/ai/coach-types";
+import type { ConnectionSuggestion, Opportunity } from "@/engines/ai/coach-types";
 import type { ReputationProfile } from "@/engines/identity/reputation";
 import { fetchReputationProfile } from "@/engines/identity/reputation";
 import type { UserProfile, Mission, Notification } from "@/types/database.types";
+import type { EventWithMeta } from "@/lib/core/events";
+import { buildHomeTimeline } from "@/engines/belong/home/feed-builder";
+import {
+  buildHomeDiscoveryData,
+  fetchTopContributors,
+  fetchTrendingDiscussions,
+} from "@/engines/belong/home/discovery";
+import type { HomeActivity, HomeDiscoveryData } from "@/engines/belong/home/types";
 
 export type HomeEngineData = {
   profile: UserProfile;
@@ -47,6 +55,10 @@ export type HomeEngineData = {
   connectionSuggestions: ConnectionSuggestion[];
   recentNotifications: Notification[];
   reputation: ReputationProfile;
+  upcomingEvents: EventWithMeta[];
+  opportunities: Opportunity[];
+  homeTimeline: HomeActivity[];
+  homeDiscovery: HomeDiscoveryData;
 };
 
 export async function getHomeEngineData(): Promise<HomeEngineData> {
@@ -129,7 +141,18 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
     result.mission.lifeMissionProgress?.completionPercent ?? 0
   );
 
-  return {
+  const [trendingDiscussions, topContributors] = await Promise.all([
+    fetchTrendingDiscussions(supabase, 5),
+    fetchTopContributors(supabase, 5),
+  ]);
+
+  const engineData: Omit<
+    HomeEngineData,
+    "homeTimeline" | "homeDiscovery" | "upcomingEvents" | "opportunities"
+  > & {
+    upcomingEvents: EventWithMeta[];
+    opportunities: Opportunity[];
+  } = {
     profile: result.profile,
     stats: result.stats,
     impactEngine: result.impact,
@@ -149,5 +172,31 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
     connectionSuggestions,
     recentNotifications,
     reputation,
+    upcomingEvents,
+    opportunities,
+  };
+
+  return {
+    ...engineData,
+    homeTimeline: buildHomeTimeline({
+      recentActivity: engineData.recentActivity,
+      primaryRecommendation: engineData.primaryRecommendation,
+      connectionSuggestions: engineData.connectionSuggestions,
+      recentProjects: engineData.recentProjects,
+      timeline: engineData.timeline,
+      communities: engineData.communities,
+      upcomingEvents,
+      opportunities,
+    }),
+    homeDiscovery: buildHomeDiscoveryData({
+      trendingDiscussions,
+      upcomingEvents,
+      discoverCommunities: result.community.discover,
+      connectionSuggestions,
+      primaryRecommendation,
+      smartHome,
+      opportunities,
+      topContributors,
+    }),
   };
 }

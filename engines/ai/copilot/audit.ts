@@ -85,6 +85,7 @@ export async function logCopilotAction(
   }
 ): Promise<string> {
   const { data, error } = await supabase
+    .schema("public")
     .from("ai_copilot_actions")
     .insert({
       user_id: params.userId,
@@ -117,6 +118,7 @@ export async function markCopilotActionApplied(
   appliedEntityId: string
 ): Promise<void> {
   const { error } = await supabase
+    .schema("public")
     .from("ai_copilot_actions")
     .update({
       applied: true,
@@ -140,6 +142,7 @@ export async function fetchCopilotAuditLog(
   limit = 8
 ): Promise<CopilotAuditRecord[]> {
   const { data, error } = await supabase
+    .schema("public")
     .from("ai_copilot_actions")
     .select("*")
     .eq("user_id", userId)
@@ -174,6 +177,7 @@ export async function fetchCopilotActionById(
   userId: string
 ): Promise<CopilotAuditRecord | null> {
   const { data, error } = await supabase
+    .schema("public")
     .from("ai_copilot_actions")
     .select("*")
     .eq("id", actionId)

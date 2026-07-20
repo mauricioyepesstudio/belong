@@ -26,12 +26,17 @@ export async function getCopilotPanelData(
     return { canUse: false, canApply: false, recentActions: [] };
   }
 
-  const recentActions = await fetchCopilotAuditLog(
-    supabase,
-    profile.id,
-    contextType,
-    contextId
-  );
+  let recentActions: CopilotPanelData["recentActions"] = [];
+  try {
+    recentActions = await fetchCopilotAuditLog(
+      supabase,
+      profile.id,
+      contextType,
+      contextId
+    );
+  } catch (error) {
+    console.error("Copilot audit log unavailable:", error);
+  }
 
   return {
     canUse: access.canUse,

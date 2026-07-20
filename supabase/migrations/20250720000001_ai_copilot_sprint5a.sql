@@ -54,3 +54,6 @@ create policy "Users update own ai copilot actions"
   using (auth.uid() = user_id);
 
 alter type public.impact_event_type add value if not exists 'ai_copilot_applied';
+
+-- Ensure PostgREST exposes the new table to the Data API
+notify pgrst, 'reload schema';

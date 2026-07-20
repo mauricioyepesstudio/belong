@@ -2,6 +2,7 @@
 
 import { fetchMessages, sendMessage } from "@/lib/actions/messages";
 import { FeatureScreen, Avatar, Button, Card, CardContent, EmptyState, Input, useToast } from "@/systems/design-system";
+import { Skeleton } from "@/components/ui";
 import { useRealtimeMessages } from "@/hooks/use-realtime-messages";
 import { formatDistanceToNow, formatInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -123,9 +124,17 @@ export function MessagesView({
       </div>
       <CardContent className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
         {loadingMessages ? (
-          <p className="text-caption text-fg-muted">Loading messages…</p>
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className={cn("h-12 rounded-2xl", i % 2 === 0 ? "w-3/5" : "ml-auto w-2/5")} />
+            ))}
+          </div>
         ) : messages.length === 0 ? (
-          <p className="text-caption text-fg-muted">No messages yet. Say hello!</p>
+          <EmptyState
+            icon={MessageSquare}
+            title="Start the conversation"
+            description="Send a message to break the ice."
+          />
         ) : (
           messages.map((m) => {
             const isOwn = m.sender_id === currentUserId;
@@ -158,8 +167,12 @@ export function MessagesView({
       </div>
     </>
   ) : (
-    <CardContent className="flex flex-1 items-center justify-center">
-      <p className="text-caption text-fg-muted">Select a conversation</p>
+    <CardContent className="flex flex-1 items-center justify-center p-6">
+      <EmptyState
+        icon={MessageSquare}
+        title="Select a conversation"
+        description="Choose someone from your list to view messages."
+      />
     </CardContent>
   );
 
@@ -177,7 +190,7 @@ export function MessagesView({
           action={{ label: "Find people", href: "/community" }}
         />
       ) : (
-        <div className="grid h-[calc(100vh-280px)] min-h-[480px] gap-0 overflow-hidden rounded-2xl border border-border lg:grid-cols-5">
+        <div className="flex min-h-[480px] flex-col overflow-hidden rounded-2xl border border-border lg:grid lg:h-[min(720px,calc(100vh-16rem))] lg:grid-cols-5">
           <div
             className={cn(
               "border-b border-border-subtle lg:col-span-2 lg:border-b-0 lg:border-r",
@@ -196,8 +209,22 @@ export function MessagesView({
                 />
               </div>
             </div>
-            <div className="overflow-y-auto" role="list">
-              {filtered.map((convo) => (
+            <div className="max-h-[40vh] overflow-y-auto lg:max-h-none lg:flex-1" role="list">
+              {filtered.length === 0 ? (
+                <div className="p-6">
+                  <EmptyState
+                    icon={Search}
+                    title="No conversations match"
+                    description={query ? `Nothing found for "${query}".` : "No conversations yet."}
+                    action={
+                      query
+                        ? { label: "Clear search", onClick: () => setQuery("") }
+                        : undefined
+                    }
+                  />
+                </div>
+              ) : (
+              filtered.map((convo) => (
                 <button
                   key={convo.id}
                   type="button"
@@ -229,7 +256,8 @@ export function MessagesView({
                     <p className="truncate text-xs text-fg-muted">{convo.preview}</p>
                   </div>
                 </button>
-              ))}
+              ))
+              )}
             </div>
           </div>
 

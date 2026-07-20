@@ -19,14 +19,13 @@ import type {
   OrganizationMember,
   OrganizationReputation,
 } from "@/lib/core/organizations";
-import { updateOrganizationMemberRole, updateOrganizationSettings, inviteToOrganization } from "@/lib/actions/organizations";
+import { updateOrganizationMemberRole, updateOrganizationSettings } from "@/lib/actions/organizations";
 import { Activity, FolderKanban, Globe, Settings, Target, TrendingUp, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { OrganizationMemberRole } from "@/types/database.types";
 
-const INVITE_ROLE_OPTIONS: OrganizationMemberRole[] = ["admin", "manager", "member", "guest"];
 const MANAGE_ROLE_OPTIONS: OrganizationMemberRole[] = ["admin", "manager", "member", "guest"];
 
 export function OrganizationOverviewTab({
@@ -290,24 +289,7 @@ export function OrganizationMembersTab({
 }) {
   const router = useRouter();
   const { toast } = useToast();
-  const [inviteUserId, setInviteUserId] = useState("");
-  const [inviteRole, setInviteRole] = useState<OrganizationMemberRole>("member");
   const [isPending, startTransition] = useTransition();
-
-  const handleInvite = () => {
-    const userId = inviteUserId.trim();
-    if (!userId) return;
-    startTransition(async () => {
-      const result = await inviteToOrganization(organizationId, userId, inviteRole);
-      if (result.error) toast(result.error, "error");
-      else {
-        toast("Member invited", "success");
-        setInviteUserId("");
-        onChanged();
-        router.refresh();
-      }
-    });
-  };
 
   const handleRoleChange = (userId: string, role: OrganizationMemberRole) => {
     startTransition(async () => {
@@ -325,36 +307,17 @@ export function OrganizationMembersTab({
     <div className="mt-6 space-y-4">
       {canManage && (
         <Card>
-          <CardContent className="flex flex-wrap items-end gap-3 pt-6">
-            <div className="min-w-[220px] flex-1">
-              <Label htmlFor="invite-user">Invite by user ID</Label>
-              <Input
-                id="invite-user"
-                value={inviteUserId}
-                onChange={(e) => setInviteUserId(e.target.value)}
-                placeholder="User UUID"
-                disabled={isPending}
-              />
-            </div>
-            <div>
-              <Label htmlFor="invite-role">Role</Label>
-              <select
-                id="invite-role"
-                className="mt-1 block rounded-lg border border-border-subtle bg-bg-base px-3 py-2 text-sm"
-                value={inviteRole}
-                onChange={(e) => setInviteRole(e.target.value as OrganizationMemberRole)}
-                disabled={isPending}
-              >
-                {INVITE_ROLE_OPTIONS.map((role) => (
-                  <option key={role} value={role} className="capitalize">
-                    {role}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Button disabled={isPending || !inviteUserId.trim()} onClick={handleInvite}>
-              Invite
-            </Button>
+          <CardContent className="space-y-3 pt-6">
+            <p className="text-sm font-medium text-fg-primary">Invite members</p>
+            <p className="text-sm text-fg-secondary">
+              Connect with builders on the Community page first. Organization invites by
+              email are coming soon.
+            </p>
+            <Link href="/community">
+              <Button variant="secondary" size="sm">
+                Find people in Community
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       )}

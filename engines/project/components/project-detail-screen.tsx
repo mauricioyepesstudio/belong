@@ -41,8 +41,6 @@ import type { ProjectStatus } from "@/types/database.types";
 import type { CopilotPanelData } from "@/lib/data/ai-copilot";
 import { CopilotPanel } from "@/engines/ai/components/copilot-panel";
 import {
-  ConnectionStatus,
-  LiveBadge,
   dedupeById,
   fetchAuthorMeta,
   mapProjectActivityRow,
@@ -133,7 +131,7 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
     setFundingEnabled(fresh.project.funding_enabled);
   }, [project.id]);
 
-  const { activeUsers } = useProjectRealtime({
+  useProjectRealtime({
     projectId: project.id,
     userId: currentUser.id,
     userName: currentUser.fullName,
@@ -385,8 +383,6 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
                     <Link href={`/community/${community.slug}`}>
                       <Badge variant="outline">{community.name}</Badge>
                     </Link>
-                    <LiveBadge count={activeUsers} label="Active" />
-                    <ConnectionStatus />
                   </div>
                   <p className="mt-2 text-caption text-fg-muted">
                     {memberCount} member{memberCount === 1 ? "" : "s"}

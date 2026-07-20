@@ -6,13 +6,24 @@ import { Button, ErrorMessage, Input, Label } from "@/components/ui";
 import { signInWithEmail } from "@/lib/actions/auth";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+
+const AUTH_ERRORS: Record<string, string> = {
+  auth_callback_failed: "Sign in failed. Please try again or use email instead.",
+};
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
+  const authError = searchParams.get("error");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (authError && AUTH_ERRORS[authError]) {
+      setError(AUTH_ERRORS[authError]);
+    }
+  }, [authError]);
 
   const handleSubmit = (formData: FormData) => {
     setError("");

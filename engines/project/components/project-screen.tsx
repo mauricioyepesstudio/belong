@@ -119,7 +119,7 @@ export function ProjectScreen({
       else {
         toast("Joined project", "success");
         setJoinedIds((prev) => new Set(prev).add(projectId));
-        setTab("mine");
+        setTab("mine-active");
         router.refresh();
       }
     });

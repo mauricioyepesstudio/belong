@@ -2,7 +2,6 @@
 
 import type { ProjectMember } from "@/lib/core";
 import { updateProjectMemberRole } from "@/lib/actions/project-workspace";
-import { inviteToProject } from "@/lib/actions/projects";
 import {
   Avatar,
   Badge,
@@ -10,13 +9,12 @@ import {
   Card,
   CardContent,
   EmptyState,
-  Input,
-  Label,
   useToast,
 } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import { Users } from "lucide-react";
-import { useState, useTransition } from "react";
+import Link from "next/link";
+import { useTransition } from "react";
 
 const ROLE_OPTIONS = ["admin", "collaborator", "member"] as const;
 
@@ -26,7 +24,6 @@ export function ProjectMembersTab({
   currentUserId,
   isOwner,
   isAdmin,
-  communityMemberIds,
 }: {
   projectId: string;
   members: ProjectMember[];
@@ -36,23 +33,9 @@ export function ProjectMembersTab({
   communityMemberIds?: string[];
 }) {
   const { toast } = useToast();
-  const [inviteUserId, setInviteUserId] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const canManage = isOwner || isAdmin;
-
-  const handleInvite = () => {
-    const userId = inviteUserId.trim();
-    if (!userId) return;
-    startTransition(async () => {
-      const result = await inviteToProject(projectId, userId);
-      if (result.error) toast(result.error, "error");
-      else {
-        toast("Member invited", "success");
-        setInviteUserId("");
-      }
-    });
-  };
 
   const handleRoleChange = (userId: string, role: (typeof ROLE_OPTIONS)[number]) => {
     startTransition(async () => {
@@ -67,22 +50,16 @@ export function ProjectMembersTab({
       {canManage && (
         <Card>
           <CardContent className="space-y-3 pt-6">
-            <Label htmlFor="invite-user">Invite by user ID</Label>
-            <div className="flex gap-2">
-              <Input
-                id="invite-user"
-                value={inviteUserId}
-                onChange={(e) => setInviteUserId(e.target.value)}
-                placeholder="User UUID from community"
-                disabled={isPending}
-              />
-              <Button disabled={isPending || !inviteUserId.trim()} onClick={handleInvite}>
-                Invite
-              </Button>
-            </div>
-            <p className="text-micro text-fg-faint">
-              User must be a member of the project&apos;s community.
+            <p className="text-sm font-medium text-fg-primary">Invite collaborators</p>
+            <p className="text-sm text-fg-secondary">
+              Connect with builders on the Community page, then ask them to join this
+              project&apos;s community. Direct invites from project settings are coming soon.
             </p>
+            <Link href="/community">
+              <Button variant="secondary" size="sm">
+                Find people in Community
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       )}

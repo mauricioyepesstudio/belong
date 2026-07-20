@@ -66,8 +66,19 @@ export async function signOut() {
 export async function resetPassword(email: string): Promise<AuthResult> {
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/settings`,
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/settings%3Frecovery%3D1`,
   });
   if (error) return { error: error.message };
+  return {};
+}
+
+export async function updatePassword(password: string): Promise<AuthResult> {
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters" };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: error.message };
+  revalidatePath("/", "layout");
   return {};
 }

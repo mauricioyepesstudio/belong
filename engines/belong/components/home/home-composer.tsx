@@ -1,35 +1,12 @@
 "use client";
 
-import type { PublishIntention } from "@/engines/belong/home/types";
 import type { UserCommunity } from "@/lib/core";
 import { createCommunityPost } from "@/lib/actions/communities";
 import type { UserProfile } from "@/types/database.types";
 import { Avatar, useToast } from "@/systems/design-system";
-import { formatInitials } from "@/lib/format";
-import { cn } from "@/lib/utils";
-import {
-  HandHeart,
-  HelpCircle,
-  Lightbulb,
-  PartyPopper,
-  Sparkles,
-  Users,
-  Wrench,
-} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { LucideIcon } from "lucide-react";
 import { GlassCard } from "../dashboard/primitives";
-
-const INTENTIONS: { id: PublishIntention; label: string; icon: LucideIcon }[] = [
-  { id: "inspire", label: "Inspire", icon: Sparkles },
-  { id: "ask", label: "Ask", icon: HelpCircle },
-  { id: "teach", label: "Teach", icon: Lightbulb },
-  { id: "collaborate", label: "Collaborate", icon: Users },
-  { id: "build", label: "Build", icon: Wrench },
-  { id: "celebrate", label: "Celebrate", icon: PartyPopper },
-  { id: "support", label: "Support", icon: HandHeart },
-];
 
 export function HomeComposer({
   profile,
@@ -48,8 +25,6 @@ export function HomeComposer({
   const { toast } = useToast();
   const [content, setContent] = useState("");
   const [communityId, setCommunityId] = useState(communities[0]?.id ?? "");
-  const [intention, setIntention] = useState<PublishIntention>("inspire");
-  const [showIntention, setShowIntention] = useState(false);
   const [internalExpanded, setInternalExpanded] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -72,17 +47,13 @@ export function HomeComposer({
     setExpanded(true);
   };
 
-  const handlePublishClick = () => {
+  const handlePublish = () => {
     if (!content.trim()) {
       toast("Write something before publishing", "error");
       return;
     }
     if (communities.length === 0) {
       onNeedCommunity?.();
-      return;
-    }
-    if (!showIntention) {
-      setShowIntention(true);
       return;
     }
 
@@ -94,7 +65,6 @@ export function HomeComposer({
       }
       toast("Post published", "success");
       setContent("");
-      setShowIntention(false);
       setExpanded(false);
       router.refresh();
     });
@@ -176,52 +146,22 @@ export function HomeComposer({
             </div>
           </div>
 
-          {expanded && showIntention && (
-            <div className="mt-5 border-t border-white/[0.06] pt-4">
-              <p className="mb-3 text-sm font-medium text-fg-primary">What is your intention?</p>
-              <div className="flex flex-wrap gap-2">
-                {INTENTIONS.map(({ id, label, icon: Icon }) => {
-                  const active = intention === id;
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setIntention(id)}
-                      className={cn(
-                        "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-micro font-medium transition-all",
-                        active
-                          ? "border-brand/40 bg-brand/15 text-brand"
-                          : "border-border-subtle bg-white/[0.02] text-fg-muted hover:text-fg-secondary"
-                      )}
-                    >
-                      <Icon className="h-3.5 w-3.5" aria-hidden />
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           {expanded && (
             <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  setExpanded(false);
-                  setShowIntention(false);
-                }}
+                onClick={() => setExpanded(false)}
                 className="rounded-2xl px-4 py-2.5 text-sm text-fg-muted hover:text-fg-secondary"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={handlePublishClick}
+                onClick={handlePublish}
                 disabled={isPending}
                 className="rounded-2xl bg-brand px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
               >
-                {isPending ? "Publishing…" : showIntention ? "Publish" : "Continue"}
+                {isPending ? "Publishing…" : "Publish post"}
               </button>
             </div>
           )}

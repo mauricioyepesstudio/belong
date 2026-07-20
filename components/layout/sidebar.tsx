@@ -111,10 +111,10 @@ export function Sidebar({ profile, unreadNotifications = 0, unreadMessages = 0 }
           type="button"
           disabled={pending}
           onClick={() => startTransition(() => signOut())}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-fg-muted transition-colors hover:bg-bg-hover hover:text-fg-secondary"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-fg-muted transition-colors hover:bg-bg-hover hover:text-fg-secondary disabled:opacity-60"
         >
           <LogOut className="h-4 w-4" aria-hidden />
-          Sign out
+          {pending ? "Signing out…" : "Sign out"}
         </button>
       </div>
     </aside>

@@ -3,7 +3,6 @@
 import type { ProjectFile } from "@/lib/core/project-workspace";
 import { getProjectFileUrl, uploadProjectFile } from "@/lib/actions/project-workspace";
 import {
-  Badge,
   Button,
   Card,
   CardContent,
@@ -107,9 +106,6 @@ export function ProjectFilesTab({
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {file.mimeType?.startsWith("image/") && (
-                      <Badge variant="outline">Preview</Badge>
-                    )}
                     <Button size="sm" variant="secondary" disabled={isPending} onClick={() => handleDownload(file.id)}>
                       Open
                     </Button>

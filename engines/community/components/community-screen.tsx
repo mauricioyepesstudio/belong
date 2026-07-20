@@ -60,6 +60,7 @@ export function CommunityScreen({
   const [monetizeOpen, setMonetizeOpen] = useState(false);
   const [monetizeId, setMonetizeId] = useState<string | null>(null);
   const [tipUser, setTipUser] = useState<DiscoverUser | null>(null);
+  const [pendingConnectIds, setPendingConnectIds] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
   const [membershipOverrides, setMembershipOverrides] = useState<
     Map<string, CommunityMemberRole | "left">
@@ -163,7 +164,10 @@ export function CommunityScreen({
     startTransition(async () => {
       const result = await sendConnectionRequest(userId);
       if (result.error) toast(result.error, "error");
-      else toast("Connection request sent", "success");
+      else {
+        setPendingConnectIds((prev) => new Set(prev).add(userId));
+        toast("Connection request sent", "success");
+      }
     });
   };
 
@@ -284,11 +288,11 @@ export function CommunityScreen({
                           size="sm"
                           variant="secondary"
                           className="flex-1"
-                          disabled={isPending}
+                          disabled={isPending || pendingConnectIds.has(person.id)}
                           onClick={() => handleConnect(person.id)}
                         >
                           <UserPlus className="h-3.5 w-3.5" aria-hidden />
-                          Connect
+                          {pendingConnectIds.has(person.id) ? "Pending" : "Connect"}
                         </Button>
                         {person.connect_charges_enabled && (
                           <Button
@@ -306,6 +310,7 @@ export function CommunityScreen({
                           variant="ghost"
                           disabled={isPending}
                           onClick={() => handleMessage(person.id)}
+                          aria-label={`Message ${person.full_name ?? "builder"}`}
                         >
                           <MessageSquare className="h-3.5 w-3.5" aria-hidden />
                         </Button>
@@ -323,15 +328,23 @@ export function CommunityScreen({
             description={
               tab === "joined"
                 ? "Join a community to connect with builders who share your mission."
-                : "Try a different search term."
+                : query
+                  ? "Try a different search term."
+                  : "Browse communities to find your people."
             }
-            action={{
-              label: "Discover communities",
-              onClick: () => {
-                setTab("discover");
-                setQuery("");
-              },
-            }}
+            action={
+              tab === "discover" && query
+                ? { label: "Clear search", onClick: () => setQuery("") }
+                : tab === "joined"
+                  ? {
+                      label: "Browse communities",
+                      onClick: () => {
+                        setTab("discover");
+                        setQuery("");
+                      },
+                    }
+                  : undefined
+            }
           />
         ) : (
           <StaggerList>

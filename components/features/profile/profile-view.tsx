@@ -10,6 +10,7 @@ import {
   Button,
   Card,
   CardContent,
+  EmptyState,
   ProgressBar,
   StatCard,
   Tabs,
@@ -18,15 +19,11 @@ import type { ReputationProfile } from "@/engines/identity/reputation";
 import type { UserStats } from "@/lib/core/stats";
 import { formatInitials } from "@/lib/format";
 import type { Mission, UserProfile } from "@/types/database.types";
-import { MapPin, Pencil, Users, FolderKanban } from "lucide-react";
+import { MapPin, Pencil, Target, Users, FolderKanban } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { StaggerItem, StaggerList } from "@/components/motion/fade-in";
-import {
-  ConnectionStatus,
-  LiveBadge,
-  useIdentityRealtime,
-} from "@/engines/core/realtime";
+import { useIdentityRealtime } from "@/engines/core/realtime";
 
 type ProfileViewProps = {
   profile: UserProfile;
@@ -67,11 +64,9 @@ export function ProfileView({ profile, stats, missions, reputation: initialReput
     <FeatureScreen
       label="Profile"
       title={profile.full_name ?? "Your profile"}
-      description="Live reputation dashboard — every action across BELONG builds your impact."
+      description="Your impact, connections, and missions across BELONG."
       action={
         <div className="flex flex-wrap items-center gap-2">
-          <LiveBadge label="Live reputation" />
-          <ConnectionStatus />
           <Link href="/creator">
             <Button variant="ghost">Creator hub</Button>
           </Link>
@@ -192,11 +187,12 @@ export function ProfileView({ profile, stats, missions, reputation: initialReput
           {tab === "missions" && (
             <StaggerList className="space-y-3">
               {missions.length === 0 ? (
-                <Card>
-                  <CardContent className="py-8 text-center text-caption">
-                    No missions defined yet.
-                  </CardContent>
-                </Card>
+                <EmptyState
+                  icon={Target}
+                  title="No missions yet"
+                  description="Define a mission during onboarding or from your dashboard to track what you're building."
+                  action={{ label: "Go to Home", href: "/dashboard" }}
+                />
               ) : (
                 missions.map((m) => (
                   <StaggerItem key={m.id}>

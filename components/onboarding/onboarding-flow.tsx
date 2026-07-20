@@ -7,7 +7,7 @@ import type { BuildGoal } from "@/types/database.types";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
 
 type Step = "goal" | "vision" | "profile" | "complete";
 
@@ -62,18 +62,6 @@ export function OnboardingFlow({ initialName = "" }: OnboardingFlowProps) {
       setAdvancing(false);
     }, 700);
   };
-
-  useEffect(() => {
-    if (step !== "vision") return;
-    const timer = setTimeout(goToProfileOrComplete, 5000);
-    return () => clearTimeout(timer);
-  }, [step, goToProfileOrComplete]);
-
-  useEffect(() => {
-    if (step !== "complete") return;
-    const timer = setTimeout(submit, 1400);
-    return () => clearTimeout(timer);
-  }, [step, submit]);
 
   const stepIndex =
     step === "goal" ? 0 : step === "vision" ? 1 : step === "profile" ? 2 : 3;
@@ -213,7 +201,7 @@ export function OnboardingFlow({ initialName = "" }: OnboardingFlowProps) {
                 Tell us more about your vision
               </h1>
               <p className="mt-3 text-body">
-                Optional — continuing automatically in a moment.
+                Optional — share a sentence or two about what you&apos;re building.
               </p>
 
               <div className="mt-8 surface-glass rounded-2xl p-6">
@@ -294,7 +282,7 @@ export function OnboardingFlow({ initialName = "" }: OnboardingFlowProps) {
               <motion.h1
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
+                transition={{ delay: 0.2 }}
                 className="mt-8 text-heading-lg text-fg-primary"
               >
                 You&apos;re ready to build
@@ -302,23 +290,20 @@ export function OnboardingFlow({ initialName = "" }: OnboardingFlowProps) {
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.45 }}
-                className="mt-3 text-body"
+                transition={{ delay: 0.3 }}
+                className="mt-3 max-w-md text-body"
               >
-                Setting up your BELONG experience...
+                Your profile and home feed are ready. Enter BELONG when you want to get started.
               </motion.p>
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="mt-8 h-1 w-32 overflow-hidden rounded-full bg-bg-hover"
+                transition={{ delay: 0.4 }}
+                className="mt-8"
               >
-                <motion.div
-                  className="h-full bg-brand"
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 1.2, ease }}
-                />
+                <Button size="lg" isLoading={pending} onClick={submit}>
+                  Enter BELONG
+                </Button>
               </motion.div>
             </motion.div>
           )}

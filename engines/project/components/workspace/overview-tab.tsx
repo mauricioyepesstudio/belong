@@ -50,8 +50,8 @@ export function ProjectOverviewTab({ data }: { data: ProjectDetail }) {
                 <p className="text-caption line-clamp-3">{mission.description}</p>
               )}
               <Badge variant="outline" className="capitalize">{mission.state}</Badge>
-              <Link href="/dashboard#life-mission" className="text-sm text-brand hover:underline">
-                View life mission →
+              <Link href={`/missions/${mission.id}`} className="text-sm text-brand hover:underline">
+                View mission →
               </Link>
             </>
           ) : (

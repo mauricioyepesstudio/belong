@@ -5,9 +5,31 @@ import { formatGreeting } from "@/lib/format";
 import { FadeIn } from "@/components/motion/fade-in";
 import { GlassCard } from "../dashboard/primitives";
 
-export function HomeWelcome({ profile }: { profile: UserProfile }) {
+export function HomeWelcome({
+  profile,
+  isReturningUser = false,
+}: {
+  profile: UserProfile;
+  isReturningUser?: boolean;
+}) {
   const firstName = profile.full_name?.split(" ")[0] ?? "Builder";
   const greeting = formatGreeting();
+
+  if (isReturningUser) {
+    return (
+      <FadeIn>
+        <div>
+          <p className="text-label">Home</p>
+          <h1 className="text-heading-lg mt-1 text-fg-primary">
+            {greeting}, {firstName}
+          </h1>
+          <p className="mt-2 max-w-2xl text-body text-fg-secondary">
+            Share updates, follow your communities, and keep building with your network.
+          </p>
+        </div>
+      </FadeIn>
+    );
+  }
 
   return (
     <FadeIn>

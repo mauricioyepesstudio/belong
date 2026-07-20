@@ -75,7 +75,8 @@ export function AppTopNav({
           </Link>
           <Link
             href="/profile"
-            className="ml-1 hidden items-center gap-2 rounded-xl p-1 transition-colors hover:bg-bg-hover sm:flex"
+            className="ml-1 flex items-center gap-2 rounded-xl p-1 transition-colors hover:bg-bg-hover"
+            aria-label="Your profile"
           >
             <Avatar
               fallback={formatInitials(profile?.full_name)}

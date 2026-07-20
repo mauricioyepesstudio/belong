@@ -59,7 +59,7 @@ export function HomeScreen(data: HomeEngineData) {
 
   return (
     <div className="space-y-10 md:space-y-12">
-      <HomeWelcome profile={profile} />
+      <HomeWelcome profile={profile} isReturningUser={communities.length > 0} />
 
       <HomePrimaryActions isNewUser={isNewUser} onAction={handlePrimaryAction} />
 

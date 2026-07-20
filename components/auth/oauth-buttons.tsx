@@ -2,19 +2,27 @@
 
 import { Button } from "@/components/ui";
 import { signInWithOAuth } from "@/lib/actions/auth";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 
 export function OAuthButtons() {
+  const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
 
   const handleOAuth = (provider: "google" | "apple") => {
+    setError("");
     startTransition(async () => {
-      await signInWithOAuth(provider);
+      const result = await signInWithOAuth(provider);
+      if (result?.error) setError(result.error);
     });
   };
 
   return (
     <div className="space-y-3">
+      {error && (
+        <p className="rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+          {error}
+        </p>
+      )}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-border-subtle" />
@@ -29,6 +37,7 @@ export function OAuthButtons() {
         variant="secondary"
         className="w-full"
         disabled={pending}
+        isLoading={pending}
         onClick={() => handleOAuth("google")}
       >
         <GoogleIcon />
@@ -40,6 +49,7 @@ export function OAuthButtons() {
         variant="secondary"
         className="w-full"
         disabled={pending}
+        isLoading={pending}
         onClick={() => handleOAuth("apple")}
       >
         <AppleIcon />

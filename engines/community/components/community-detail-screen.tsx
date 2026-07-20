@@ -29,8 +29,6 @@ import { formatInitials } from "@/lib/format";
 import type { CopilotPanelData } from "@/lib/data/ai-copilot";
 import { CopilotPanel } from "@/engines/ai/components/copilot-panel";
 import {
-  ConnectionStatus,
-  LiveBadge,
   dedupeById,
   fetchAuthorMeta,
   mapCommunityPostRow,
@@ -86,7 +84,7 @@ export function CommunityDetailScreen({ data, copilot, currentUser }: CommunityD
     setMembers(fresh.members);
   }, [community.slug]);
 
-  const { activeUsers } = useCommunityRealtime({
+  useCommunityRealtime({
     communityId: community.id,
     userId: currentUser.id,
     userName: currentUser.fullName,
@@ -218,8 +216,6 @@ export function CommunityDetailScreen({ data, copilot, currentUser }: CommunityD
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     {community.tag && <Badge variant="outline">{community.tag}</Badge>}
-                    <LiveBadge count={activeUsers} label="Active" />
-                    <ConnectionStatus />
                     {membership && (
                       <Badge
                         variant={

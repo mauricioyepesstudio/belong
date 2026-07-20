@@ -11,6 +11,7 @@ import {
   FeatureScreen,
   NotificationRow,
   Tabs,
+  useToast,
 } from "@/systems/design-system";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import type { Notification } from "@/types/database.types";
@@ -26,6 +27,7 @@ export function NotificationsView({
   userId: string;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [items, setItems] = useState(initial);
   const [tab, setTab] = useState("all");
   const [isPending, startTransition] = useTransition();
@@ -48,10 +50,15 @@ export function NotificationsView({
 
   const markAll = () => {
     startTransition(async () => {
-      await markAllNotificationsRead();
+      const result = await markAllNotificationsRead();
+      if (result?.error) {
+        toast(result.error, "error");
+        return;
+      }
       setItems((prev) =>
         prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() }))
       );
+      toast("All notifications marked as read", "success");
       router.refresh();
     });
   };

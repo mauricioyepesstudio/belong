@@ -27,7 +27,6 @@ import {
   Tabs,
   useToast,
 } from "@/systems/design-system";
-import { ConnectionStatus, LiveBadge } from "@/engines/core/realtime";
 import { ArrowLeft, Building2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -125,8 +124,6 @@ export function OrganizationDetailScreen({
                     </Badge>
                   )}
                   <Badge variant="outline">{reputation.reputationLevel}</Badge>
-                  <LiveBadge label="Live org" />
-                  <ConnectionStatus />
                 </div>
                 <p className="mt-2 text-caption text-fg-muted">
                   {analytics.memberCount} members · {analytics.projectCount} projects ·{" "}

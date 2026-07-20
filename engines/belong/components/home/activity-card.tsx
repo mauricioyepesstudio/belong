@@ -5,21 +5,16 @@ import { Avatar, Badge, ProgressBar } from "@/systems/design-system";
 import { formatDistanceToNow, formatInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
-  BarChart3,
-  BookOpen,
-  Bot,
+  Award,
   Building2,
   CalendarDays,
   FolderKanban,
   Handshake,
-  ImageIcon,
   Lightbulb,
   MessageCircle,
-  Play,
+  MessageSquare,
   Sparkles,
-  Target,
   Users,
-  Video,
 } from "lucide-react";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
@@ -30,63 +25,21 @@ const TYPE_CONFIG: Record<
   HomeActivityType,
   { label: string; icon: LucideIcon; accent: string }
 > = {
-  thought: { label: "Thought", icon: Lightbulb, accent: "text-amber-300" },
-  image: { label: "Image", icon: ImageIcon, accent: "text-pink-300" },
-  video: { label: "Video", icon: Video, accent: "text-rose-300" },
-  article: { label: "Article", icon: BookOpen, accent: "text-sky-300" },
-  poll: { label: "Poll", icon: BarChart3, accent: "text-violet-300" },
+  post: { label: "Post", icon: MessageSquare, accent: "text-sky-300" },
   project: { label: "Project", icon: FolderKanban, accent: "text-indigo-300" },
   event: { label: "Event", icon: CalendarDays, accent: "text-emerald-300" },
-  collaboration: { label: "Collaboration", icon: Handshake, accent: "text-cyan-300" },
-  opportunity: { label: "Opportunity", icon: Target, accent: "text-orange-300" },
-  community_update: { label: "Community", icon: Users, accent: "text-brand" },
-  organization_update: { label: "Organization", icon: Building2, accent: "text-fuchsia-300" },
-  ai_recommendation: { label: "AI Recommendation", icon: Bot, accent: "text-brand" },
+  community: { label: "Community", icon: Users, accent: "text-brand" },
+  organization: { label: "Organization", icon: Building2, accent: "text-fuchsia-300" },
+  collaboration_request: {
+    label: "Collaboration Request",
+    icon: Handshake,
+    accent: "text-cyan-300",
+  },
+  idea: { label: "Idea", icon: Lightbulb, accent: "text-amber-300" },
+  achievement: { label: "Achievement", icon: Award, accent: "text-orange-300" },
 };
 
-function ActivityMedia({ activity }: { activity: HomeActivity }) {
-  if (activity.type === "image") {
-    return (
-      <div className="mt-4 overflow-hidden rounded-2xl border border-border-subtle bg-gradient-to-br from-brand/10 via-indigo-500/10 to-bg-surface">
-        <div className="flex aspect-[16/9] items-center justify-center">
-          <ImageIcon className="h-10 w-10 text-fg-faint" aria-hidden />
-        </div>
-      </div>
-    );
-  }
-
-  if (activity.type === "video") {
-    return (
-      <div className="mt-4 overflow-hidden rounded-2xl border border-border-subtle bg-gradient-to-br from-rose-500/10 to-bg-surface">
-        <div className="relative flex aspect-video items-center justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm">
-            <Play className="ml-0.5 h-6 w-6 text-fg-primary" aria-hidden />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (activity.type === "poll" && activity.pollOptions?.length) {
-    const total = activity.pollOptions.reduce((sum, opt) => sum + opt.votes, 0);
-    return (
-      <div className="mt-4 space-y-2">
-        {activity.pollOptions.map((option) => {
-          const pct = total ? Math.round((option.votes / total) * 100) : 0;
-          return (
-            <div key={option.label} className="rounded-xl border border-border-subtle bg-white/[0.02] p-3">
-              <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                <span className="text-fg-secondary">{option.label}</span>
-                <span className="text-caption text-fg-muted">{pct}%</span>
-              </div>
-              <ProgressBar value={pct} className="h-1.5" />
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-
+function ActivityExtras({ activity }: { activity: HomeActivity }) {
   if (activity.type === "project" && activity.meta?.progress != null) {
     return (
       <div className="mt-4">
@@ -95,6 +48,15 @@ function ActivityMedia({ activity }: { activity: HomeActivity }) {
           <span>{activity.meta.progress}%</span>
         </div>
         <ProgressBar value={Number(activity.meta.progress)} />
+      </div>
+    );
+  }
+
+  if (activity.type === "idea") {
+    return (
+      <div className="mt-4 flex items-center gap-2 rounded-xl bg-brand/10 px-3 py-2 text-caption text-brand">
+        <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
+        <span>Opportunity surfaced for your mission</span>
       </div>
     );
   }
@@ -132,9 +94,9 @@ export function ActivityCard({ activity }: { activity: HomeActivity }) {
                 <Icon className={cn("h-3 w-3", config.accent)} aria-hidden />
                 {config.label}
               </Badge>
-              {activity.purpose && (
+              {activity.intention && (
                 <Badge variant="brand" className="capitalize">
-                  {activity.purpose}
+                  {activity.intention}
                 </Badge>
               )}
               {activity.contextLabel && (
@@ -151,22 +113,12 @@ export function ActivityCard({ activity }: { activity: HomeActivity }) {
                   {activity.body}
                 </p>
               )}
-              {activity.excerpt && activity.type === "article" && (
-                <p className="mt-2 text-caption leading-relaxed text-fg-muted">{activity.excerpt}…</p>
-              )}
-              {activity.excerpt && activity.type !== "article" && (
-                <p className="mt-2 text-caption text-fg-muted">{activity.excerpt}</p>
+              {activity.excerpt && (
+                <p className="mt-2 text-caption leading-relaxed text-fg-muted">{activity.excerpt}</p>
               )}
             </Link>
 
-            <ActivityMedia activity={activity} />
-
-            {activity.type === "ai_recommendation" && (
-              <div className="mt-4 flex items-center gap-2 rounded-xl bg-brand/10 px-3 py-2 text-caption text-brand">
-                <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
-                <span>Curated by BELONG AI for your mission</span>
-              </div>
-            )}
+            <ActivityExtras activity={activity} />
 
             <div className="mt-5 space-y-4 border-t border-white/[0.06] pt-4">
               <ActivityReactions reactions={activity.reactions} compact />

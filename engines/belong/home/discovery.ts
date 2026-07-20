@@ -5,12 +5,12 @@ import type { ConnectionSuggestion } from "@/engines/ai/coach-types";
 import type { CoachRecommendation } from "@/engines/belong/recommendation";
 import type { SmartHomeItem } from "@/engines/belong/creator-os";
 import type { Opportunity } from "@/engines/ai/coach-types";
-import type { HomeDiscoveryData, TrendingDiscussion, TopContributor } from "./types";
+import type { HomeDiscoveryData, TopContributor, TrendingConversation } from "./types";
 
-export async function fetchTrendingDiscussions(
+export async function fetchTrendingConversations(
   supabase: SupabaseServerClient,
   limit = 5
-): Promise<TrendingDiscussion[]> {
+): Promise<TrendingConversation[]> {
   const { data: posts } = await supabase
     .from("community_posts")
     .select("id, content, community_id, created_at")
@@ -92,7 +92,7 @@ export async function fetchTopContributors(
 }
 
 export function buildHomeDiscoveryData(input: {
-  trendingDiscussions: TrendingDiscussion[];
+  trendingConversations: TrendingConversation[];
   upcomingEvents: EventWithMeta[];
   discoverCommunities: DiscoverCommunity[];
   connectionSuggestions: ConnectionSuggestion[];
@@ -101,7 +101,7 @@ export function buildHomeDiscoveryData(input: {
   opportunities: Opportunity[];
   topContributors: TopContributor[];
 }): HomeDiscoveryData {
-  const aiRecommendations = [
+  const aiOpportunities = [
     {
       id: "primary-rec",
       title: input.primaryRecommendation.title,
@@ -126,7 +126,7 @@ export function buildHomeDiscoveryData(input: {
   ].slice(0, 4);
 
   return {
-    trendingDiscussions: input.trendingDiscussions,
+    trendingConversations: input.trendingConversations,
     upcomingEvents: input.upcomingEvents.map((event) => ({
       id: event.id,
       title: event.title,
@@ -151,7 +151,7 @@ export function buildHomeDiscoveryData(input: {
       avatarUrl: s.avatarUrl,
       href: s.actionHref,
     })),
-    aiRecommendations,
+    aiOpportunities,
     topContributors: input.topContributors,
   };
 }

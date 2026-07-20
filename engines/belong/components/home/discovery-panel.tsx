@@ -63,26 +63,9 @@ function PanelRow({
 export function DiscoveryPanel({ discovery }: { discovery: HomeDiscoveryData }) {
   return (
     <div className="space-y-5">
-      {discovery.aiRecommendations.length > 0 && (
-        <PanelSection title="AI Recommendations" icon={Sparkles}>
-          {discovery.aiRecommendations.map((rec) => (
-            <div key={rec.id} className="px-4 py-3">
-              <p className="text-sm font-medium text-fg-primary">{rec.title}</p>
-              <p className="mt-1 text-caption text-fg-muted line-clamp-2">{rec.description}</p>
-              <Link
-                href={rec.href}
-                className="mt-2 inline-flex text-micro font-medium text-brand hover:underline"
-              >
-                {rec.actionLabel} →
-              </Link>
-            </div>
-          ))}
-        </PanelSection>
-      )}
-
-      {discovery.trendingDiscussions.length > 0 && (
-        <PanelSection title="Trending discussions" icon={MessageSquare}>
-          {discovery.trendingDiscussions.map((item) => (
+      {discovery.trendingConversations.length > 0 && (
+        <PanelSection title="Trending Conversations" icon={MessageSquare}>
+          {discovery.trendingConversations.map((item) => (
             <PanelRow
               key={item.id}
               href={item.href}
@@ -95,7 +78,7 @@ export function DiscoveryPanel({ discovery }: { discovery: HomeDiscoveryData }) 
       )}
 
       {discovery.upcomingEvents.length > 0 && (
-        <PanelSection title="Upcoming events" icon={CalendarDays}>
+        <PanelSection title="Upcoming Events" icon={CalendarDays}>
           {discovery.upcomingEvents.map((event) => (
             <Link
               key={event.id}
@@ -110,9 +93,7 @@ export function DiscoveryPanel({ discovery }: { discovery: HomeDiscoveryData }) 
                   </Badge>
                 )}
               </div>
-              <p className="mt-1 text-caption text-fg-muted">
-                {formatEventDate(event.startsAt)}
-              </p>
+              <p className="mt-1 text-caption text-fg-muted">{formatEventDate(event.startsAt)}</p>
               {event.location && (
                 <p className="mt-1 inline-flex items-center gap-1 text-micro text-fg-faint">
                   <MapPin className="h-3 w-3" aria-hidden />
@@ -126,7 +107,7 @@ export function DiscoveryPanel({ discovery }: { discovery: HomeDiscoveryData }) 
       )}
 
       {discovery.suggestedCommunities.length > 0 && (
-        <PanelSection title="Suggested communities" icon={Users}>
+        <PanelSection title="Suggested Communities" icon={Users}>
           {discovery.suggestedCommunities.map((community) => (
             <PanelRow
               key={community.id}
@@ -140,7 +121,7 @@ export function DiscoveryPanel({ discovery }: { discovery: HomeDiscoveryData }) 
       )}
 
       {discovery.suggestedCollaborators.length > 0 && (
-        <PanelSection title="Suggested collaborators" icon={UserPlus}>
+        <PanelSection title="Suggested Collaborators" icon={UserPlus}>
           {discovery.suggestedCollaborators.map((person) => (
             <Link
               key={person.id}
@@ -161,8 +142,25 @@ export function DiscoveryPanel({ discovery }: { discovery: HomeDiscoveryData }) 
         </PanelSection>
       )}
 
+      {discovery.aiOpportunities.length > 0 && (
+        <PanelSection title="AI Opportunities" icon={Sparkles}>
+          {discovery.aiOpportunities.map((opp) => (
+            <div key={opp.id} className="px-4 py-3">
+              <p className="text-sm font-medium text-fg-primary">{opp.title}</p>
+              <p className="mt-1 text-caption text-fg-muted line-clamp-2">{opp.description}</p>
+              <Link
+                href={opp.href}
+                className="mt-2 inline-flex text-micro font-medium text-brand hover:underline"
+              >
+                {opp.actionLabel} →
+              </Link>
+            </div>
+          ))}
+        </PanelSection>
+      )}
+
       {discovery.topContributors.length > 0 && (
-        <PanelSection title="Top contributors" icon={Trophy}>
+        <PanelSection title="Top Contributors" icon={Trophy}>
           {discovery.topContributors.map((contributor, index) => (
             <Link
               key={contributor.id}

@@ -2,11 +2,10 @@ import type { HomeEngineData } from "@/engines/belong/data";
 import type { UserActivityItem } from "@/engines/belong/global-feed";
 import type { Opportunity } from "@/engines/ai/coach-types";
 import type { EventWithMeta } from "@/lib/core/events";
-import type { HomeActivity, HomeActivityType, PublishPurpose } from "./types";
+import type { HomeActivity, HomeActivityType, PublishIntention } from "./types";
 
-const PURPOSE_ROTATION: PublishPurpose[] = [
+const INTENTION_ROTATION: PublishIntention[] = [
   "inspire",
-  "learn",
   "ask",
   "teach",
   "collaborate",
@@ -30,23 +29,23 @@ function activityTypeFromLegacy(type: UserActivityItem["type"]): HomeActivityTyp
   switch (type) {
     case "post":
     case "comment":
-      return "thought";
+      return "post";
     case "project":
       return "project";
     case "event":
       return "event";
     case "connection":
-      return "collaboration";
+      return "collaboration_request";
     case "community":
     case "contribution":
     case "member":
-      return "community_update";
+      return "community";
     case "mission":
     case "goal":
     case "achievement":
-      return "ai_recommendation";
+      return "achievement";
     default:
-      return "thought";
+      return "post";
   }
 }
 
@@ -58,7 +57,7 @@ function mapLegacyActivity(item: UserActivityItem, index: number): HomeActivity 
   return {
     id: item.id,
     type,
-    purpose: PURPOSE_ROTATION[index % PURPOSE_ROTATION.length],
+    intention: INTENTION_ROTATION[index % INTENTION_ROTATION.length],
     title: item.title,
     body: item.subtitle,
     author: {
@@ -79,7 +78,7 @@ function buildEventActivities(events: EventWithMeta[]): HomeActivity[] {
   return events.map((event) => ({
     id: `event-${event.id}`,
     type: "event" as const,
-    purpose: "collaborate" as const,
+    intention: "collaborate" as const,
     title: event.title,
     body: event.description ?? undefined,
     excerpt: event.location ?? undefined,
@@ -97,18 +96,18 @@ function buildEventActivities(events: EventWithMeta[]): HomeActivity[] {
   }));
 }
 
-function buildOpportunityActivities(opportunities: Opportunity[]): HomeActivity[] {
+function buildIdeaActivities(opportunities: Opportunity[]): HomeActivity[] {
   return opportunities.map((opp) => ({
-    id: `opp-${opp.id}`,
-    type: "opportunity" as const,
-    purpose: "build" as const,
+    id: `idea-${opp.id}`,
+    type: "idea" as const,
+    intention: "build" as const,
     title: opp.title,
     body: opp.description,
     author: {
       id: "belong-coach",
       name: "BELONG Coach",
       avatarUrl: null,
-      role: "AI",
+      role: "Opportunity",
     },
     href: opp.actionHref,
     createdAt: new Date().toISOString(),
@@ -124,8 +123,8 @@ function buildRecommendationActivity(data: {
   const rec = data.primaryRecommendation;
   return {
     id: "ai-primary-rec",
-    type: "ai_recommendation",
-    purpose: "learn",
+    type: "idea",
+    intention: "inspire",
     title: rec.title,
     body: rec.description,
     excerpt: rec.why,
@@ -133,7 +132,7 @@ function buildRecommendationActivity(data: {
       id: "belong-ai",
       name: "BELONG AI",
       avatarUrl: null,
-      role: "Recommendation",
+      role: "AI Opportunity",
     },
     href: rec.actionHref,
     createdAt: new Date().toISOString(),
@@ -149,7 +148,7 @@ function buildProjectActivities(data: {
   return data.recentProjects.slice(0, 3).map((project) => ({
     id: `home-project-${project.id}`,
     type: "project" as const,
-    purpose: "build" as const,
+    intention: "build" as const,
     title: project.name,
     body: project.description ?? undefined,
     author: {
@@ -166,7 +165,7 @@ function buildProjectActivities(data: {
   }));
 }
 
-function buildCommunityUpdateActivities(data: {
+function buildCommunityActivities(data: {
   timeline: HomeEngineData["timeline"];
   communities: HomeEngineData["communities"];
 }): HomeActivity[] {
@@ -176,8 +175,8 @@ function buildCommunityUpdateActivities(data: {
     const pulse = data.timeline.communityPulse;
     items.push({
       id: "community-pulse",
-      type: "community_update",
-      purpose: "inspire",
+      type: "post",
+      intention: "inspire",
       title: pulse.title,
       author: {
         id: "community",
@@ -186,7 +185,7 @@ function buildCommunityUpdateActivities(data: {
       },
       href: pulse.href,
       createdAt: pulse.createdAt,
-      contextLabel: "Latest in your community",
+      contextLabel: "Trending in your community",
       reactions: pseudoReactions("pulse"),
       commentCount: 2,
     });
@@ -195,9 +194,9 @@ function buildCommunityUpdateActivities(data: {
   for (const community of data.communities.slice(0, 2)) {
     items.push({
       id: `community-${community.id}`,
-      type: "community_update",
-      purpose: "celebrate",
-      title: `${community.name} is active`,
+      type: "community",
+      intention: "celebrate",
+      title: `${community.name} is growing`,
       body: community.description ?? undefined,
       author: {
         id: community.id,
@@ -220,8 +219,8 @@ function buildCollaborationActivities(data: {
 }): HomeActivity[] {
   return data.connectionSuggestions.slice(0, 2).map((s) => ({
     id: `collab-${s.id}`,
-    type: "collaboration" as const,
-    purpose: "collaborate" as const,
+    type: "collaboration_request" as const,
+    intention: "collaborate" as const,
     title: `Collaborate with ${s.name}`,
     body: s.reason,
     author: {
@@ -232,52 +231,34 @@ function buildCollaborationActivities(data: {
     },
     href: s.actionHref,
     createdAt: new Date().toISOString(),
-    contextLabel: "Suggested collaborator",
+    contextLabel: "Open collaboration request",
     reactions: { collaborate: 1, count_me_in: 2 },
     commentCount: 0,
   }));
 }
 
-function enrichThoughtVariants(activities: HomeActivity[]): HomeActivity[] {
+function enrichPostVariants(activities: HomeActivity[]): HomeActivity[] {
   return activities.map((item, index) => {
-    if (item.type !== "thought" || index % 4 !== 0) return item;
+    if (item.type !== "post" || index % 5 !== 0) return item;
 
-    const variants: HomeActivityType[] = ["image", "video", "article", "poll"];
-    const variant = variants[Math.floor(index / 4) % variants.length];
-
-    if (variant === "poll") {
+    if (index % 10 === 0) {
       return {
         ...item,
-        type: "poll",
-        pollOptions: [
-          { label: "Yes, let's build together", votes: 12 },
-          { label: "Need more context first", votes: 5 },
-          { label: "Share resources instead", votes: 8 },
-        ],
+        type: "achievement",
+        contextLabel: item.contextLabel ?? "Achievement unlocked",
       };
     }
 
-    if (variant === "image") {
+    if (index % 15 === 0) {
       return {
         ...item,
-        type: "image",
-        excerpt: "Shared a visual moment from the build",
+        type: "organization",
+        author: { ...item.author, name: "Organization update" },
+        contextLabel: "Across your organizations",
       };
     }
 
-    if (variant === "video") {
-      return {
-        ...item,
-        type: "video",
-        excerpt: "Shared a progress update",
-      };
-    }
-
-    return {
-      ...item,
-      type: "article",
-      excerpt: item.body?.slice(0, 120),
-    };
+    return item;
   });
 }
 
@@ -291,8 +272,7 @@ export function buildHomeTimeline(input: {
   upcomingEvents: EventWithMeta[];
   opportunities: Opportunity[];
 }): HomeActivity[] {
-  const legacy = input.recentActivity.map(mapLegacyActivity);
-  const enriched = enrichThoughtVariants(legacy);
+  const legacy = enrichPostVariants(input.recentActivity.map(mapLegacyActivity));
 
   const dataSlice = {
     primaryRecommendation: input.primaryRecommendation,
@@ -305,11 +285,11 @@ export function buildHomeTimeline(input: {
   const items: HomeActivity[] = [
     buildRecommendationActivity(dataSlice),
     ...buildCollaborationActivities(dataSlice),
-    ...buildOpportunityActivities(input.opportunities),
+    ...buildIdeaActivities(input.opportunities),
     ...buildEventActivities(input.upcomingEvents.slice(0, 2)),
     ...buildProjectActivities(dataSlice),
-    ...buildCommunityUpdateActivities(dataSlice),
-    ...enriched,
+    ...buildCommunityActivities(dataSlice),
+    ...legacy,
   ];
 
   return items

@@ -31,9 +31,10 @@ import { buildHomeTimeline } from "@/engines/belong/home/feed-builder";
 import {
   buildHomeDiscoveryData,
   fetchTopContributors,
-  fetchTrendingDiscussions,
+  fetchTrendingConversations,
 } from "@/engines/belong/home/discovery";
-import type { HomeActivity, HomeDiscoveryData } from "@/engines/belong/home/types";
+import { buildHomeImpactMetrics } from "@/engines/belong/home/metrics";
+import type { HomeActivity, HomeDiscoveryData, HomeImpactMetrics } from "@/engines/belong/home/types";
 
 export type HomeEngineData = {
   profile: UserProfile;
@@ -59,6 +60,7 @@ export type HomeEngineData = {
   opportunities: Opportunity[];
   homeTimeline: HomeActivity[];
   homeDiscovery: HomeDiscoveryData;
+  homeImpactMetrics: HomeImpactMetrics;
 };
 
 export async function getHomeEngineData(): Promise<HomeEngineData> {
@@ -141,14 +143,14 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
     result.mission.lifeMissionProgress?.completionPercent ?? 0
   );
 
-  const [trendingDiscussions, topContributors] = await Promise.all([
-    fetchTrendingDiscussions(supabase, 5),
+  const [trendingConversations, topContributors] = await Promise.all([
+    fetchTrendingConversations(supabase, 5),
     fetchTopContributors(supabase, 5),
   ]);
 
   const engineData: Omit<
     HomeEngineData,
-    "homeTimeline" | "homeDiscovery" | "upcomingEvents" | "opportunities"
+    "homeTimeline" | "homeDiscovery" | "homeImpactMetrics" | "upcomingEvents" | "opportunities"
   > & {
     upcomingEvents: EventWithMeta[];
     opportunities: Opportunity[];
@@ -189,7 +191,7 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
       opportunities,
     }),
     homeDiscovery: buildHomeDiscoveryData({
-      trendingDiscussions,
+      trendingConversations,
       upcomingEvents,
       discoverCommunities: result.community.discover,
       connectionSuggestions,
@@ -197,6 +199,11 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
       smartHome,
       opportunities,
       topContributors,
+    }),
+    homeImpactMetrics: buildHomeImpactMetrics({
+      stats: engineData.stats,
+      impactEngine: engineData.impactEngine,
+      reputation: engineData.reputation,
     }),
   };
 }

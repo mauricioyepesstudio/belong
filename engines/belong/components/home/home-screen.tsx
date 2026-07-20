@@ -1,54 +1,82 @@
 "use client";
 
 import type { HomeEngineData } from "@/engines/belong/data";
-import { ConnectionStatus, LiveBadge, useDashboardRealtime } from "@/engines/core/realtime";
-import { useState } from "react";
+import { useDashboardRealtime } from "@/engines/core/realtime";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { HomeComposer } from "./home-composer";
 import { HomeTimeline } from "./home-timeline";
 import { DiscoveryPanel } from "./discovery-panel";
+import { HomeHero, type QuickActionId } from "./home-hero";
+import { HomeImpactMetrics } from "./home-impact-metrics";
 import { DashboardActions } from "../dashboard/dashboard-actions";
-import { FadeIn } from "@/components/motion/fade-in";
-import { personalizedGreeting } from "@/engines/belong/recommendation";
 
 export function HomeScreen(data: HomeEngineData) {
+  const router = useRouter();
+  const composerRef = useRef<HTMLDivElement>(null);
   const {
     profile,
     communities,
     discoverCommunities,
     homeTimeline,
     homeDiscovery,
+    homeImpactMetrics,
+    primaryRecommendation,
+    missionEngine,
   } = data;
 
   const [missionOpen, setMissionOpen] = useState(false);
   const [projectOpen, setProjectOpen] = useState(false);
   const [communityOpen, setCommunityOpen] = useState(false);
+  const [composerExpanded, setComposerExpanded] = useState(false);
 
   useDashboardRealtime({ userId: profile.id });
 
-  const firstName = profile.full_name?.split(" ")[0] ?? "Builder";
-  const greeting = personalizedGreeting(firstName);
+  const pendingMission = missionEngine.dailyMissions.find((m) => m.status === "pending");
+
+  const handleQuickAction = (action: QuickActionId) => {
+    switch (action) {
+      case "share_idea":
+        setComposerExpanded(true);
+        composerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        break;
+      case "find_collaborators":
+        router.push("/community");
+        break;
+      case "start_project":
+        setProjectOpen(true);
+        break;
+      case "join_community":
+        setCommunityOpen(true);
+        break;
+      case "complete_mission":
+        if (pendingMission) router.push(pendingMission.action_href);
+        else setMissionOpen(true);
+        break;
+      case "help_someone":
+        router.push("/community");
+        break;
+      case "learn_something":
+        router.push(primaryRecommendation.actionHref);
+        break;
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <FadeIn>
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-label">BELONG Home</p>
-            <h1 className="text-heading-lg mt-1 text-fg-primary">{greeting}</h1>
-            <p className="mt-2 max-w-xl text-body text-fg-secondary">
-              Express ideas, discover opportunities, and build measurable impact — together.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <LiveBadge label="Live" />
-            <ConnectionStatus />
-          </div>
-        </div>
-      </FadeIn>
+      <HomeHero profile={profile} onQuickAction={handleQuickAction} />
+
+      <HomeImpactMetrics metrics={homeImpactMetrics} />
 
       <div className="flex flex-col gap-8 xl:flex-row xl:items-start">
         <div className="min-w-0 flex-1 space-y-6 xl:max-w-2xl">
-          <HomeComposer profile={profile} />
+          <div ref={composerRef}>
+            <HomeComposer
+              profile={profile}
+              expanded={composerExpanded}
+              onExpandedChange={setComposerExpanded}
+            />
+          </div>
           <HomeTimeline
             activities={homeTimeline}
             onExplore={() => setCommunityOpen(true)}

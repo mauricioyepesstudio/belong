@@ -1,26 +1,34 @@
 export type HomeActivityType =
-  | "thought"
-  | "image"
-  | "video"
-  | "article"
-  | "poll"
+  | "post"
   | "project"
   | "event"
-  | "collaboration"
-  | "opportunity"
-  | "community_update"
-  | "organization_update"
-  | "ai_recommendation";
+  | "community"
+  | "organization"
+  | "collaboration_request"
+  | "idea"
+  | "achievement";
 
-export type PublishPurpose =
+export type ComposerContentType =
+  | "text"
+  | "image"
+  | "video"
+  | "poll"
+  | "article"
+  | "project"
+  | "event"
+  | "opportunity";
+
+export type PublishIntention =
   | "inspire"
-  | "learn"
   | "ask"
   | "teach"
   | "collaborate"
   | "build"
   | "celebrate"
   | "support";
+
+/** @deprecated Use PublishIntention */
+export type PublishPurpose = PublishIntention | "learn";
 
 export type BelongReaction =
   | "helpful"
@@ -41,7 +49,7 @@ export type HomeActivityReactions = Partial<Record<BelongReaction, number>>;
 export type HomeActivity = {
   id: string;
   type: HomeActivityType;
-  purpose?: PublishPurpose;
+  intention?: PublishIntention;
   title: string;
   body?: string;
   excerpt?: string;
@@ -58,7 +66,15 @@ export type HomeActivity = {
   impactPoints?: number;
 };
 
-export type TrendingDiscussion = {
+export type HomeImpactMetrics = {
+  peopleHelped: number;
+  projectsBuilt: number;
+  collaborations: number;
+  communities: number;
+  impactScore: number;
+};
+
+export type TrendingConversation = {
   id: string;
   title: string;
   communityName: string;
@@ -75,7 +91,7 @@ export type TopContributor = {
 };
 
 export type HomeDiscoveryData = {
-  trendingDiscussions: TrendingDiscussion[];
+  trendingConversations: TrendingConversation[];
   upcomingEvents: {
     id: string;
     title: string;
@@ -100,7 +116,7 @@ export type HomeDiscoveryData = {
     avatarUrl: string | null;
     href: string;
   }[];
-  aiRecommendations: {
+  aiOpportunities: {
     id: string;
     title: string;
     description: string;
@@ -109,3 +125,6 @@ export type HomeDiscoveryData = {
   }[];
   topContributors: TopContributor[];
 };
+
+/** @deprecated Use TrendingConversation */
+export type TrendingDiscussion = TrendingConversation;

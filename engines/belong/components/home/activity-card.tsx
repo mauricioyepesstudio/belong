@@ -70,7 +70,7 @@ export function ActivityCard({ activity }: { activity: HomeActivity }) {
 
   return (
     <GlassCard hover className="overflow-hidden">
-      <article className="p-5 md:p-6">
+      <article className="p-4 md:p-5">
         <div className="flex items-start gap-3">
           <Avatar
             src={activity.author.avatarUrl ?? undefined}

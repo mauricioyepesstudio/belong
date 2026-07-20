@@ -11,44 +11,61 @@ const METRIC_CONFIG: {
   label: string;
   icon: LucideIcon;
 }[] = [
-  { key: "peopleHelped", label: "People Helped", icon: HandHeart },
-  { key: "projectsBuilt", label: "Projects Built", icon: FolderKanban },
+  { key: "peopleHelped", label: "People helped", icon: HandHeart },
+  { key: "projectsBuilt", label: "Projects built", icon: FolderKanban },
   { key: "collaborations", label: "Collaborations", icon: UsersRound },
   { key: "communities", label: "Communities", icon: Users },
-  { key: "impactScore", label: "Impact Score", icon: Sparkles },
+  { key: "impactScore", label: "Impact score", icon: Sparkles },
 ];
 
-export function HomeImpactMetrics({ metrics }: { metrics: HomeImpactMetrics }) {
+export function hasMeaningfulImpact(metrics: HomeImpactMetrics): boolean {
   return (
-    <GlassCard className="overflow-hidden">
-      <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.06] sm:grid-cols-3 lg:grid-cols-5 lg:divide-y-0">
-        {METRIC_CONFIG.map(({ key, label, icon: Icon }) => (
-          <div
-            key={key}
-            className={cn(
-              "flex flex-col items-center gap-2 px-4 py-5 text-center",
-              key === "impactScore" && "bg-brand/5"
-            )}
-          >
-            <Icon
+    metrics.impactScore > 0 ||
+    metrics.communities > 0 ||
+    metrics.projectsBuilt > 0 ||
+    metrics.collaborations > 0 ||
+    metrics.peopleHelped > 0
+  );
+}
+
+export function HomeImpactMetrics({ metrics }: { metrics: HomeImpactMetrics }) {
+  if (!hasMeaningfulImpact(metrics)) return null;
+
+  return (
+    <section aria-labelledby="home-impact-heading">
+      <div className="mb-3">
+        <p className="text-label">Your impact</p>
+        <h2 id="home-impact-heading" className="text-heading mt-1 text-fg-primary">
+          Progress so far
+        </h2>
+      </div>
+      <GlassCard className="overflow-hidden">
+        <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.06] sm:grid-cols-3 lg:grid-cols-5 lg:divide-y-0">
+          {METRIC_CONFIG.map(({ key, label, icon: Icon }) => (
+            <div
+              key={key}
               className={cn(
-                "h-4 w-4",
-                key === "impactScore" ? "text-brand" : "text-fg-muted"
-              )}
-              aria-hidden
-            />
-            <p
-              className={cn(
-                "text-xl font-bold tabular-nums",
-                key === "impactScore" ? "text-brand" : "text-fg-primary"
+                "flex flex-col items-center gap-1.5 px-3 py-4 text-center sm:py-5",
+                key === "impactScore" && "bg-brand/5"
               )}
             >
-              {metrics[key].toLocaleString()}
-            </p>
-            <p className="text-micro text-fg-muted">{label}</p>
-          </div>
-        ))}
-      </div>
-    </GlassCard>
+              <Icon
+                className={cn("h-4 w-4", key === "impactScore" ? "text-brand" : "text-fg-muted")}
+                aria-hidden
+              />
+              <p
+                className={cn(
+                  "text-lg font-bold tabular-nums sm:text-xl",
+                  key === "impactScore" ? "text-brand" : "text-fg-primary"
+                )}
+              >
+                {metrics[key].toLocaleString()}
+              </p>
+              <p className="text-micro text-fg-muted">{label}</p>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+    </section>
   );
 }

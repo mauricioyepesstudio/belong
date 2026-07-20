@@ -1,8 +1,9 @@
 export { HomeScreen } from "./home-screen";
-export { HomeHero, type QuickActionId } from "./home-hero";
+export { HomeWelcome } from "./home-welcome";
+export { HomePrimaryActions, type PrimaryActionId } from "./home-primary-actions";
 export { HomeComposer } from "./home-composer";
 export { HomeTimeline } from "./home-timeline";
-export { HomeImpactMetrics } from "./home-impact-metrics";
+export { HomeImpactMetrics, hasMeaningfulImpact } from "./home-impact-metrics";
 export { ActivityCard } from "./activity-card";
 export { ActivityReactions } from "./activity-reactions";
 export { DiscoveryPanel } from "./discovery-panel";

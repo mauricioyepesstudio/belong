@@ -29,6 +29,7 @@ type DashboardActionsProps = {
   onProjectOpenChange: (open: boolean) => void;
   communityOpen: boolean;
   onCommunityOpenChange: (open: boolean) => void;
+  showButtons?: boolean;
 };
 
 export function DashboardActions({
@@ -40,6 +41,7 @@ export function DashboardActions({
   onProjectOpenChange,
   communityOpen,
   onCommunityOpenChange,
+  showButtons = true,
 }: DashboardActionsProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -105,6 +107,7 @@ export function DashboardActions({
 
   return (
     <>
+      {showButtons && (
       <div className="flex flex-wrap gap-3">
         <Button
           variant="brand"
@@ -132,6 +135,7 @@ export function DashboardActions({
           Join Community
         </Button>
       </div>
+      )}
 
       <Modal open={missionOpen} onClose={() => onMissionOpenChange(false)} title="New mission">
         <form action={handleCreateMission} className="space-y-4">

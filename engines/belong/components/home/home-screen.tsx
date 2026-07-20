@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 import { HomeComposer } from "./home-composer";
 import { HomeTimeline } from "./home-timeline";
 import { DiscoveryPanel } from "./discovery-panel";
-import { HomeHero, type QuickActionId } from "./home-hero";
+import { HomeWelcome } from "./home-welcome";
+import { HomePrimaryActions, type PrimaryActionId } from "./home-primary-actions";
 import { HomeImpactMetrics } from "./home-impact-metrics";
 import { DashboardActions } from "../dashboard/dashboard-actions";
 
@@ -21,7 +22,6 @@ export function HomeScreen(data: HomeEngineData) {
     homeTimeline,
     homeDiscovery,
     homeImpactMetrics,
-    primaryRecommendation,
     missionEngine,
   } = data;
 
@@ -30,46 +30,43 @@ export function HomeScreen(data: HomeEngineData) {
   const [communityOpen, setCommunityOpen] = useState(false);
   const [composerExpanded, setComposerExpanded] = useState(false);
 
-  useDashboardRealtime({ userId: profile.id });
-
+  const isNewUser = communities.length === 0;
   const pendingMission = missionEngine.dailyMissions.find((m) => m.status === "pending");
 
-  const handleQuickAction = (action: QuickActionId) => {
+  useDashboardRealtime({ userId: profile.id });
+
+  const handlePrimaryAction = (action: PrimaryActionId) => {
     switch (action) {
       case "share_idea":
         setComposerExpanded(true);
         composerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
         break;
-      case "find_collaborators":
+      case "join_community":
+        setCommunityOpen(true);
+        break;
+      case "create_community":
         router.push("/community");
         break;
       case "start_project":
         setProjectOpen(true);
         break;
-      case "join_community":
-        setCommunityOpen(true);
-        break;
       case "complete_mission":
         if (pendingMission) router.push(pendingMission.action_href);
         else setMissionOpen(true);
-        break;
-      case "help_someone":
-        router.push("/community");
-        break;
-      case "learn_something":
-        router.push(primaryRecommendation.actionHref);
         break;
     }
   };
 
   return (
-    <div className="space-y-6">
-      <HomeHero profile={profile} onQuickAction={handleQuickAction} />
+    <div className="space-y-10 md:space-y-12">
+      <HomeWelcome profile={profile} />
+
+      <HomePrimaryActions isNewUser={isNewUser} onAction={handlePrimaryAction} />
 
       <HomeImpactMetrics metrics={homeImpactMetrics} />
 
-      <div className="flex flex-col gap-8 xl:flex-row xl:items-start">
-        <div className="min-w-0 flex-1 space-y-6 xl:max-w-2xl">
+      <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start xl:gap-8">
+        <div className="min-w-0 space-y-10">
           <div ref={composerRef}>
             <HomeComposer
               profile={profile}
@@ -87,9 +84,7 @@ export function HomeScreen(data: HomeEngineData) {
           />
         </div>
 
-        <aside className="w-full shrink-0 xl:sticky xl:top-[calc(var(--header-height)+1.5rem)] xl:w-80">
-          <DiscoveryPanel discovery={homeDiscovery} />
-        </aside>
+        <DiscoveryPanel discovery={homeDiscovery} />
       </div>
 
       <DashboardActions
@@ -101,6 +96,7 @@ export function HomeScreen(data: HomeEngineData) {
         onProjectOpenChange={setProjectOpen}
         communityOpen={communityOpen}
         onCommunityOpenChange={setCommunityOpen}
+        showButtons={false}
       />
     </div>
   );

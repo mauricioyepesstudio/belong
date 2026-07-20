@@ -4,4 +4,4 @@ export {
   type DashboardData,
   type DashboardStats,
 } from "@/engines/dashboard/data";
-export { HomeDashboard } from "@/engines/belong";
+export { HomeScreen as HomeDashboard } from "@/engines/belong";

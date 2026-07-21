@@ -71,6 +71,11 @@ export function ListingDetailView({
               Buy for {formatCents(listing.price_cents)}
             </Button>
           )}
+          {!isOwner && listing.status !== "active" && (
+            <p className="text-sm text-fg-muted">
+              This listing is no longer available for purchase.
+            </p>
+          )}
         </CardContent>
       </Card>
     </FeatureScreen>

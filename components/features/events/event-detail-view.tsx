@@ -71,7 +71,7 @@ export function EventDetailView({ event }: { event: EventWithMeta }) {
           </div>
           {event.registered && <Badge variant="brand">You&apos;re registered</Badge>}
           <Button
-            variant={event.registered ? "secondary" : "primary"}
+            variant={event.registered ? "secondary" : "brand"}
             disabled={isPending}
             isLoading={isPending}
             onClick={toggleRegistration}

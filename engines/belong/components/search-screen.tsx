@@ -6,7 +6,15 @@ import { useCallback, useTransition, type FormEvent } from "react";
 import type { SearchResult } from "@/lib/core/search";
 import { SearchResultsView } from "@/engines/belong/components/search-results";
 
-export function SearchScreen({ results, query }: { results: SearchResult[]; query: string }) {
+export function SearchScreen({
+  results,
+  query,
+  error,
+}: {
+  results: SearchResult[];
+  query: string;
+  error?: string | null;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
@@ -53,6 +61,12 @@ export function SearchScreen({ results, query }: { results: SearchResult[]; quer
           </span>
         )}
       </form>
+
+      {error && (
+        <div className="rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
+          {error}
+        </div>
+      )}
 
       <SearchResultsView query={query} results={results} />
     </div>

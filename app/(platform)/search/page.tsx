@@ -12,9 +12,19 @@ type SearchPageProps = {
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const { q = "" } = await searchParams;
-  const supabase = await createClient();
-  const profile = await requireProfile();
-  const results = q.trim().length >= 2 ? await searchGlobal(supabase, profile.id, q) : [];
+  const trimmed = q.trim();
+  let results: Awaited<ReturnType<typeof searchGlobal>> = [];
+  let error: string | null = null;
 
-  return <SearchScreen results={results} query={q.trim()} />;
+  if (trimmed.length >= 2) {
+    try {
+      const supabase = await createClient();
+      const profile = await requireProfile();
+      results = await searchGlobal(supabase, profile.id, trimmed);
+    } catch {
+      error = "Search failed. Please try again.";
+    }
+  }
+
+  return <SearchScreen results={results} query={trimmed} error={error} />;
 }

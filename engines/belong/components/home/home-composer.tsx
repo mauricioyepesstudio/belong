@@ -3,7 +3,7 @@
 import type { UserCommunity } from "@/lib/core";
 import { createCommunityPost } from "@/lib/actions/communities";
 import type { UserProfile } from "@/types/database.types";
-import { Avatar, useToast } from "@/systems/design-system";
+import { Avatar, Button, useToast } from "@/systems/design-system";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { GlassCard } from "../dashboard/primitives";
@@ -84,13 +84,9 @@ export function HomeComposer({
             Join a community first — then you can share ideas, ask questions, and start
             conversations from Home.
           </p>
-          <button
-            type="button"
-            onClick={onNeedCommunity}
-            className="mt-4 rounded-2xl bg-brand px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
-          >
+          <Button type="button" variant="brand" onClick={onNeedCommunity}>
             Find a community
-          </button>
+          </Button>
         </GlassCard>
       </section>
     );
@@ -152,21 +148,18 @@ export function HomeComposer({
 
           {expanded && (
             <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setExpanded(false)}
-                className="rounded-2xl px-4 py-2.5 text-sm text-fg-muted hover:text-fg-secondary"
-              >
+              <Button type="button" variant="ghost" onClick={() => setExpanded(false)}>
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                onClick={handlePublish}
+                variant="brand"
                 disabled={isPending}
-                className="rounded-2xl bg-brand px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                isLoading={isPending}
+                onClick={handlePublish}
               >
-                {isPending ? "Publishing…" : "Publish post"}
-              </button>
+                Publish post
+              </Button>
             </div>
           )}
         </div>

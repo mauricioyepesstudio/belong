@@ -3,10 +3,7 @@ export { getBuildGoalOption, getMissionText, BUILD_GOALS, BUILD_GOAL_PROMPTS } f
 export type { BuildGoalOption } from "./config";
 
 // UI components (existing)
-export { LifeMissionPanel } from "./components/life-mission-panel";
-export { QuarterlyGoalsSection } from "./components/quarterly-goals-section";
 export { MissionCard, BuildGoalBadge } from "./components/mission-card";
-export { MissionEnginePanel } from "./components/mission-engine-panel";
 export { MissionDetailScreen } from "./components/mission-detail-screen";
 
 // Operational data fetchers (existing — daily missions, weekly goals)

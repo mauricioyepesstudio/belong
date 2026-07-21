@@ -1,10 +1,11 @@
 "use client";
 
 import type { ImpactScoreProfile } from "@/engines/impact";
-import { Badge } from "@/systems/design-system";
+import { Badge, Button } from "@/systems/design-system";
 import { formatDistanceToNow } from "@/lib/format";
 import { GlassCard } from "@/engines/belong/components/dashboard/primitives";
 import { TrendingUp } from "lucide-react";
+import Link from "next/link";
 
 export function ImpactSection({ impact }: { impact: ImpactScoreProfile }) {
   return (
@@ -31,6 +32,13 @@ export function ImpactSection({ impact }: { impact: ImpactScoreProfile }) {
             <p className="text-sm text-fg-muted">
               Join a community, complete a mission, or publish a post to start building impact.
             </p>
+            <div className="mt-4">
+              <Link href="/community">
+                <Button size="sm" variant="brand">
+                  Browse communities
+                </Button>
+              </Link>
+            </div>
           </div>
         ) : (
           impact.recentEvents.map((event) => (

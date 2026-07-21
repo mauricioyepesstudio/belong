@@ -40,8 +40,7 @@ export function HomeWeeklyImpact({ impact }: { impact: ImpactScoreProfile }) {
             </p>
             {topEvent && (
               <p className="mt-2 truncate text-sm text-fg-secondary">
-                {impact.weeklyScore === 0 ? "Last impact" : "Latest"}: {topEvent.label} (+
-                {topEvent.points})
+                {`${impact.weeklyScore === 0 ? "Last impact" : "Latest"}: ${topEvent.label} (+${topEvent.points})`}
               </p>
             )}
           </div>

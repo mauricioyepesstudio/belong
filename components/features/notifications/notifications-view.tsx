@@ -79,10 +79,26 @@ export function NotificationsView({
     });
   };
 
-  const emptyCopy =
-    tab === "unread"
-      ? "You have no unread notifications."
-      : "Platform activity will appear here as you build.";
+  const emptyTitle =
+    items.length === 0
+      ? "No notifications yet"
+      : tab === "unread"
+        ? "You're all caught up"
+        : "All caught up";
+
+  const emptyDescription =
+    items.length === 0
+      ? "Join a community or complete a mission — activity will show up here."
+      : tab === "unread"
+        ? "You have no unread notifications."
+        : "Platform activity will appear here as you build.";
+
+  const emptyAction =
+    items.length === 0
+      ? { label: "Explore communities", href: "/community" as const }
+      : tab === "unread" && items.length > 0
+        ? { label: "View all notifications", onClick: () => setTab("all") }
+        : undefined;
 
   return (
     <FeatureScreen
@@ -107,7 +123,12 @@ export function NotificationsView({
       }
     >
       {filtered.length === 0 ? (
-        <EmptyState icon={Bell} title="All caught up" description={emptyCopy} />
+        <EmptyState
+          icon={Bell}
+          title={emptyTitle}
+          description={emptyDescription}
+          action={emptyAction}
+        />
       ) : (
         <Card>
           <ul className="divide-y divide-border-subtle" role="list">

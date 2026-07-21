@@ -4,7 +4,7 @@ import {
   joinOrganization,
   leaveOrganization,
 } from "@/lib/actions/organizations";
-import type { OrganizationDetail } from "@/lib/core/organizations";
+import type { OrganizationInviteCandidate } from "@/lib/data/organizations";
 import { canAdminOrganization, canManageOrganization } from "@/lib/core/organizations";
 import type { CopilotPanelData } from "@/lib/data/ai-copilot";
 import { CopilotPanel } from "@/engines/ai/components/copilot-panel";
@@ -41,10 +41,12 @@ export function OrganizationDetailScreen({
   data,
   copilot,
   currentUser,
+  inviteCandidates,
 }: {
   data: OrganizationDetail;
   copilot: CopilotPanelData;
   currentUser: CurrentUser;
+  inviteCandidates: OrganizationInviteCandidate[];
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -197,6 +199,7 @@ export function OrganizationDetailScreen({
         <OrganizationMembersTab
           organizationId={organization.id}
           members={members}
+          inviteCandidates={inviteCandidates}
           currentUserId={currentUser.id}
           canManage={canManage}
           canAdmin={canAdmin}

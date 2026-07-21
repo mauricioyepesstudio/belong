@@ -19,7 +19,7 @@ import type {
   OrganizationMember,
   OrganizationReputation,
 } from "@/lib/core/organizations";
-import { updateOrganizationMemberRole, updateOrganizationSettings } from "@/lib/actions/organizations";
+import { updateOrganizationMemberRole, updateOrganizationSettings, inviteToOrganization } from "@/lib/actions/organizations";
 import { Activity, FolderKanban, Globe, Settings, Target, TrendingUp, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -275,6 +275,7 @@ export function OrganizationReputationTab({ reputation }: { reputation: Organiza
 export function OrganizationMembersTab({
   organizationId,
   members,
+  inviteCandidates,
   currentUserId,
   canManage,
   canAdmin,
@@ -282,6 +283,7 @@ export function OrganizationMembersTab({
 }: {
   organizationId: string;
   members: OrganizationMember[];
+  inviteCandidates: { id: string; full_name: string | null }[];
   currentUserId: string;
   canManage: boolean;
   canAdmin: boolean;
@@ -289,7 +291,23 @@ export function OrganizationMembersTab({
 }) {
   const router = useRouter();
   const { toast } = useToast();
+  const [inviteUserId, setInviteUserId] = useState("");
+  const [inviteRole, setInviteRole] = useState<OrganizationMemberRole>("member");
   const [isPending, startTransition] = useTransition();
+
+  const handleInvite = () => {
+    if (!inviteUserId) return;
+    startTransition(async () => {
+      const result = await inviteToOrganization(organizationId, inviteUserId, inviteRole);
+      if (result.error) toast(result.error, "error");
+      else {
+        toast("Member invited", "success");
+        setInviteUserId("");
+        onChanged();
+        router.refresh();
+      }
+    });
+  };
 
   const handleRoleChange = (userId: string, role: OrganizationMemberRole) => {
     startTransition(async () => {
@@ -308,16 +326,51 @@ export function OrganizationMembersTab({
       {canManage && (
         <Card>
           <CardContent className="space-y-3 pt-6">
-            <p className="text-sm font-medium text-fg-primary">Invite members</p>
-            <p className="text-sm text-fg-secondary">
-              Connect with builders on the Community page first. Organization invites by
-              email are coming soon.
-            </p>
-            <Link href="/community">
-              <Button variant="secondary" size="sm">
-                Find people in Community
-              </Button>
-            </Link>
+            <p className="text-sm font-medium text-fg-primary">Invite a connection</p>
+            {inviteCandidates.length === 0 ? (
+              <p className="text-sm text-fg-secondary">
+                Connect with builders on the Community page, then invite them here.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Label htmlFor="invite-user">Connection</Label>
+                  <select
+                    id="invite-user"
+                    value={inviteUserId}
+                    onChange={(e) => setInviteUserId(e.target.value)}
+                    disabled={isPending}
+                    className="w-full rounded-xl border border-border-subtle bg-bg-surface px-3 py-2 text-sm"
+                  >
+                    <option value="">Select someone…</option>
+                    {inviteCandidates.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.full_name ?? "Builder"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="invite-role">Role</Label>
+                  <select
+                    id="invite-role"
+                    className="block w-full rounded-xl border border-border-subtle bg-bg-surface px-3 py-2 text-sm"
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value as OrganizationMemberRole)}
+                    disabled={isPending}
+                  >
+                    {MANAGE_ROLE_OPTIONS.map((role) => (
+                      <option key={role} value={role} className="capitalize">
+                        {role}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Button disabled={isPending || !inviteUserId} isLoading={isPending} onClick={handleInvite}>
+                  Invite
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

@@ -1,5 +1,5 @@
 import { OrganizationDetailScreen } from "@/engines/organization";
-import { getOrganizationDetail } from "@/lib/data/organizations";
+import { getOrganizationDetail, getOrganizationInviteCandidates } from "@/lib/data/organizations";
 import { getCopilotPanelData } from "@/lib/data/ai-copilot";
 import { requireProfile } from "@/lib/auth/session";
 import { notFound } from "next/navigation";
@@ -22,12 +22,17 @@ export default async function OrganizationDetailPage({ params }: PageProps) {
 
   if (!data) notFound();
 
+  const inviteCandidates = await getOrganizationInviteCandidates(
+    data.members.map((m) => m.userId)
+  );
+
   const copilot = await getCopilotPanelData("organization", data.organization.id);
 
   return (
     <OrganizationDetailScreen
       data={data}
       copilot={copilot}
+      inviteCandidates={inviteCandidates}
       currentUser={{
         id: profile.id,
         fullName: profile.full_name,

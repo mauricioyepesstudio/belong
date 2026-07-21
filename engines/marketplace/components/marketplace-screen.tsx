@@ -148,6 +148,7 @@ export function MarketplaceScreen({
               {listings.map((listing) => (
                 <EntityCard
                   key={listing.id}
+                  href={`/marketplace/${listing.id}`}
                   title={listing.title}
                   description={listing.description}
                   iconNode={

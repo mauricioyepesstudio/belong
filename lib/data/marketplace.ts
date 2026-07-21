@@ -49,6 +49,33 @@ export async function getMyListings(): Promise<MarketplaceListing[]> {
   return data ?? [];
 }
 
+export async function getListingById(id: string): Promise<ListingWithSeller | null> {
+  const supabase = await createClient();
+
+  const { data: listing } = await supabase
+    .from("marketplace_listings")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!listing) return null;
+
+  const { data: seller } = await supabase
+    .from("users")
+    .select("id, full_name, avatar_url")
+    .eq("id", listing.seller_id)
+    .maybeSingle();
+
+  return {
+    ...listing,
+    seller: seller ?? {
+      id: listing.seller_id,
+      full_name: null,
+      avatar_url: null,
+    },
+  };
+}
+
 export async function getCreatorStats() {
   const supabase = await createClient();
   const profile = await requireProfile();

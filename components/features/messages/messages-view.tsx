@@ -187,7 +187,7 @@ export function MessagesView({
           icon={MessageSquare}
           title="No conversations yet"
           description="Connect with builders from the Community page, then send a direct message to start chatting."
-          action={{ label: "Find people", href: "/community" }}
+          action={{ label: "Find people", href: "/community?tab=people" }}
         />
       ) : (
         <div className="flex min-h-[480px] flex-col overflow-hidden rounded-2xl border border-border lg:grid lg:h-[min(720px,calc(100vh-16rem))] lg:grid-cols-5">

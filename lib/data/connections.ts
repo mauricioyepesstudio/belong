@@ -60,6 +60,35 @@ export async function getDiscoverUsers(limit = 24): Promise<DiscoverUser[]> {
   return data ?? [];
 }
 
+export type ConnectedUser = Pick<
+  UserProfile,
+  "id" | "full_name" | "avatar_url" | "role"
+>;
+
+export async function getAcceptedConnections(): Promise<ConnectedUser[]> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const { data: connections } = await supabase
+    .from("connections")
+    .select("requester_id, recipient_id")
+    .eq("status", "accepted")
+    .or(`requester_id.eq.${profile.id},recipient_id.eq.${profile.id}`);
+
+  if (!connections?.length) return [];
+
+  const otherIds = connections.map((c) =>
+    c.requester_id === profile.id ? c.recipient_id : c.requester_id
+  );
+
+  const { data: users } = await supabase
+    .from("users")
+    .select("id, full_name, avatar_url, role")
+    .in("id", otherIds);
+
+  return users ?? [];
+}
+
 export async function getAcceptedConnectionIds(): Promise<Set<string>> {
   const supabase = await createClient();
   const profile = await requireProfile();

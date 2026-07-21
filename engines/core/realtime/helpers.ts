@@ -26,6 +26,7 @@ export function mapCommunityPostRow(
     community_id: String(row.community_id),
     author_id: String(row.author_id),
     content: String(row.content),
+    image_url: row.image_url ? String(row.image_url) : null,
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
     author,
@@ -45,6 +46,7 @@ export function mapProjectPostRow(
     project_id: String(row.project_id),
     author_id: String(row.author_id),
     content: String(row.content),
+    image_url: row.image_url ? String(row.image_url) : null,
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
     author: {

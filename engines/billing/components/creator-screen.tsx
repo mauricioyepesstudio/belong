@@ -9,6 +9,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  EmptyState,
   FeatureScreen,
   StatCard,
   useToast,
@@ -106,9 +107,12 @@ export function CreatorScreen({
         </CardHeader>
         <CardContent>
           {payments.length === 0 ? (
-            <p className="py-6 text-center text-caption">
-              Payments will appear here once you start earning.
-            </p>
+            <EmptyState
+              icon={DollarSign}
+              title="No payments yet"
+              description="Payments will appear here once you start earning from tips, subscriptions, or marketplace sales."
+              className="border-none py-4"
+            />
           ) : (
             <ul className="divide-y divide-border-subtle">
               {payments.map((payment, i) => (

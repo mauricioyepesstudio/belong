@@ -15,7 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { GlassCard } from "../dashboard/primitives";
 
 const SECTIONS: Array<{
@@ -34,7 +34,7 @@ const SECTIONS: Array<{
   { key: "missions", title: "Missions matching your interests", icon: Target },
 ];
 
-function RecommendationCard({
+function RecommendationCardComponent({
   item,
   onDetails,
 }: {
@@ -88,6 +88,8 @@ function RecommendationCard({
     </div>
   );
 }
+
+const RecommendationCard = memo(RecommendationCardComponent);
 
 export function HomeRecommendations({
   recommendations,

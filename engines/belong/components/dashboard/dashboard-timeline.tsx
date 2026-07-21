@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { appLinks } from "@/systems/navigation/app-links";
 import { GlassCard, SectionHeader } from "./primitives";
 
 function ImpactSparkline({ history }: { history: { date: string; score: number }[] }) {
@@ -54,7 +55,7 @@ export function DashboardTimeline({ timeline }: { timeline: DashboardTimeline })
           <TimelineCard
             icon={Target}
             label="Today's mission"
-            href={timeline.todayMission?.href ?? "#missions"}
+            href={timeline.todayMission?.href ?? appLinks.dashboardMissions}
             empty={!timeline.todayMission}
             emptyLabel="No pending mission"
           >
@@ -112,7 +113,7 @@ export function DashboardTimeline({ timeline }: { timeline: DashboardTimeline })
           <TimelineCard
             icon={Target}
             label="Weekly goals"
-            href="#weekly-goals"
+            href={appLinks.weeklyGoals}
             empty={timeline.weeklyGoalProgress === 0 && !timeline.weeklyGoalTitle}
             emptyLabel="Set weekly goals"
           >

@@ -5,6 +5,7 @@ import type { ImpactEngineData } from "@/engines/impact/types";
 import type { MissionEngineData, WeeklyGoal } from "@/engines/mission/types";
 import type { Notification } from "@/types/database.types";
 import { todayUtc } from "@/engines/mission/hierarchy";
+import { appLinks } from "@/systems/navigation/app-links";
 
 export type SmartHomeItem = {
   id: string;
@@ -257,7 +258,7 @@ export function buildCrossModuleLinks(input: {
   return [
     {
       label: "Mission",
-      href: timeline.todayMission?.href ?? "#missions",
+      href: timeline.todayMission?.href ?? appLinks.dashboardMissions,
       description: timeline.todayMission?.title ?? "Set today's focus",
     },
     {

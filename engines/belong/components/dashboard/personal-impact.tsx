@@ -6,6 +6,7 @@ import { ScrollReveal } from "@/components/motion/fade-in";
 import { Badge, EmptyState, ProgressBar } from "@/systems/design-system";
 import { CalendarDays, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { appLinks } from "@/systems/navigation/app-links";
 import { GlassCard, SectionHeader } from "./primitives";
 
 export function ImpactScore({
@@ -79,7 +80,7 @@ export function ImpactScore({
                 icon={Target}
                 title="Build your impact score"
                 description="Complete your profile, join communities, and finish missions to start earning points."
-                action={{ label: "View missions", href: "#missions" }}
+                action={{ label: "View missions", href: appLinks.dashboardMissions }}
                 className="border-0 bg-transparent py-6"
               />
             </div>

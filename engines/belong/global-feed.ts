@@ -1,4 +1,5 @@
 import type { SupabaseServerClient } from "@/lib/core/types";
+import { appLinks, communityHref } from "@/systems/navigation/app-links";
 
 export type LiveImpactActivity = {
   id: string;
@@ -301,7 +302,7 @@ export async function fetchUserRecentActivity(
       title: g.title,
       subtitle: "Weekly goal completed",
       points: g.impact_points,
-      href: "/dashboard#weekly-goals",
+      href: appLinks.weeklyGoals,
       createdAt: g.completed_at!,
     })),
     ...(completedQuarterly ?? []).map((g) => ({
@@ -309,7 +310,7 @@ export async function fetchUserRecentActivity(
       type: "achievement" as const,
       title: g.title,
       subtitle: "Quarterly goal achieved",
-      href: "/dashboard#life-mission",
+      href: appLinks.lifeMission,
       createdAt: g.completed_at!,
     })),
     ...(projects ?? []).map((p) => ({
@@ -369,7 +370,7 @@ export async function fetchUserRecentActivity(
       type: "community" as const,
       title: `Joined ${communityMap.get(m.community_id)?.name ?? "community"}`,
       subtitle: m.role,
-      href: `/community/${communityMap.get(m.community_id)?.slug ?? ""}`,
+      href: communityHref(communityMap.get(m.community_id)?.slug),
       createdAt: m.joined_at,
     })),
     ...(connections ?? []).map((c) => {

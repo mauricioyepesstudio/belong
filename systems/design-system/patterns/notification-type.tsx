@@ -1,4 +1,5 @@
 import type { Json, NotificationType } from "@/types/database.types";
+import { appLinks } from "@/systems/navigation/app-links";
 import {
   Bell,
   Calendar,
@@ -48,7 +49,7 @@ export function getNotificationHref(type: NotificationType, metadata?: Json): st
   const kind = metaString(metadata, "kind");
 
   if (missionId) return `/missions/${missionId}`;
-  if (kind === "weekly_goal" || kind === "quarterly_goal") return "/dashboard#weekly-goals";
+  if (kind === "weekly_goal" || kind === "quarterly_goal") return appLinks.weeklyGoals;
   if (type === "message") {
     const conversationId = metaString(metadata, "conversation_id");
     if (conversationId) return `/messages?conversation=${conversationId}`;

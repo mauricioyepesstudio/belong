@@ -1,4 +1,5 @@
 import { DEFAULT_INSIGHTS_LIMIT, DEFAULT_RECOMMENDATIONS_LIMIT, MISSION_STATES } from "./constants";
+import { appLinks } from "@/systems/navigation/app-links";
 import { toInsertRecord, toMissionDomain, toUpdatePatch } from "./mapper";
 import type { MissionEngineService } from "./mission-engine";
 import { MissionRepository } from "./repository";
@@ -213,7 +214,7 @@ export class MissionEngineServiceImpl implements MissionEngineService {
       title: "Complete today's missions",
       description: "Daily missions build momentum toward your life mission.",
       actionLabel: "View missions",
-      actionHref: "/dashboard#missions",
+      actionHref: appLinks.dashboardMissions,
       priority: "medium",
       category: mission.category,
     });

@@ -1,4 +1,8 @@
 export {
+  appLinks,
+  communityHref,
+} from "./app-links";
+export {
   authRoutes,
   isNavActive,
   mainNav,

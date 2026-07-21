@@ -10,20 +10,27 @@ import { useEffect, useState, useTransition } from "react";
 
 const AUTH_ERRORS: Record<string, string> = {
   auth_callback_failed: "Sign in failed. Please try again or use email instead.",
+  access_denied: "Sign in was cancelled.",
+  server_error: "The sign-in provider returned an error. Try again shortly.",
 };
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
   const authError = searchParams.get("error");
+  const errorDescription = searchParams.get("error_description");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
-    if (authError && AUTH_ERRORS[authError]) {
-      setError(AUTH_ERRORS[authError]);
+    if (authError) {
+      setError(
+        errorDescription ??
+          AUTH_ERRORS[authError] ??
+          "Sign in failed. Please try again."
+      );
     }
-  }, [authError]);
+  }, [authError, errorDescription]);
 
   const handleSubmit = (formData: FormData) => {
     setError("");

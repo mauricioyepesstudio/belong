@@ -1,10 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isPasswordRecoveryPath } from "@/lib/auth/ensure-profile";
 import { authRoutes, platformRoutes } from "@/systems/navigation";
 import type { Database } from "@/types/database.types";
 
 export async function updateSession(request: NextRequest) {
+  const isProduction = process.env.NODE_ENV === "production";
+
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (isProduction) {
+      return new NextResponse("Service configuration error", { status: 503 });
+    }
     return NextResponse.next({ request });
   }
 
@@ -86,7 +92,8 @@ export async function updateSession(request: NextRequest) {
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("next", pathname);
+    const nextPath = request.nextUrl.pathname + request.nextUrl.search;
+    url.searchParams.set("next", nextPath);
     return NextResponse.redirect(url);
   }
 
@@ -103,7 +110,10 @@ export async function updateSession(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    if (!profile?.onboarding_completed) {
+    const recoveryFlow =
+      pathname.startsWith("/settings") && isPasswordRecoveryPath(request.nextUrl.search);
+
+    if (!profile?.onboarding_completed && !recoveryFlow) {
       const url = request.nextUrl.clone();
       url.pathname = "/onboarding";
       return NextResponse.redirect(url);

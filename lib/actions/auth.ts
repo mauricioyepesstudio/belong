@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { env } from "@/lib/env";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -34,7 +35,7 @@ export async function signUpWithEmail(
     password,
     options: {
       data: { full_name: fullName },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      emailRedirectTo: `${env.appUrl}/auth/callback`,
     },
   });
   if (error) return { error: error.message };
@@ -48,7 +49,7 @@ export async function signInWithOAuth(provider: "google" | "apple") {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      redirectTo: `${env.appUrl}/auth/callback`,
     },
   });
   if (error) return { error: error.message };
@@ -66,7 +67,7 @@ export async function signOut() {
 export async function resetPassword(email: string): Promise<AuthResult> {
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/settings%3Frecovery%3D1`,
+    redirectTo: `${env.appUrl}/auth/callback?next=/settings%3Frecovery%3D1`,
   });
   if (error) return { error: error.message };
   return {};

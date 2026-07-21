@@ -2,7 +2,10 @@ import type { SupabaseServerClient } from "@/lib/core/types";
 import type { UserProfile } from "@/types/database.types";
 import { fetchOpportunityCandidates } from "./data";
 import { scoreAllMatches } from "./matchers";
-import { buildCompatibilityProfile } from "./profile-vector";
+import {
+  buildCompatibilityProfile,
+  buildOpportunityGraphContext,
+} from "./profile-vector";
 import type { CompatibilityProfile, OpportunityRecommendations } from "./types";
 
 export async function getOpportunityRecommendations(
@@ -13,15 +16,18 @@ export async function getOpportunityRecommendations(
   recommendations: OpportunityRecommendations;
 }> {
   const compatibilityProfile = await buildCompatibilityProfile(supabase, profile);
-  const candidates = await fetchOpportunityCandidates(
-    supabase,
-    profile.id,
-    compatibilityProfile.communityIds,
-    compatibilityProfile.projectIds,
-    compatibilityProfile.organizationIds
-  );
+  const [candidates, context] = await Promise.all([
+    fetchOpportunityCandidates(
+      supabase,
+      profile.id,
+      compatibilityProfile.communityIds,
+      compatibilityProfile.projectIds,
+      compatibilityProfile.organizationIds
+    ),
+    buildOpportunityGraphContext(supabase, compatibilityProfile),
+  ]);
 
-  const recommendations = scoreAllMatches(compatibilityProfile, candidates);
+  const recommendations = scoreAllMatches(compatibilityProfile, candidates, context);
 
   return { profile: compatibilityProfile, recommendations };
 }

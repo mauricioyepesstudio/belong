@@ -46,7 +46,7 @@ async function fetchPeopleCandidates(
   supabase: SupabaseServerClient,
   userId: string
 ): Promise<PersonCandidate[]> {
-  const [{ data: users }, { data: connections }, { data: identityRows }, { data: skillRows }, { data: memberRows }] =
+  const [{ data: users }, { data: connections }, { data: identityRows }, { data: skillRows }, { data: memberRows }, { data: projectMemberRows }] =
     await Promise.all([
       supabase
         .from("users")
@@ -61,6 +61,7 @@ async function fetchPeopleCandidates(
       supabase.from("identity_profiles").select("user_id, interests"),
       supabase.from("user_skills").select("user_id, skill"),
       supabase.from("community_members").select("user_id, community_id"),
+      supabase.from("project_members").select("user_id, project_id"),
     ]);
 
   const excluded = new Set<string>();
@@ -91,6 +92,13 @@ async function fetchPeopleCandidates(
     communitiesByUser.set(row.user_id, list);
   }
 
+  const projectsByUser = new Map<string, string[]>();
+  for (const row of projectMemberRows ?? []) {
+    const list = projectsByUser.get(row.user_id) ?? [];
+    list.push(row.project_id);
+    projectsByUser.set(row.user_id, list);
+  }
+
   return (users ?? [])
     .filter((user) => !excluded.has(user.id))
     .map((user) => ({
@@ -104,6 +112,7 @@ async function fetchPeopleCandidates(
       skills: skillsByUser.get(user.id) ?? (user.role ? [user.role] : []),
       interests: interestsByUser.get(user.id) ?? [],
       communityIds: communitiesByUser.get(user.id) ?? [],
+      projectIds: projectsByUser.get(user.id) ?? [],
     }));
 }
 

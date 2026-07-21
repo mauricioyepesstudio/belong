@@ -10,6 +10,8 @@ import {
 import { scoreCommunityMatch, scorePersonMatch, scoreProjectMatch } from "../matchers";
 import type { CommunityCandidate, CompatibilityProfile, PersonCandidate, ProjectCandidate } from "../types";
 
+const graphContext = { membersByCommunity: {}, userNames: {} };
+
 const baseProfile: CompatibilityProfile = {
   userId: "user-1",
   fullName: "Sarah Chen",
@@ -25,9 +27,12 @@ const baseProfile: CompatibilityProfile = {
   communityIds: ["comm-1"],
   communityNames: { "comm-1": "Indie Founders Circle" },
   projectIds: [],
+  projectNames: {},
   organizationIds: [],
   activityModules: ["community", "project"],
   currentStreak: 5,
+  connectionIds: [],
+  connectionNames: {},
 };
 
 describe("opportunity scoring", () => {
@@ -84,9 +89,10 @@ describe("opportunity matchers", () => {
       skills: ["React", "Product Management"],
       interests: ["AI tools", "Startups"],
       communityIds: ["comm-1"],
+      projectIds: [],
     };
 
-    const result = scorePersonMatch(baseProfile, candidate);
+    const result = scorePersonMatch(baseProfile, candidate, graphContext);
     expect(result).not.toBeNull();
     expect(result!.score).toBeGreaterThan(0);
     expect(result!.reasons.length).toBeGreaterThan(0);

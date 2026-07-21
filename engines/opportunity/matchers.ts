@@ -1,16 +1,18 @@
 import {
+  bulletsToReasons,
+  buildRecommendationExplanation,
+} from "./explanation";
+import {
   computeCompatibilityScore,
   formatBuildGoalLabel,
   jaccardSimilarity,
   locationMatches,
   overlapMatches,
-  pickTopReasons,
   reasonForBuildGoal,
   reasonForCommunity,
   reasonForInterest,
   reasonForLocation,
   reasonForMissionInterest,
-  reasonForSharedProject,
   reasonForSkillMatch,
   reasonForTag,
   SCORE_WEIGHTS,
@@ -18,10 +20,17 @@ import {
   tokenize,
   type ScoreFactorInput,
 } from "./scoring";
+import {
+  resolveMutualCollaborators,
+  resolveSharedCommunityNames,
+  resolveSharedProjectNames,
+} from "./profile-vector";
 import type {
   CommunityCandidate,
   CompatibilityProfile,
+  MatchSignals,
   MissionCandidate,
+  OpportunityGraphContext,
   OrganizationCandidate,
   PersonCandidate,
   ProjectCandidate,
@@ -38,13 +47,14 @@ function toRecommendation(
   subtitle: string | undefined,
   href: string,
   factors: ScoreFactorInput[],
+  signals: MatchSignals,
   meta?: Record<string, string | null>
 ): ScoredRecommendation | null {
   const result = computeCompatibilityScore(factors);
   if (result.score < MIN_SCORE) return null;
 
-  const reasons = pickTopReasons(result.factors);
-  if (reasons.length === 0) return null;
+  const explanation = buildRecommendationExplanation(factors, signals);
+  if (explanation.bullets.length === 0) return null;
 
   return {
     id,
@@ -53,8 +63,9 @@ function toRecommendation(
     subtitle,
     href,
     score: result.score,
-    reasons,
+    reasons: bulletsToReasons(explanation.bullets),
     factors: result.factors,
+    explanation,
     meta,
   };
 }
@@ -76,31 +87,45 @@ function sharedCommunityFactor(
 
 export function scorePersonMatch(
   profile: CompatibilityProfile,
-  candidate: PersonCandidate
+  candidate: PersonCandidate,
+  context: OpportunityGraphContext
 ): ScoredRecommendation | null {
   const factors: ScoreFactorInput[] = [];
+  const sharedSkills = overlapMatches(profile.skills, candidate.skills);
+  const sharedInterests = overlapMatches(profile.interests, candidate.interests);
+  const sharedCommunities = resolveSharedCommunityNames(profile, candidate.communityIds);
+  const sharedProjects = resolveSharedProjectNames(profile, candidate.projectIds);
+  const mutualCollaborators = resolveMutualCollaborators(
+    profile,
+    candidate.communityIds,
+    candidate.projectIds,
+    context
+  );
+  const locationMatch = locationMatches(profile.location, candidate.location);
+  const locationLabel = profile.location?.split(",")[0]?.trim();
+  const buildGoalMatch = Boolean(
+    profile.buildGoal && candidate.buildGoal === profile.buildGoal
+  );
 
-  const skillMatches = overlapMatches(profile.skills, candidate.skills);
-  if (skillMatches.length > 0) {
+  if (sharedSkills.length > 0) {
     factors.push({
       key: "skillOverlap",
       weight: SCORE_WEIGHTS.skillOverlap,
-      strength: Math.min(1, skillMatches.length / 2),
-      reason: reasonForSkillMatch(skillMatches[0], "person"),
+      strength: Math.min(1, sharedSkills.length / 2),
+      reason: reasonForSkillMatch(sharedSkills[0], "person"),
     });
   }
 
-  const interestMatches = overlapMatches(profile.interests, candidate.interests);
-  if (interestMatches.length > 0) {
+  if (sharedInterests.length > 0) {
     factors.push({
       key: "interestOverlap",
       weight: SCORE_WEIGHTS.interestOverlap,
-      strength: Math.min(1, interestMatches.length / 2),
-      reason: reasonForInterest(interestMatches[0]),
+      strength: Math.min(1, sharedInterests.length / 2),
+      reason: reasonForInterest(sharedInterests[0]),
     });
   }
 
-  if (profile.buildGoal && candidate.buildGoal === profile.buildGoal) {
+  if (buildGoalMatch && profile.buildGoal) {
     factors.push({
       key: "buildGoalMatch",
       weight: SCORE_WEIGHTS.buildGoalMatch,
@@ -112,13 +137,12 @@ export function scorePersonMatch(
   const sharedCommunity = sharedCommunityFactor(profile, candidate.communityIds);
   if (sharedCommunity) factors.push(sharedCommunity);
 
-  if (locationMatches(profile.location, candidate.location)) {
-    const city = profile.location?.split(",")[0]?.trim() ?? "your area";
+  if (locationMatch && locationLabel) {
     factors.push({
       key: "locationMatch",
       weight: SCORE_WEIGHTS.locationMatch,
       strength: 1,
-      reason: reasonForLocation(city),
+      reason: reasonForLocation(locationLabel),
     });
   }
 
@@ -141,6 +165,45 @@ export function scorePersonMatch(
     });
   }
 
+  if (sharedProjects.length > 0) {
+    factors.push({
+      key: "sharedProject",
+      weight: SCORE_WEIGHTS.sharedProject,
+      strength: Math.min(1, sharedProjects.length / 2),
+      reason: `Because you both contribute to ${sharedProjects[0]}`,
+    });
+  }
+
+  const currentOpportunities: string[] = [];
+  if (sharedCommunities.length > 0) {
+    currentOpportunities.push(`Active in ${sharedCommunities[0]}`);
+  }
+  if (candidate.bio?.toLowerCase().includes("building")) {
+    currentOpportunities.push("Open to collaborating");
+  }
+  if (mutualCollaborators.length > 0) {
+    currentOpportunities.push(`${mutualCollaborators.length} mutual connections`);
+  }
+
+  const signals: MatchSignals = {
+    sharedSkills,
+    sharedInterests,
+    sharedCommunities,
+    sharedProjects,
+    mutualCollaborators,
+    skillsNeeded: [],
+    locationMatch,
+    locationLabel,
+    buildGoalMatch,
+    buildGoalLabel: profile.buildGoal ? formatBuildGoalLabel(profile.buildGoal) : undefined,
+    lookingForCollaborators:
+      sharedCommunities.length > 0 && (sharedSkills.length > 0 || sharedInterests.length > 0),
+    activeProject: false,
+    missionAlignment: false,
+    activityMatch: false,
+    currentOpportunities,
+  };
+
   return toRecommendation(
     "people",
     candidate.id,
@@ -148,6 +211,7 @@ export function scorePersonMatch(
     candidate.role ?? undefined,
     `/community?tab=people&q=${encodeURIComponent(candidate.fullName ?? "")}`,
     factors,
+    signals,
     { avatarUrl: candidate.avatarUrl }
   );
 }
@@ -158,28 +222,31 @@ export function scoreProjectMatch(
 ): ScoredRecommendation | null {
   const factors: ScoreFactorInput[] = [];
   const projectText = `${candidate.name} ${candidate.description ?? ""} ${candidate.communityTag ?? ""}`;
+  const skillsNeeded = textContainsAny(projectText, profile.skills);
+  const sharedInterests = textContainsAny(projectText, profile.interests);
+  const sharedCommunities = profile.communityIds.includes(candidate.communityId)
+    ? [candidate.communityName]
+    : [];
 
-  const skillMatches = textContainsAny(projectText, profile.skills);
-  if (skillMatches.length > 0) {
+  if (skillsNeeded.length > 0) {
     factors.push({
       key: "skillOverlap",
       weight: SCORE_WEIGHTS.skillOverlap,
-      strength: Math.min(1, skillMatches.length / 2),
-      reason: reasonForSkillMatch(skillMatches[0], "project"),
+      strength: Math.min(1, skillsNeeded.length / 2),
+      reason: reasonForSkillMatch(skillsNeeded[0], "project"),
     });
   }
 
-  const interestMatches = textContainsAny(projectText, profile.interests);
-  if (interestMatches.length > 0) {
+  if (sharedInterests.length > 0) {
     factors.push({
       key: "interestOverlap",
       weight: SCORE_WEIGHTS.interestOverlap,
-      strength: Math.min(1, interestMatches.length / 2),
-      reason: reasonForInterest(interestMatches[0]),
+      strength: Math.min(1, sharedInterests.length / 2),
+      reason: reasonForInterest(sharedInterests[0]),
     });
   }
 
-  if (profile.communityIds.includes(candidate.communityId)) {
+  if (sharedCommunities.length > 0) {
     factors.push({
       key: "sharedCommunity",
       weight: SCORE_WEIGHTS.sharedCommunity,
@@ -200,7 +267,8 @@ export function scoreProjectMatch(
     }
   }
 
-  if (candidate.status === "active") {
+  const activeProject = candidate.status === "active";
+  if (activeProject) {
     factors.push({
       key: "activeStatusBoost",
       weight: SCORE_WEIGHTS.activeStatusBoost,
@@ -209,13 +277,38 @@ export function scoreProjectMatch(
     });
   }
 
+  const currentOpportunities: string[] = [];
+  if (activeProject) currentOpportunities.push("Actively recruiting contributors");
+  if (candidate.status === "planning") currentOpportunities.push("Early-stage project");
+  if (skillsNeeded.length > 0) {
+    currentOpportunities.push(`Needs ${skillsNeeded.slice(0, 2).join(", ")}`);
+  }
+
+  const signals: MatchSignals = {
+    sharedSkills: skillsNeeded,
+    sharedInterests,
+    sharedCommunities,
+    sharedProjects: [],
+    mutualCollaborators: [],
+    skillsNeeded,
+    locationMatch: false,
+    buildGoalMatch: false,
+    lookingForCollaborators: skillsNeeded.length > 0 && activeProject,
+    activeProject,
+    tagMatch: candidate.communityTag ?? undefined,
+    missionAlignment: false,
+    activityMatch: false,
+    currentOpportunities,
+  };
+
   return toRecommendation(
     "projects",
     candidate.id,
     candidate.name,
     candidate.communityName,
     `/projects/${candidate.id}`,
-    factors
+    factors,
+    signals
   );
 }
 
@@ -225,24 +318,28 @@ export function scoreCommunityMatch(
 ): ScoredRecommendation | null {
   const factors: ScoreFactorInput[] = [];
   const communityText = `${candidate.name} ${candidate.description ?? ""} ${candidate.tag ?? ""}`;
+  const sharedInterests = textContainsAny(communityText, profile.interests);
+  const sharedSkills = textContainsAny(communityText, profile.skills);
+  const buildGoalMatch = Boolean(
+    profile.buildGoal &&
+      textContainsAny(communityText, [formatBuildGoalLabel(profile.buildGoal)]).length > 0
+  );
 
-  const interestMatches = textContainsAny(communityText, profile.interests);
-  if (interestMatches.length > 0) {
+  if (sharedInterests.length > 0) {
     factors.push({
       key: "interestOverlap",
       weight: SCORE_WEIGHTS.interestOverlap,
-      strength: Math.min(1, interestMatches.length / 2),
-      reason: reasonForInterest(interestMatches[0]),
+      strength: Math.min(1, sharedInterests.length / 2),
+      reason: reasonForInterest(sharedInterests[0]),
     });
   }
 
-  const skillMatches = textContainsAny(communityText, profile.skills);
-  if (skillMatches.length > 0) {
+  if (sharedSkills.length > 0) {
     factors.push({
       key: "skillOverlap",
       weight: SCORE_WEIGHTS.skillOverlap,
-      strength: Math.min(1, skillMatches.length / 2),
-      reason: reasonForSkillMatch(skillMatches[0], "community"),
+      strength: Math.min(1, sharedSkills.length / 2),
+      reason: reasonForSkillMatch(sharedSkills[0], "community"),
     });
   }
 
@@ -255,17 +352,38 @@ export function scoreCommunityMatch(
     });
   }
 
-  if (profile.buildGoal) {
-    const goalMatches = textContainsAny(communityText, [formatBuildGoalLabel(profile.buildGoal)]);
-    if (goalMatches.length > 0) {
-      factors.push({
-        key: "buildGoalMatch",
-        weight: SCORE_WEIGHTS.buildGoalMatch,
-        strength: 1,
-        reason: reasonForBuildGoal(formatBuildGoalLabel(profile.buildGoal)),
-      });
-    }
+  if (buildGoalMatch && profile.buildGoal) {
+    factors.push({
+      key: "buildGoalMatch",
+      weight: SCORE_WEIGHTS.buildGoalMatch,
+      strength: 1,
+      reason: reasonForBuildGoal(formatBuildGoalLabel(profile.buildGoal)),
+    });
   }
+
+  const currentOpportunities: string[] = [];
+  if (candidate.memberCount > 0) {
+    currentOpportunities.push(`${candidate.memberCount} members already building`);
+  }
+  currentOpportunities.push("Open to new members");
+
+  const signals: MatchSignals = {
+    sharedSkills,
+    sharedInterests,
+    sharedCommunities: [],
+    sharedProjects: [],
+    mutualCollaborators: [],
+    skillsNeeded: sharedSkills,
+    locationMatch: false,
+    buildGoalMatch,
+    buildGoalLabel: profile.buildGoal ? formatBuildGoalLabel(profile.buildGoal) : undefined,
+    lookingForCollaborators: candidate.memberCount >= 3,
+    activeProject: false,
+    tagMatch: candidate.tag ?? undefined,
+    missionAlignment: false,
+    activityMatch: false,
+    currentOpportunities,
+  };
 
   return toRecommendation(
     "communities",
@@ -273,7 +391,8 @@ export function scoreCommunityMatch(
     candidate.name,
     candidate.tag ?? `${candidate.memberCount} members`,
     `/community/${candidate.slug}`,
-    factors
+    factors,
+    signals
   );
 }
 
@@ -283,33 +402,35 @@ export function scoreOrganizationMatch(
 ): ScoredRecommendation | null {
   const factors: ScoreFactorInput[] = [];
   const orgText = `${candidate.name} ${candidate.description ?? ""} ${candidate.communityTags.join(" ")}`;
+  const skillsNeeded = textContainsAny(orgText, profile.skills);
+  const sharedInterests = textContainsAny(orgText, profile.interests);
 
-  const skillMatches = textContainsAny(orgText, profile.skills);
-  if (skillMatches.length > 0) {
+  if (skillsNeeded.length > 0) {
     factors.push({
       key: "skillOverlap",
       weight: SCORE_WEIGHTS.skillOverlap,
-      strength: Math.min(1, skillMatches.length / 2),
-      reason: `Because ${candidate.name} is looking for ${skillMatches[0]} skills`,
+      strength: Math.min(1, skillsNeeded.length / 2),
+      reason: `Because ${candidate.name} is looking for ${skillsNeeded[0]} skills`,
     });
   }
 
-  const interestMatches = textContainsAny(orgText, profile.interests);
-  if (interestMatches.length > 0) {
+  if (sharedInterests.length > 0) {
     factors.push({
       key: "interestOverlap",
       weight: SCORE_WEIGHTS.interestOverlap,
-      strength: Math.min(1, interestMatches.length / 2),
-      reason: reasonForInterest(interestMatches[0]),
+      strength: Math.min(1, sharedInterests.length / 2),
+      reason: reasonForInterest(sharedInterests[0]),
     });
   }
 
+  let tagMatch: string | undefined;
   if (candidate.communityTags.length > 0) {
     const tagMatches = overlapMatches(
       candidate.communityTags,
       profile.interests.map((i) => i.toLowerCase())
     );
     if (tagMatches.length > 0) {
+      tagMatch = tagMatches[0];
       factors.push({
         key: "tagMatch",
         weight: SCORE_WEIGHTS.tagMatch,
@@ -319,13 +440,36 @@ export function scoreOrganizationMatch(
     }
   }
 
+  const currentOpportunities: string[] = [`Recruiting across ${candidate.communityTags.length || 1} focus areas`];
+  if (skillsNeeded.length > 0) {
+    currentOpportunities.push(`Seeking ${skillsNeeded.slice(0, 2).join(", ")} talent`);
+  }
+
+  const signals: MatchSignals = {
+    sharedSkills: skillsNeeded,
+    sharedInterests,
+    sharedCommunities: [],
+    sharedProjects: [],
+    mutualCollaborators: [],
+    skillsNeeded,
+    locationMatch: false,
+    buildGoalMatch: false,
+    lookingForCollaborators: skillsNeeded.length > 0,
+    activeProject: false,
+    tagMatch,
+    missionAlignment: false,
+    activityMatch: false,
+    currentOpportunities,
+  };
+
   return toRecommendation(
     "organizations",
     candidate.id,
     candidate.name,
     candidate.description?.slice(0, 80) ?? undefined,
     `/organizations/${candidate.slug}`,
-    factors
+    factors,
+    signals
   );
 }
 
@@ -335,37 +479,41 @@ export function scoreMissionMatch(
 ): ScoredRecommendation | null {
   const factors: ScoreFactorInput[] = [];
   const missionText = `${candidate.title} ${candidate.description ?? ""}`;
+  const sharedInterests = textContainsAny(missionText, profile.interests);
+  const sharedSkills = textContainsAny(missionText, profile.skills);
+  const buildGoalMatch = Boolean(
+    profile.buildGoal &&
+      textContainsAny(missionText, [formatBuildGoalLabel(profile.buildGoal)]).length > 0
+  );
+  const activityMatch =
+    profile.activityModules.length > 0 &&
+    textContainsAny(missionText, profile.activityModules).length > 0;
 
-  const interestMatches = textContainsAny(missionText, profile.interests);
-  if (interestMatches.length > 0) {
+  if (sharedInterests.length > 0) {
     factors.push({
       key: "interestOverlap",
       weight: SCORE_WEIGHTS.interestOverlap,
-      strength: Math.min(1, interestMatches.length / 2),
-      reason: reasonForMissionInterest(interestMatches[0]),
+      strength: Math.min(1, sharedInterests.length / 2),
+      reason: reasonForMissionInterest(sharedInterests[0]),
     });
   }
 
-  const skillMatches = textContainsAny(missionText, profile.skills);
-  if (skillMatches.length > 0) {
+  if (sharedSkills.length > 0) {
     factors.push({
       key: "skillOverlap",
       weight: SCORE_WEIGHTS.skillOverlap,
-      strength: Math.min(1, skillMatches.length / 2),
-      reason: reasonForSkillMatch(skillMatches[0], "mission"),
+      strength: Math.min(1, sharedSkills.length / 2),
+      reason: reasonForSkillMatch(sharedSkills[0], "mission"),
     });
   }
 
-  if (profile.buildGoal) {
-    const goalMatches = textContainsAny(missionText, [formatBuildGoalLabel(profile.buildGoal)]);
-    if (goalMatches.length > 0) {
-      factors.push({
-        key: "buildGoalMatch",
-        weight: SCORE_WEIGHTS.buildGoalMatch,
-        strength: 1,
-        reason: reasonForBuildGoal(formatBuildGoalLabel(profile.buildGoal)),
-      });
-    }
+  if (buildGoalMatch && profile.buildGoal) {
+    factors.push({
+      key: "buildGoalMatch",
+      weight: SCORE_WEIGHTS.buildGoalMatch,
+      strength: 1,
+      reason: reasonForBuildGoal(formatBuildGoalLabel(profile.buildGoal)),
+    });
   }
 
   if (candidate.status === "pending" || candidate.status === "active") {
@@ -373,21 +521,46 @@ export function scoreMissionMatch(
       key: "pendingMissionBoost",
       weight: SCORE_WEIGHTS.pendingMissionBoost,
       strength: 1,
-      reason: candidate.kind === "daily" ? "Because this is your next daily mission" : "Because this weekly goal matches your focus",
+      reason:
+        candidate.kind === "daily"
+          ? "Because this is your next daily mission"
+          : "Because this weekly goal matches your focus",
     });
   }
 
-  if (profile.activityModules.length > 0) {
-    const moduleMatches = textContainsAny(missionText, profile.activityModules);
-    if (moduleMatches.length > 0) {
-      factors.push({
-        key: "activityAlignment",
-        weight: SCORE_WEIGHTS.activityAlignment,
-        strength: 1,
-        reason: "Because you've been active in similar areas",
-      });
-    }
+  if (activityMatch) {
+    factors.push({
+      key: "activityAlignment",
+      weight: SCORE_WEIGHTS.activityAlignment,
+      strength: 1,
+      reason: "Because you've been active in similar areas",
+    });
   }
+
+  const currentOpportunities: string[] = [];
+  if (candidate.kind === "daily" && candidate.status === "pending") {
+    currentOpportunities.push("Pending daily mission");
+  }
+  if (candidate.kind === "weekly") {
+    currentOpportunities.push("Active weekly goal");
+  }
+
+  const signals: MatchSignals = {
+    sharedSkills,
+    sharedInterests,
+    sharedCommunities: [],
+    sharedProjects: [],
+    mutualCollaborators: [],
+    skillsNeeded: sharedSkills,
+    locationMatch: false,
+    buildGoalMatch,
+    buildGoalLabel: profile.buildGoal ? formatBuildGoalLabel(profile.buildGoal) : undefined,
+    lookingForCollaborators: false,
+    activeProject: false,
+    missionAlignment: sharedInterests.length > 0 || sharedSkills.length > 0,
+    activityMatch,
+    currentOpportunities,
+  };
 
   return toRecommendation(
     "missions",
@@ -395,7 +568,8 @@ export function scoreMissionMatch(
     candidate.title,
     candidate.kind === "daily" ? "Daily mission" : "Weekly goal",
     candidate.href,
-    factors
+    factors,
+    signals
   );
 }
 
@@ -411,12 +585,13 @@ export function scoreAllMatches(
     communities: CommunityCandidate[];
     organizations: OrganizationCandidate[];
     missions: MissionCandidate[];
-  }
+  },
+  context: OpportunityGraphContext
 ) {
   return {
     people: sortAndLimit(
       candidates.people
-        .map((candidate) => scorePersonMatch(profile, candidate))
+        .map((candidate) => scorePersonMatch(profile, candidate, context))
         .filter((item): item is ScoredRecommendation => item !== null)
     ),
     projects: sortAndLimit(
@@ -441,5 +616,3 @@ export function scoreAllMatches(
     ),
   };
 }
-
-export { sharedCommunityFactor, reasonForSharedProject };

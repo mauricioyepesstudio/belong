@@ -92,9 +92,18 @@ export function textContainsAny(source: string | null | undefined, needles: stri
 export function computeCompatibilityScore(factors: ScoreFactorInput[]): {
   score: number;
   factors: Array<{ key: string; weight: number; score: number; reason: string }>;
+  weightedPoints: number;
+  maxPossiblePoints: number;
+  formula: string;
 } {
   if (factors.length === 0) {
-    return { score: 0, factors: [] };
+    return {
+      score: 0,
+      factors: [],
+      weightedPoints: 0,
+      maxPossiblePoints: 0,
+      formula: "No compatibility signals matched",
+    };
   }
 
   const weighted = factors.map((factor) => ({
@@ -107,8 +116,10 @@ export function computeCompatibilityScore(factors: ScoreFactorInput[]): {
   const maxPossible = factors.reduce((sum, f) => sum + f.weight, 0);
   const raw = weighted.reduce((sum, f) => sum + f.score, 0);
   const score = maxPossible === 0 ? 0 : Math.round((raw / maxPossible) * 100);
+  const terms = weighted.map((f) => `${f.score}/${f.weight}`).join(" + ");
+  const formula = `(${terms}) / ${maxPossible} × 100 = ${score}%`;
 
-  return { score, factors: weighted };
+  return { score, factors: weighted, weightedPoints: raw, maxPossiblePoints: maxPossible, formula };
 }
 
 export function pickTopReasons(

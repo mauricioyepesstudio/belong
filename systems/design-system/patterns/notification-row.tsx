@@ -55,6 +55,7 @@ export function NotificationRow({ notification, onNavigate, compact }: Notificat
       <button
         type="button"
         className="flex w-full items-start gap-4 px-2 py-3.5 text-left transition-colors hover:bg-bg-hover"
+        aria-label={`${notification.title}${isUnread ? " (unread)" : ""}`}
         onClick={() => onNavigate(notification.id, href)}
       >
         {content}
@@ -66,6 +67,7 @@ export function NotificationRow({ notification, onNavigate, compact }: Notificat
     <Link
       href={href}
       className="flex items-start gap-4 px-2 py-3.5 transition-colors hover:bg-bg-hover"
+      aria-label={`${notification.title}${isUnread ? " (unread)" : ""}`}
     >
       {content}
     </Link>

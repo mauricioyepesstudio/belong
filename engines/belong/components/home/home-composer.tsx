@@ -134,7 +134,11 @@ export function HomeComposer({
                       ))}
                     </select>
                   )}
+                  <label htmlFor="home-composer-text" className="sr-only">
+                    Write your post
+                  </label>
                   <textarea
+                    id="home-composer-text"
                     rows={3}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}

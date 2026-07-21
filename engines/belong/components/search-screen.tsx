@@ -43,11 +43,15 @@ export function SearchScreen({
       </div>
 
       <form onSubmit={onSubmit} className="relative">
+        <label htmlFor="global-search" className="sr-only">
+          Search BELONG
+        </label>
         <Search
           className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-fg-muted"
           aria-hidden
         />
         <input
+          id="global-search"
           name="q"
           type="search"
           defaultValue={searchParams.get("q") ?? query}

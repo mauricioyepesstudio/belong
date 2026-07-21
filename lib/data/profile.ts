@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
 import { fetchUserStats, joinMembershipsWithCommunities } from "@/lib/core";
 import { fetchReputationProfile } from "@/engines/identity/reputation";
+import { fetchImpactScoreProfile, type ImpactScoreProfile } from "@/engines/impact";
 import { createIdentityEngineService } from "@/engines/identity/services/identity-service";
 import type { IdentityCompleteness } from "@/engines/identity/types";
 import type { ProjectStatus } from "@/types/database.types";
@@ -71,6 +72,8 @@ export async function getProfileData() {
     missionProgressPercent
   );
 
+  const impactScore = await fetchImpactScoreProfile(supabase, profile.id);
+
   const identityService = createIdentityEngineService(supabase);
   const identityData = await identityService.getIdentityData({ userId: profile.id });
   const compatibility: ProfileCompatibility = {
@@ -88,6 +91,9 @@ export async function getProfileData() {
     communities,
     projects: (projects ?? []) as ProfileProject[],
     reputation,
+    impactScore,
     compatibility,
   };
 }
+
+export type { ImpactScoreProfile };

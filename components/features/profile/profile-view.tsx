@@ -1,6 +1,7 @@
 "use client";
 
 import { MissionCard } from "@/engines/mission";
+import { ImpactSection, getImpactActionLabel } from "@/engines/impact";
 import { ReputationDashboard } from "@/engines/identity/components/reputation-dashboard";
 import { TIER_ICONS } from "@/engines/billing";
 import {
@@ -16,6 +17,7 @@ import {
   Tabs,
 } from "@/systems/design-system";
 import type { ReputationProfile } from "@/engines/identity/reputation";
+import type { ImpactScoreProfile } from "@/engines/impact";
 import type { UserCommunity } from "@/lib/core";
 import type { ProfileProject, ProfileCompatibility } from "@/lib/data/profile";
 import type { UserStats } from "@/lib/core/stats";
@@ -34,6 +36,7 @@ type ProfileViewProps = {
   communities: UserCommunity[];
   projects: ProfileProject[];
   reputation: ReputationProfile;
+  impactScore: ImpactScoreProfile;
   compatibility: ProfileCompatibility;
   initialTab?: string;
 };
@@ -45,11 +48,13 @@ export function ProfileView({
   communities,
   projects,
   reputation: initialReputation,
+  impactScore: initialImpactScore,
   compatibility,
   initialTab = "reputation",
 }: ProfileViewProps) {
   const [tab, setTab] = useState(initialTab);
   const [reputation, setReputation] = useState(initialReputation);
+  const [impactScore, setImpactScore] = useState(initialImpactScore);
   const primaryMission = missions.find((m) => m.is_primary) ?? missions[0];
   const TierIcon = TIER_ICONS[profile.subscription_tier ?? "free"];
 
@@ -71,6 +76,24 @@ export function ProfileView({
           ...prev.scores,
           reputationScore: prev.scores.reputationScore + event.points,
         },
+      }));
+      setImpactScore((prev) => ({
+        totalScore: prev.totalScore + event.points,
+        weeklyScore: prev.weeklyScore + event.points,
+        monthlyScore: prev.monthlyScore + event.points,
+        recentEvents: [
+          {
+            id: event.id,
+            action: event.eventType,
+            label: getImpactActionLabel(event.eventType),
+            points: event.points,
+            module: event.module,
+            sourceId: event.sourceId,
+            metadata: event.metadata,
+            createdAt: event.createdAt,
+          },
+          ...prev.recentEvents,
+        ].slice(0, 10),
       }));
     },
   });
@@ -175,6 +198,7 @@ export function ProfileView({
           <Tabs
             tabs={[
               { id: "reputation", label: "Reputation" },
+              { id: "impact", label: "Impact" },
               { id: "activity", label: "Activity" },
               { id: "about", label: "About" },
               { id: "projects", label: "Projects", count: projects.length },
@@ -187,6 +211,8 @@ export function ProfileView({
           />
 
           {tab === "reputation" && <ReputationDashboard reputation={reputation} />}
+
+          {tab === "impact" && <ImpactSection impact={impactScore} />}
 
           {tab === "activity" && (
             <Card>

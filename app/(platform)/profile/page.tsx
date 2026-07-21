@@ -10,6 +10,7 @@ type ProfilePageProps = {
 
 const VALID_TABS = new Set([
   "reputation",
+  "impact",
   "about",
   "missions",
   "activity",
@@ -31,6 +32,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       communities={data.communities}
       projects={data.projects}
       reputation={data.reputation}
+      impactScore={data.impactScore}
       compatibility={data.compatibility}
       initialTab={initialTab}
     />

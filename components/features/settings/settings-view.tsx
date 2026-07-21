@@ -1,6 +1,7 @@
 "use client";
 
 import { updateProfile, uploadAvatar } from "@/lib/actions/platform";
+import { updateCompatibilityMetadata } from "@/lib/actions/identity";
 import { updatePassword } from "@/lib/actions/auth";
 import { BillingSettings } from "@/engines/billing";
 import type { BillingSummary } from "@/lib/actions/billing";
@@ -21,15 +22,18 @@ import {
 } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import type { UserProfile } from "@/types/database.types";
+import type { ProfileCompatibility } from "@/lib/data/profile";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 export function SettingsView({
   profile,
   billing,
+  compatibility,
 }: {
   profile: UserProfile;
   billing: BillingSummary;
+  compatibility: ProfileCompatibility;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,6 +56,24 @@ export function SettingsView({
       setTab(settingsTab);
     }
   }, [searchParams]);
+
+  const saveCompatibility = (formData: FormData) => {
+    startSaveTransition(async () => {
+      const result = await updateCompatibilityMetadata({
+        skills: formData.get("skills") as string,
+        interests: formData.get("interests") as string,
+        strengths: formData.get("strengths") as string,
+        values: formData.get("values") as string,
+      });
+      if (result.error) toast(result.error, "error");
+      else {
+        toast("Compatibility profile saved", "success");
+        router.refresh();
+      }
+    });
+  };
+
+  const listToInput = (items: string[]) => items.join(", ");
 
   const saveAccount = (formData: FormData) => {
     startSaveTransition(async () => {
@@ -261,6 +283,64 @@ export function SettingsView({
                   Save profile
                 </Button>
               </form>
+
+              <Separator className="my-6" />
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-fg-primary">Compatibility metadata</h3>
+                  <p className="mt-1 text-caption text-fg-muted">
+                    Used by the Opportunity Engine to match you with people, projects, communities,
+                    and organizations. Separate items with commas.
+                  </p>
+                </div>
+                <form action={saveCompatibility} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="skills">Skills</Label>
+                    <Textarea
+                      id="skills"
+                      name="skills"
+                      defaultValue={listToInput(compatibility.skills)}
+                      placeholder="Product Management, Figma, TypeScript"
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="interests">Interests</Label>
+                    <Textarea
+                      id="interests"
+                      name="interests"
+                      defaultValue={listToInput(compatibility.interests)}
+                      placeholder="Startups, AI tools, Climate"
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="strengths">Strengths</Label>
+                    <Textarea
+                      id="strengths"
+                      name="strengths"
+                      defaultValue={listToInput(compatibility.strengths)}
+                      placeholder="Community building, Strategy"
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="values">Values</Label>
+                    <Textarea
+                      id="values"
+                      name="values"
+                      defaultValue={listToInput(compatibility.values)}
+                      placeholder="Impact, Integrity, Curiosity"
+                      rows={2}
+                    />
+                  </div>
+                  <Button type="submit" variant="secondary" isLoading={isSaving}>
+                    Save compatibility metadata
+                  </Button>
+                </form>
+              </div>
+
               <Separator className="my-6" />
               <p className="text-sm text-fg-muted">
                 Profile data is stored in Supabase and visible to other BELONG members.

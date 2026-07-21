@@ -16,6 +16,8 @@ import {
   Tabs,
 } from "@/systems/design-system";
 import type { ReputationProfile } from "@/engines/identity/reputation";
+import type { UserCommunity } from "@/lib/core";
+import type { ProfileProject, ProfileCompatibility } from "@/lib/data/profile";
 import type { UserStats } from "@/lib/core/stats";
 import { formatInitials } from "@/lib/format";
 import type { Mission, UserProfile } from "@/types/database.types";
@@ -29,7 +31,10 @@ type ProfileViewProps = {
   profile: UserProfile;
   stats: UserStats;
   missions: Mission[];
+  communities: UserCommunity[];
+  projects: ProfileProject[];
   reputation: ReputationProfile;
+  compatibility: ProfileCompatibility;
   initialTab?: string;
 };
 
@@ -37,7 +42,10 @@ export function ProfileView({
   profile,
   stats,
   missions,
+  communities,
+  projects,
   reputation: initialReputation,
+  compatibility,
   initialTab = "reputation",
 }: ProfileViewProps) {
   const [tab, setTab] = useState(initialTab);
@@ -86,7 +94,7 @@ export function ProfileView({
         </div>
       }
     >
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard
           label="Total impact"
           value={String(reputation.totalImpact)}
@@ -97,6 +105,13 @@ export function ProfileView({
           label="Connections"
           value={String(stats.connections)}
           detail={`${stats.pendingConnections} pending`}
+          icon={Users}
+          href="/community?tab=people"
+        />
+        <StatCard
+          label="Communities"
+          value={String(stats.communities)}
+          detail="Joined"
           icon={Users}
           href="/community"
         />
@@ -111,7 +126,7 @@ export function ProfileView({
           label="Streak"
           value={`${reputation.currentStreak}d`}
           detail={`Best ${reputation.longestStreak}d`}
-          icon={Users}
+          icon={Target}
         />
       </div>
 
@@ -160,7 +175,11 @@ export function ProfileView({
           <Tabs
             tabs={[
               { id: "reputation", label: "Reputation" },
+              { id: "activity", label: "Activity" },
               { id: "about", label: "About" },
+              { id: "projects", label: "Projects", count: projects.length },
+              { id: "communities", label: "Communities", count: communities.length },
+              { id: "compatibility", label: "Compatibility" },
               { id: "missions", label: "Missions", count: missions.length },
             ]}
             active={tab}
@@ -168,6 +187,33 @@ export function ProfileView({
           />
 
           {tab === "reputation" && <ReputationDashboard reputation={reputation} />}
+
+          {tab === "activity" && (
+            <Card>
+              <CardContent className="pt-6">
+                <h3 className="text-sm font-medium text-fg-muted">Recent activity</h3>
+                {reputation.recentEvents.length === 0 ? (
+                  <p className="mt-4 text-caption text-fg-muted">
+                    Your impact events will appear here as you contribute.
+                  </p>
+                ) : (
+                  <ul className="mt-4 divide-y divide-border-subtle">
+                    {reputation.recentEvents.map((event) => (
+                      <li key={event.id} className="flex items-center justify-between py-3">
+                        <div>
+                          <p className="text-sm font-medium capitalize text-fg-primary">
+                            {event.eventType.replace(/_/g, " ")}
+                          </p>
+                          <p className="text-xs text-fg-muted capitalize">{event.module}</p>
+                        </div>
+                        <Badge variant="brand">+{event.points}</Badge>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {tab === "about" && (
             <Card>
@@ -187,6 +233,101 @@ export function ProfileView({
                     to share your story.
                   </p>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {tab === "projects" && (
+            <StaggerList className="space-y-3">
+              {projects.length === 0 ? (
+                <EmptyState
+                  icon={FolderKanban}
+                  title="No projects yet"
+                  description="Create a project from Home or the Projects page."
+                  action={{ label: "Browse projects", href: "/projects" }}
+                />
+              ) : (
+                projects.map((p) => (
+                  <StaggerItem key={p.id}>
+                    <Link href={`/projects/${p.id}`}>
+                      <Card className="transition-colors hover:border-brand/30">
+                        <CardContent className="flex items-center justify-between pt-5">
+                          <div>
+                            <p className="font-medium text-fg-primary">{p.name}</p>
+                            <p className="mt-1 text-caption capitalize text-fg-muted">{p.status}</p>
+                          </div>
+                          <Badge variant="outline">{p.progress}%</Badge>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </StaggerItem>
+                ))
+              )}
+            </StaggerList>
+          )}
+
+          {tab === "communities" && (
+            <StaggerList className="space-y-3">
+              {communities.length === 0 ? (
+                <EmptyState
+                  icon={Users}
+                  title="No communities yet"
+                  description="Discover and join communities to connect with other builders."
+                  action={{ label: "Explore communities", href: "/community" }}
+                />
+              ) : (
+                communities.map((c) => (
+                  <StaggerItem key={c.id}>
+                    <Link href={`/community/${c.slug}`}>
+                      <Card className="transition-colors hover:border-brand/30">
+                        <CardContent className="flex items-center justify-between pt-5">
+                          <div>
+                            <p className="font-medium text-fg-primary">{c.name}</p>
+                            {c.tag && <p className="mt-1 text-caption text-fg-muted">{c.tag}</p>}
+                          </div>
+                          <Badge variant="outline" className="capitalize">
+                            {c.role}
+                          </Badge>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </StaggerItem>
+                ))
+              )}
+            </StaggerList>
+          )}
+
+          {tab === "compatibility" && (
+            <Card>
+              <CardContent className="space-y-6 pt-6">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-medium text-fg-muted">Compatibility profile</h3>
+                    <p className="mt-1 text-caption text-fg-muted">
+                      This metadata powers deterministic opportunity matching across BELONG.
+                    </p>
+                  </div>
+                  <Badge variant="brand">{compatibility.completeness.score}% complete</Badge>
+                </div>
+
+                <ProgressBar value={compatibility.completeness.score} />
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <CompatibilityGroup label="Skills" items={compatibility.skills} />
+                  <CompatibilityGroup label="Interests" items={compatibility.interests} />
+                  <CompatibilityGroup label="Strengths" items={compatibility.strengths} />
+                  <CompatibilityGroup label="Values" items={compatibility.values} />
+                </div>
+
+                {compatibility.completeness.missingFields.length > 0 && (
+                  <p className="text-caption text-fg-muted">
+                    Missing: {compatibility.completeness.missingFields.join(", ")}
+                  </p>
+                )}
+
+                <Link href="/settings?tab=profile">
+                  <Button variant="secondary">Edit compatibility metadata</Button>
+                </Link>
               </CardContent>
             </Card>
           )}
@@ -226,5 +367,24 @@ export function ProfileView({
         </div>
       </div>
     </FeatureScreen>
+  );
+}
+
+function CompatibilityGroup({ label, items }: { label: string; items: string[] }) {
+  return (
+    <div>
+      <h4 className="text-xs font-medium uppercase tracking-wide text-fg-muted">{label}</h4>
+      {items.length === 0 ? (
+        <p className="mt-2 text-caption text-fg-faint">Not set</p>
+      ) : (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {items.map((item) => (
+            <Badge key={item} variant="outline">
+              {item}
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

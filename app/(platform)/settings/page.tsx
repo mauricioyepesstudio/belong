@@ -2,6 +2,7 @@ import { SettingsView } from "@/components/features/settings/settings-view";
 import { Spinner } from "@/components/ui";
 import { getCurrentProfile } from "@/lib/auth/session";
 import { getBillingSummary } from "@/lib/data/billing";
+import { getProfileData } from "@/lib/data/profile";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Suspense } from "react";
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: "Settings" };
 export default async function SettingsPage() {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
-  const billing = await getBillingSummary();
+  const [billing, profileData] = await Promise.all([getBillingSummary(), getProfileData()]);
   return (
     <Suspense
       fallback={
@@ -20,7 +21,11 @@ export default async function SettingsPage() {
         </div>
       }
     >
-      <SettingsView profile={profile} billing={billing} />
+      <SettingsView
+        profile={profile}
+        billing={billing}
+        compatibility={profileData.compatibility}
+      />
     </Suspense>
   );
 }

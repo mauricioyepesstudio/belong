@@ -8,7 +8,15 @@ type ProfilePageProps = {
   searchParams: Promise<{ tab?: string }>;
 };
 
-const VALID_TABS = new Set(["reputation", "about", "missions"]);
+const VALID_TABS = new Set([
+  "reputation",
+  "about",
+  "missions",
+  "activity",
+  "projects",
+  "communities",
+  "compatibility",
+]);
 
 export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const { tab } = await searchParams;
@@ -20,7 +28,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       profile={data.profile}
       stats={data.stats}
       missions={data.missions}
+      communities={data.communities}
+      projects={data.projects}
       reputation={data.reputation}
+      compatibility={data.compatibility}
       initialTab={initialTab}
     />
   );

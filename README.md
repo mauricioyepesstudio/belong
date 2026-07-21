@@ -16,8 +16,19 @@ Production platform for mission-driven builders — communities, projects, event
 cp .env.example .env.local   # Add Supabase credentials
 npm install
 npm run db:push              # Apply migrations
+npm run db:reset             # Reset DB + load demo seed data
 npm run dev
 ```
+
+### Demo accounts (after `db:reset`)
+
+| Email | Password |
+|-------|----------|
+| `sarah@demo.belong.app` | `BelongDemo2026!` |
+| `marcus@demo.belong.app` | `BelongDemo2026!` |
+| *(any `@demo.belong.app` user)* | `BelongDemo2026!` |
+
+Demo data includes communities, projects, events, posts, missions, and marketplace listings with realistic relationships.
 
 ## Documentation
 

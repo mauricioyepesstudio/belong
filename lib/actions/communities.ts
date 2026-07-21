@@ -14,46 +14,16 @@ import type {
 } from "@/lib/core";
 import { fetchCommunityDetail } from "@/lib/core/communities";
 import { ensureDefaultOrganization } from "@/lib/core/organizations";
-
-function revalidateCommunity(slug?: string) {
-  revalidatePath("/community");
-  revalidatePath("/dashboard");
-  revalidatePath("/", "layout");
-  if (slug) revalidatePath(`/community/${slug}`);
-}
-
-function authorFromProfile(profile: {
-  id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-}) {
-  return {
-    id: profile.id,
-    fullName: profile.full_name,
-    avatarUrl: profile.avatar_url,
-  };
-}
+import {
+  authorFromProfile,
+  revalidateCommunity,
+  requireCommunityMembership,
+} from "@/lib/actions/_shared";
 
 export async function refreshCommunityDetail(slug: string): Promise<CommunityDetail | null> {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   return fetchCommunityDetail(supabase, slug, profile?.id ?? null);
-}
-
-async function requireCommunityMembership(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  communityId: string,
-  userId: string
-): Promise<ActionResult | null> {
-  const { data } = await supabase
-    .from("community_members")
-    .select("id")
-    .eq("community_id", communityId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (!data) return { error: "You must be a member to perform this action" };
-  return null;
 }
 
 export async function createCommunity(data: {
@@ -187,7 +157,8 @@ export async function leaveCommunity(communityId: string): Promise<ActionResult>
 
 export async function createCommunityPost(
   communityId: string,
-  content: string
+  content: string,
+  imageUrl?: string | null
 ): Promise<ActionResult & { post?: CommunityPostWithMeta }> {
   const supabase = await createClient();
   const profile = await requireProfile();
@@ -210,6 +181,7 @@ export async function createCommunityPost(
       community_id: communityId,
       author_id: profile.id,
       content: trimmed,
+      image_url: imageUrl?.trim() || null,
     })
     .select("*")
     .single();
@@ -357,4 +329,162 @@ export async function createPostComment(
       author: authorFromProfile(profile),
     } satisfies CommunityCommentWithAuthor,
   };
+}
+
+async function getCommunityManagerRole(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  communityId: string,
+  userId: string
+): Promise<"owner" | "admin" | null> {
+  const { data } = await supabase
+    .from("community_members")
+    .select("role")
+    .eq("community_id", communityId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!data) return null;
+  if (data.role === "owner" || data.role === "admin") return data.role;
+  return null;
+}
+
+export async function updateCommunityPost(
+  postId: string,
+  content: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const trimmed = content.trim();
+  if (!trimmed) return { error: "Post content is required" };
+
+  const { data: post } = await supabase
+    .from("community_posts")
+    .select("author_id, community_id")
+    .eq("id", postId)
+    .single();
+
+  if (!post) return { error: "Post not found" };
+  if (post.author_id !== profile.id) return { error: "Not authorized" };
+
+  const { data: community } = await supabase
+    .from("communities")
+    .select("slug")
+    .eq("id", post.community_id)
+    .single();
+
+  const { error } = await supabase
+    .from("community_posts")
+    .update({ content: trimmed })
+    .eq("id", postId);
+
+  if (error) return { error: error.message };
+
+  revalidateCommunity(community?.slug);
+  return {};
+}
+
+export async function deleteCommunityPost(postId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const { data: post } = await supabase
+    .from("community_posts")
+    .select("author_id, community_id")
+    .eq("id", postId)
+    .single();
+
+  if (!post) return { error: "Post not found" };
+
+  const isAuthor = post.author_id === profile.id;
+  const managerRole = await getCommunityManagerRole(supabase, post.community_id, profile.id);
+
+  if (!isAuthor && !managerRole) return { error: "Not authorized" };
+
+  const { data: community } = await supabase
+    .from("communities")
+    .select("slug")
+    .eq("id", post.community_id)
+    .single();
+
+  const { error } = await supabase.from("community_posts").delete().eq("id", postId);
+
+  if (error) return { error: error.message };
+
+  revalidateCommunity(community?.slug);
+  return {};
+}
+
+export async function addCommunityMember(
+  communityId: string,
+  userId: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const managerRole = await getCommunityManagerRole(supabase, communityId, profile.id);
+  if (!managerRole) return { error: "Only community managers can add members" };
+
+  const { data: community } = await supabase
+    .from("communities")
+    .select("slug, name")
+    .eq("id", communityId)
+    .single();
+
+  if (!community) return { error: "Community not found" };
+
+  const { error } = await supabase.from("community_members").insert({
+    community_id: communityId,
+    user_id: userId,
+    role: "member",
+  });
+
+  if (error) {
+    if (error.code === "23505") return { error: "Already a member" };
+    return { error: error.message };
+  }
+
+  await createNotification(supabase, {
+    userId,
+    title: "Added to community",
+    body: `${profile.full_name ?? "Someone"} added you to ${community.name}`,
+    type: "community",
+    metadata: { community_id: communityId, slug: community.slug },
+  });
+
+  revalidateCommunity(community.slug);
+  return {};
+}
+
+export async function removeCommunityMember(
+  communityId: string,
+  userId: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const { data: community } = await supabase
+    .from("communities")
+    .select("slug, owner_id")
+    .eq("id", communityId)
+    .single();
+
+  if (!community) return { error: "Community not found" };
+
+  const isSelf = userId === profile.id;
+  const managerRole = await getCommunityManagerRole(supabase, communityId, profile.id);
+
+  if (!isSelf && !managerRole) return { error: "Not authorized" };
+  if (userId === community.owner_id) return { error: "Cannot remove the community owner" };
+
+  const { error } = await supabase
+    .from("community_members")
+    .delete()
+    .eq("community_id", communityId)
+    .eq("user_id", userId);
+
+  if (error) return { error: error.message };
+
+  revalidateCommunity(community.slug);
+  return {};
 }

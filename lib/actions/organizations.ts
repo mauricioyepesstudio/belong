@@ -3,7 +3,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile, getCurrentProfile } from "@/lib/auth/session";
 import { createNotification, slugify } from "@/lib/supabase/notify";
-import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
 import type { OrganizationDetail } from "@/lib/core/organizations";
 import type { OrganizationMemberRole } from "@/types/database.types";
@@ -17,15 +16,7 @@ import {
   fetchOrganizationMembership,
 } from "@/lib/core/organizations";
 import { recordImpactEvent } from "@/engines/identity/reputation";
-
-function revalidateOrganization(slug?: string) {
-  revalidatePath("/organizations");
-  revalidatePath("/dashboard");
-  revalidatePath("/community");
-  revalidatePath("/projects");
-  revalidatePath("/", "layout");
-  if (slug) revalidatePath(`/organizations/${slug}`);
-}
+import { revalidateOrganization } from "@/lib/actions/_shared";
 
 export async function refreshOrganizationDetail(slug: string): Promise<OrganizationDetail | null> {
   const supabase = await createClient();

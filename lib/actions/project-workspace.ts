@@ -2,34 +2,12 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
-import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
 import type { ProjectTaskPriority, ProjectTaskStatus } from "@/lib/core/project-workspace";
 import type { Json } from "@/types/database.types";
 import type { Database } from "@/types/database.types";
 import { recordImpactEvent } from "@/engines/identity/reputation";
-
-function revalidateProject(projectId: string) {
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${projectId}`);
-  revalidatePath("/dashboard");
-}
-
-async function requireProjectMember(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  projectId: string,
-  userId: string
-): Promise<ActionResult | null> {
-  const { data } = await supabase
-    .from("project_members")
-    .select("role")
-    .eq("project_id", projectId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (!data) return { error: "You must be a project member" };
-  return null;
-}
+import { revalidateProject, requireProjectMember } from "@/lib/actions/_shared";
 
 async function requireProjectAdmin(
   supabase: Awaited<ReturnType<typeof createClient>>,

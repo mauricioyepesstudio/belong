@@ -3,7 +3,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile, getCurrentProfile } from "@/lib/auth/session";
 import { createNotification } from "@/lib/supabase/notify";
-import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
 import type {
   ProjectCommentWithAuthor,
@@ -14,79 +13,17 @@ import { fetchProjectDetail } from "@/lib/core/projects";
 import { recordImpactEvent } from "@/engines/identity/reputation";
 import { logProjectActivity } from "@/lib/actions/project-workspace";
 import { ensureDefaultOrganization } from "@/lib/core/organizations";
-
-function revalidateProject(projectId?: string) {
-  revalidatePath("/projects");
-  revalidatePath("/dashboard");
-  revalidatePath("/", "layout");
-  if (projectId) revalidatePath(`/projects/${projectId}`);
-}
-
-function authorFromProfile(profile: {
-  id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-}) {
-  return {
-    id: profile.id,
-    fullName: profile.full_name,
-    avatarUrl: profile.avatar_url,
-  };
-}
+import {
+  authorFromProfile,
+  revalidateProject,
+  requireCommunityMembership,
+  requireProjectMembership,
+} from "@/lib/actions/_shared";
 
 export async function refreshProjectDetail(projectId: string): Promise<ProjectDetail | null> {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   return fetchProjectDetail(supabase, projectId, profile?.id ?? null);
-}
-
-async function requireCommunityMembership(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  communityId: string,
-  userId: string
-): Promise<ActionResult | null> {
-  const { data } = await supabase
-    .from("community_members")
-    .select("id")
-    .eq("community_id", communityId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (!data) return { error: "You must be a community member to perform this action" };
-  return null;
-}
-
-async function requireProjectMembership(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  projectId: string,
-  userId: string
-): Promise<ActionResult | null> {
-  const { data: project } = await supabase
-    .from("projects")
-    .select("community_id")
-    .eq("id", projectId)
-    .maybeSingle();
-
-  if (!project) return { error: "Project not found" };
-
-  const communityError = await requireCommunityMembership(
-    supabase,
-    project.community_id,
-    userId
-  );
-  if (communityError) {
-    return { error: "You must be a community member to participate in this project" };
-  }
-
-  const { data } = await supabase
-    .from("project_members")
-    .select("role")
-    .eq("project_id", projectId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (!data) return { error: "You must be a project member to perform this action" };
-  return null;
 }
 
 function validateDeadline(deadline?: string | null): ActionResult | null {
@@ -346,7 +283,8 @@ export async function leaveProject(projectId: string): Promise<ActionResult> {
 
 export async function createProjectPost(
   projectId: string,
-  content: string
+  content: string,
+  imageUrl?: string | null
 ): Promise<ActionResult & { post?: ProjectPostWithMeta }> {
   const supabase = await createClient();
   const profile = await requireProfile();
@@ -369,6 +307,7 @@ export async function createProjectPost(
       project_id: projectId,
       author_id: profile.id,
       content: trimmed,
+      image_url: imageUrl?.trim() || null,
     })
     .select("*")
     .single();
@@ -541,8 +480,20 @@ export async function inviteToProject(
     .eq("id", projectId)
     .single();
 
-  if (!project || project.owner_id !== profile.id) {
-    return { error: "Not authorized" };
+  if (!project) return { error: "Project not found" };
+
+  const isOwner = project.owner_id === profile.id;
+  if (!isOwner) {
+    const { data: membership } = await supabase
+      .from("project_members")
+      .select("role")
+      .eq("project_id", projectId)
+      .eq("user_id", profile.id)
+      .maybeSingle();
+
+    if (membership?.role !== "admin") {
+      return { error: "Not authorized" };
+    }
   }
 
   const inviteeCommunityError = await requireCommunityMembership(
@@ -588,5 +539,63 @@ export async function inviteToProject(
   });
 
   revalidateProject(projectId);
+  return {};
+}
+
+export async function updateProjectPost(postId: string, content: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const trimmed = content.trim();
+  if (!trimmed) return { error: "Post content is required" };
+
+  const { data: post } = await supabase
+    .from("project_posts")
+    .select("author_id, project_id")
+    .eq("id", postId)
+    .single();
+
+  if (!post) return { error: "Post not found" };
+  if (post.author_id !== profile.id) return { error: "Not authorized" };
+
+  const { error } = await supabase
+    .from("project_posts")
+    .update({ content: trimmed })
+    .eq("id", postId);
+
+  if (error) return { error: error.message };
+
+  revalidateProject(post.project_id);
+  return {};
+}
+
+export async function deleteProjectPost(postId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const { data: post } = await supabase
+    .from("project_posts")
+    .select("author_id, project_id")
+    .eq("id", postId)
+    .single();
+
+  if (!post) return { error: "Post not found" };
+
+  const { data: project } = await supabase
+    .from("projects")
+    .select("owner_id")
+    .eq("id", post.project_id)
+    .single();
+
+  const isAuthor = post.author_id === profile.id;
+  const isOwner = project?.owner_id === profile.id;
+
+  if (!isAuthor && !isOwner) return { error: "Not authorized" };
+
+  const { error } = await supabase.from("project_posts").delete().eq("id", postId);
+
+  if (error) return { error: error.message };
+
+  revalidateProject(post.project_id);
   return {};
 }

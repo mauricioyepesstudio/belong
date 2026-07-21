@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
 import { createNotification } from "@/lib/supabase/notify";
 import { incrementWeeklyGoalByTitle } from "@/lib/engine/mission-progress";
+import { recordImpactAction } from "@/engines/impact";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
 
@@ -36,6 +37,14 @@ export async function createEvent(data: {
     .single();
 
   if (error) return { error: error.message };
+
+  await recordImpactAction(supabase, {
+    userId: profile.id,
+    module: "event",
+    eventType: "event_organized",
+    sourceId: event.id,
+    metadata: { title: data.title.trim() },
+  });
 
   revalidatePath("/events");
   revalidatePath("/", "layout");

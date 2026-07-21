@@ -1,6 +1,6 @@
 import type { SupabaseServerClient } from "@/lib/core/types";
 import { createNotification } from "@/lib/supabase/notify";
-import { recordImpactEvent } from "@/engines/identity/reputation";
+import { recordImpactAction } from "@/engines/impact";
 
 export function getWeekStartUtc(): string {
   const d = new Date();
@@ -48,11 +48,10 @@ export async function incrementQuarterlyProgress(
       metadata: { goal_id: goal.id, kind: "quarterly_goal" },
     });
 
-    await recordImpactEvent(supabase, {
+    await recordImpactAction(supabase, {
       userId,
       module: "mission",
       eventType: "quarterly_goal_completed",
-      points: 50,
       sourceId: goal.id,
       metadata: { title: goal.title },
     });
@@ -62,15 +61,14 @@ export async function incrementQuarterlyProgress(
 export async function recordMissionCompletionImpact(
   supabase: SupabaseServerClient,
   userId: string,
-  impactPoints: number,
+  _impactPoints: number,
   missionId: string,
   title?: string
 ) {
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId,
     module: "mission",
     eventType: "mission_completed",
-    points: impactPoints,
     sourceId: missionId,
     metadata: title ? { title } : {},
   });
@@ -111,11 +109,10 @@ export async function incrementWeeklyGoalByTitle(
         metadata: { goal_id: goal.id, kind: "weekly_goal" },
       });
 
-      await recordImpactEvent(supabase, {
+      await recordImpactAction(supabase, {
         userId,
         module: "mission",
         eventType: "weekly_goal_completed",
-        points: goal.impact_points,
         sourceId: goal.id,
         metadata: { title: goal.title },
       });
@@ -142,11 +139,10 @@ export async function recordMissionActivity(
     })
     .eq("user_id", userId);
 
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId,
     module: "mission",
     eventType: "streak_activity",
-    points: 3,
   });
 }
 
@@ -168,8 +164,7 @@ export async function logCommunityContribution(
   supabase: SupabaseServerClient,
   userId: string,
   communityId: string,
-  contributionType: string,
-  points = 5
+  contributionType: string
 ) {
   const eventType =
     contributionType === "join"
@@ -182,11 +177,10 @@ export async function logCommunityContribution(
             ? "community_like"
             : "community_post";
 
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId,
     module: "community",
     eventType,
-    points,
     sourceId: communityId,
     metadata: { community_id: communityId, contribution_type: contributionType },
   });

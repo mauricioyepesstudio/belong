@@ -9,14 +9,14 @@ import {
 
 describe("identity reputation calculate", () => {
   it("assigns default points per event type", () => {
-    expect(defaultPointsForEvent("mission_completed")).toBe(10);
-    expect(defaultPointsForEvent("project_completed")).toBe(30);
+    expect(defaultPointsForEvent("mission_completed")).toBe(5);
+    expect(defaultPointsForEvent("project_created")).toBe(5);
     expect(defaultPointsForEvent("mission_completed", 25)).toBe(25);
   });
 
   it("computes composite reputation scores", () => {
     const scores = computeReputationScores({
-      eventPointsByModule: { mission: 40, community: 30, project: 20, organization: 0, system: 0 },
+      eventPointsByModule: { mission: 40, community: 30, project: 20, organization: 0, event: 0, system: 0 },
       eventCountsByType: { project_join: 2, community_comment: 3 },
       founderReputation: 50,
       connections: 5,

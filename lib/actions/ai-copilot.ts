@@ -23,7 +23,7 @@ import { createProjectPost } from "@/lib/actions/projects";
 import { createProjectMilestone, createProjectTask } from "@/lib/actions/project-workspace";
 import { saveLifeMission } from "@/lib/actions/life-mission";
 import { createNotification } from "@/lib/supabase/notify";
-import { recordImpactEvent } from "@/engines/identity/reputation";
+import { recordImpactAction } from "@/engines/impact";
 
 function revalidateCopilotContext(
   contextType: AICopilotContextType,
@@ -321,11 +321,10 @@ export async function applyCopilotAction(input: {
 
     await markCopilotActionApplied(supabase, record.id, profile.id, entityType, entityId);
 
-    await recordImpactEvent(supabase, {
+    await recordImpactAction(supabase, {
       userId: profile.id,
       module: "system",
       eventType: "ai_copilot_applied",
-      points: 6,
       sourceId: record.contextId,
       metadata: {
         action_id: record.id,

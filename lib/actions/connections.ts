@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
 import { createNotification } from "@/lib/supabase/notify";
 import { incrementWeeklyGoalByTitle } from "@/lib/engine/mission-progress";
-import { recordImpactEvent } from "@/engines/identity/reputation";
+import { recordImpactAction } from "@/engines/impact";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
 
@@ -97,18 +97,16 @@ export async function respondToConnection(
     });
     await incrementWeeklyGoalByTitle(supabase, profile.id, "Expand your network");
     await incrementWeeklyGoalByTitle(supabase, connection.requester_id, "Expand your network");
-    await recordImpactEvent(supabase, {
+    await recordImpactAction(supabase, {
       userId: profile.id,
       module: "system",
-      eventType: "connection_accepted",
-      points: 12,
+      eventType: "collaboration_started",
       sourceId: connectionId,
     });
-    await recordImpactEvent(supabase, {
+    await recordImpactAction(supabase, {
       userId: connection.requester_id,
       module: "system",
-      eventType: "connection_accepted",
-      points: 12,
+      eventType: "collaboration_started",
       sourceId: connectionId,
     });
   }
@@ -144,21 +142,14 @@ export async function startConversation(otherUserId: string): Promise<ActionResu
     if (shared) return { id: shared.conversation_id };
   }
 
-  const { data: conversation, error: convError } = await supabase
-    .from("conversations")
-    .insert({})
-    .select("id")
-    .single();
+  const { data: conversationId, error: rpcError } = await supabase.rpc(
+    "create_conversation_with_user",
+    { p_other_user_id: otherUserId }
+  );
 
-  if (convError) return { error: convError.message };
-
-  const { error: partError } = await supabase.from("conversation_participants").insert([
-    { conversation_id: conversation.id, user_id: profile.id },
-    { conversation_id: conversation.id, user_id: otherUserId },
-  ]);
-
-  if (partError) return { error: partError.message };
+  if (rpcError) return { error: rpcError.message };
+  if (!conversationId) return { error: "Could not start conversation" };
 
   revalidatePath("/messages");
-  return { id: conversation.id };
+  return { id: conversationId as string };
 }

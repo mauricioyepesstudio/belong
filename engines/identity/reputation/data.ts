@@ -12,7 +12,7 @@ import {
 } from "./calculate";
 
 function emptyModuleTotals(): Record<ImpactEventModule, number> {
-  return { mission: 0, community: 0, project: 0, organization: 0, system: 0 };
+  return { mission: 0, community: 0, project: 0, organization: 0, event: 0, system: 0 };
 }
 
 export async function fetchReputationProfile(

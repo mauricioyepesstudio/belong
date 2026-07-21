@@ -23,7 +23,13 @@ export type ListingStatus = "draft" | "active" | "sold" | "archived";
 export type DailyMissionStatus = "pending" | "completed" | "skipped";
 export type WeeklyGoalStatus = "active" | "completed" | "expired";
 export type QuarterlyGoalStatus = "active" | "completed" | "expired";
-export type ImpactEventModule = "mission" | "community" | "project" | "organization" | "system";
+export type ImpactEventModule =
+  | "mission"
+  | "community"
+  | "project"
+  | "organization"
+  | "event"
+  | "system";
 export type ImpactEventType =
   | "mission_completed"
   | "weekly_goal_completed"
@@ -47,7 +53,11 @@ export type ImpactEventType =
   | "organization_invite_accepted"
   | "ai_copilot_applied"
   | "streak_activity"
-  | "connection_accepted";
+  | "connection_accepted"
+  | "helpful_reaction_received"
+  | "event_organized"
+  | "profile_completed"
+  | "collaboration_started";
 export type ProjectTaskStatus = "todo" | "in_progress" | "review" | "done";
 export type ProjectTaskPriority = "low" | "medium" | "high" | "urgent";
 export type ProjectGoalType = "weekly" | "quarterly";
@@ -1117,6 +1127,7 @@ export interface Database {
           community_id: string;
           author_id: string;
           content: string;
+          image_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -1125,6 +1136,7 @@ export interface Database {
           community_id: string;
           author_id: string;
           content: string;
+          image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1133,6 +1145,7 @@ export interface Database {
           community_id?: string;
           author_id?: string;
           content?: string;
+          image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1192,6 +1205,7 @@ export interface Database {
           project_id: string;
           author_id: string;
           content: string;
+          image_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -1200,6 +1214,7 @@ export interface Database {
           project_id: string;
           author_id: string;
           content: string;
+          image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1208,6 +1223,7 @@ export interface Database {
           project_id?: string;
           author_id?: string;
           content?: string;
+          image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1610,6 +1626,12 @@ export interface Database {
           p_body: string;
           p_type?: NotificationType;
           p_metadata?: Json;
+        };
+        Returns: string;
+      };
+      create_conversation_with_user: {
+        Args: {
+          p_other_user_id: string;
         };
         Returns: string;
       };

@@ -15,7 +15,7 @@ import {
   fetchOrganizationDetail,
   fetchOrganizationMembership,
 } from "@/lib/core/organizations";
-import { recordImpactEvent } from "@/engines/identity/reputation";
+import { recordImpactAction } from "@/engines/impact";
 import { revalidateOrganization } from "@/lib/actions/_shared";
 
 export async function refreshOrganizationDetail(slug: string): Promise<OrganizationDetail | null> {
@@ -73,11 +73,10 @@ export async function createOrganization(data: {
     return { error: memberError.message };
   }
 
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId: profile.id,
     module: "organization",
     eventType: "organization_created",
-    points: 20,
     sourceId: organization.id,
     metadata: { organization_name: data.name.trim() },
   });
@@ -109,11 +108,10 @@ export async function joinOrganization(organizationId: string): Promise<ActionRe
     return { error: error.message };
   }
 
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId: profile.id,
     module: "organization",
     eventType: "organization_join",
-    points: 10,
     sourceId: organizationId,
     metadata: { organization_name: organization.name },
   });
@@ -205,11 +203,10 @@ export async function inviteToOrganization(
     metadata: { organization_id: organizationId },
   });
 
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId,
     module: "organization",
     eventType: "organization_invite_accepted",
-    points: 8,
     sourceId: organizationId,
     metadata: { invited_by: profile.id },
   });

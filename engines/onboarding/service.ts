@@ -6,6 +6,7 @@ import { fetchUserStats } from "@/lib/core";
 import { ensureDefaultOrganization } from "@/lib/core/organizations";
 import { getWeekStartUtc } from "@/lib/engine/mission-progress";
 import { syncUserSkill } from "@/lib/engine/mission-progress";
+import { recordImpactAction } from "@/engines/impact";
 import { slugify } from "@/lib/supabase/notify";
 import type { SupabaseServerClient } from "@/lib/core/types";
 import type { BuildGoal, UserProfile } from "@/types/database.types";
@@ -393,6 +394,13 @@ export class OnboardingEngineServiceImpl implements OnboardingEngineService {
         .eq("id", context.userId);
 
       if (profileError) return { error: profileError.message };
+
+      await recordImpactAction(this.supabase, {
+        userId: context.userId,
+        module: "system",
+        eventType: "profile_completed",
+        sourceId: context.userId,
+      });
 
       const completedSession = await this.repository.upsert(context.userId, {
         current_step: ONBOARDING_STEP_ORDER[ONBOARDING_STEP_ORDER.length - 1],

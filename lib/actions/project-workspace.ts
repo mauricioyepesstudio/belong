@@ -6,7 +6,7 @@ import type { ActionResult } from "@/lib/actions/types";
 import type { ProjectTaskPriority, ProjectTaskStatus } from "@/lib/core/project-workspace";
 import type { Json } from "@/types/database.types";
 import type { Database } from "@/types/database.types";
-import { recordImpactEvent } from "@/engines/identity/reputation";
+import { recordImpactAction } from "@/engines/impact";
 import { revalidateProject, requireProjectMember } from "@/lib/actions/_shared";
 
 async function requireProjectAdmin(
@@ -101,11 +101,10 @@ export async function createProjectTask(
     metadata: { task_id: task.id },
   });
 
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId: profile.id,
     module: "project",
     eventType: "project_task_created",
-    points: 5,
     sourceId: projectId,
     metadata: { task_id: task.id, project_id: projectId },
   });
@@ -165,11 +164,10 @@ export async function updateProjectTask(
       metadata: { task_id: taskId },
     });
 
-    await recordImpactEvent(supabase, {
+    await recordImpactAction(supabase, {
       userId: profile.id,
       module: "project",
       eventType: "project_task_completed",
-      points: 8,
       sourceId: task.project_id,
       metadata: { task_id: taskId, project_id: task.project_id },
     });
@@ -245,11 +243,10 @@ export async function completeProjectMilestone(milestoneId: string): Promise<Act
     metadata: { milestone_id: milestoneId },
   });
 
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId: profile.id,
     module: "project",
     eventType: "project_milestone_completed",
-    points: 12,
     sourceId: milestone.project_id,
     metadata: { milestone_id: milestoneId },
   });
@@ -299,11 +296,10 @@ export async function registerProjectFile(
     metadata: { file_id: file.id },
   });
 
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId: profile.id,
     module: "project",
     eventType: "project_file_uploaded",
-    points: 6,
     sourceId: projectId,
     metadata: { file_id: file.id, project_id: projectId },
   });
@@ -479,11 +475,10 @@ export async function updateProjectGoalProgress(
       metadata: { goal_id: goalId },
     });
 
-    await recordImpactEvent(supabase, {
+    await recordImpactAction(supabase, {
       userId: profile.id,
       module: "project",
       eventType: "project_goal_completed",
-      points: 15,
       sourceId: goal.project_id,
       metadata: { goal_id: goalId, project_id: goal.project_id },
     });

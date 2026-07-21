@@ -1,42 +1,19 @@
 import type { ImpactEventModule, ImpactEventType, ReputationScores } from "./types";
+import { getImpactPoints } from "@/engines/impact/config";
 
-export const IMPACT_EVENT_POINTS: Partial<Record<ImpactEventType, number>> = {
-  mission_completed: 10,
-  weekly_goal_completed: 25,
-  quarterly_goal_completed: 50,
-  community_join: 5,
-  community_post: 10,
-  community_comment: 5,
-  community_like: 2,
-  project_created: 18,
-  project_join: 8,
-  project_post: 6,
-  project_comment: 4,
-  project_completed: 30,
-  project_task_created: 5,
-  project_task_completed: 8,
-  project_file_uploaded: 6,
-  project_goal_completed: 15,
-  project_milestone_completed: 12,
-  organization_created: 20,
-  organization_join: 10,
-  organization_invite_accepted: 8,
-  ai_copilot_applied: 6,
-  streak_activity: 3,
-  connection_accepted: 12,
-};
+export { IMPACT_SCORE_POINTS as IMPACT_EVENT_POINTS } from "@/engines/impact/config";
 
 export const MODULE_LABELS: Record<ImpactEventModule, string> = {
   mission: "Mission Engine",
   community: "Community",
   project: "Projects",
   organization: "Organizations",
+  event: "Events",
   system: "Platform",
 };
 
 export function defaultPointsForEvent(eventType: ImpactEventType, override?: number): number {
-  if (override != null && override > 0) return override;
-  return IMPACT_EVENT_POINTS[eventType] ?? 5;
+  return getImpactPoints(eventType, override);
 }
 
 export function computeReputationScores(input: {

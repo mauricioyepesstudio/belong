@@ -10,7 +10,7 @@ import type {
   ProjectPostWithMeta,
 } from "@/lib/core";
 import { fetchProjectDetail } from "@/lib/core/projects";
-import { recordImpactEvent } from "@/engines/identity/reputation";
+import { recordImpactAction } from "@/engines/impact";
 import { logProjectActivity } from "@/lib/actions/project-workspace";
 import { ensureDefaultOrganization } from "@/lib/core/organizations";
 import {
@@ -107,11 +107,10 @@ export async function createProject(data: {
     return { error: memberError.message };
   }
 
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId: profile.id,
     module: "project",
     eventType: "project_created",
-    points: 18,
     sourceId: project.id,
     metadata: { name: data.name.trim() },
   });
@@ -181,11 +180,10 @@ export async function updateProject(
   if (error) return { error: error.message };
 
   if (data.status === "completed") {
-    await recordImpactEvent(supabase, {
+    await recordImpactAction(supabase, {
       userId: profile.id,
       module: "project",
       eventType: "project_completed",
-      points: 30,
       sourceId: projectId,
     });
   }
@@ -234,11 +232,10 @@ export async function joinProject(projectId: string): Promise<ActionResult> {
     });
   }
 
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId: profile.id,
     module: "project",
     eventType: "project_join",
-    points: 8,
     sourceId: projectId,
     metadata: { project_name: project.name },
   });
@@ -314,11 +311,10 @@ export async function createProjectPost(
 
   if (error) return { error: error.message };
 
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId: profile.id,
     module: "project",
     eventType: "project_post",
-    points: 6,
     sourceId: projectId,
     metadata: { post_id: post.id },
   });
@@ -439,11 +435,10 @@ export async function createProjectPostComment(
 
   if (error) return { error: error.message };
 
-  await recordImpactEvent(supabase, {
+  await recordImpactAction(supabase, {
     userId: profile.id,
     module: "project",
     eventType: "project_comment",
-    points: 4,
     sourceId: post.project_id,
     metadata: { post_id: postId, comment_id: comment.id },
   });

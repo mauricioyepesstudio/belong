@@ -6,4 +6,5 @@ export { HomeTimeline } from "./home-timeline";
 export { HomeImpactMetrics, hasMeaningfulImpact } from "./home-impact-metrics";
 export { ActivityCard } from "./activity-card";
 export { ActivityReactions } from "./activity-reactions";
+export { HomeRecommendations } from "./home-recommendations";
 export { DiscoveryPanel } from "./discovery-panel";

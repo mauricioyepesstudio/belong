@@ -34,7 +34,9 @@ import {
   fetchTrendingConversations,
 } from "@/engines/belong/home/discovery";
 import { buildHomeImpactMetrics } from "@/engines/belong/home/metrics";
+import { getOpportunityRecommendations } from "@/engines/opportunity";
 import type { HomeActivity, HomeDiscoveryData, HomeImpactMetrics } from "@/engines/belong/home/types";
+import type { OpportunityRecommendations } from "@/engines/opportunity";
 
 export type HomeEngineData = {
   profile: UserProfile;
@@ -61,6 +63,7 @@ export type HomeEngineData = {
   homeTimeline: HomeActivity[];
   homeDiscovery: HomeDiscoveryData;
   homeImpactMetrics: HomeImpactMetrics;
+  opportunityRecommendations: OpportunityRecommendations;
 };
 
 export async function getHomeEngineData(): Promise<HomeEngineData> {
@@ -143,14 +146,20 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
     result.mission.lifeMissionProgress?.completionPercent ?? 0
   );
 
-  const [trendingConversations, topContributors] = await Promise.all([
+  const [trendingConversations, topContributors, opportunityResult] = await Promise.all([
     fetchTrendingConversations(supabase, 5),
     fetchTopContributors(supabase, 5),
+    getOpportunityRecommendations(supabase, profile),
   ]);
 
   const engineData: Omit<
     HomeEngineData,
-    "homeTimeline" | "homeDiscovery" | "homeImpactMetrics" | "upcomingEvents" | "opportunities"
+    | "homeTimeline"
+    | "homeDiscovery"
+    | "homeImpactMetrics"
+    | "upcomingEvents"
+    | "opportunities"
+    | "opportunityRecommendations"
   > & {
     upcomingEvents: EventWithMeta[];
     opportunities: Opportunity[];
@@ -205,5 +214,6 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
       impactEngine: engineData.impactEngine,
       reputation: engineData.reputation,
     }),
+    opportunityRecommendations: opportunityResult.recommendations,
   };
 }

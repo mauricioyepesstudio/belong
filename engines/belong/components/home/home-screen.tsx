@@ -10,6 +10,7 @@ import { DiscoveryPanel } from "./discovery-panel";
 import { HomeWelcome } from "./home-welcome";
 import { HomePrimaryActions, type PrimaryActionId } from "./home-primary-actions";
 import { HomeImpactMetrics } from "./home-impact-metrics";
+import { HomeRecommendations } from "./home-recommendations";
 import { ActiveMissions } from "../dashboard/active-missions";
 import { DashboardActions } from "../dashboard/dashboard-actions";
 
@@ -69,6 +70,8 @@ export function HomeScreen(data: HomeEngineData) {
       </div>
 
       <HomeImpactMetrics metrics={homeImpactMetrics} />
+
+      <HomeRecommendations recommendations={data.opportunityRecommendations} />
 
       <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start xl:gap-8">
         <div className="min-w-0 space-y-10">

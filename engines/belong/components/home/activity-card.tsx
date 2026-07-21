@@ -19,7 +19,6 @@ import {
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { GlassCard } from "../dashboard/primitives";
-import { ActivityReactions } from "./activity-reactions";
 
 const TYPE_CONFIG: Record<
   HomeActivityType,
@@ -121,16 +120,12 @@ export function ActivityCard({ activity }: { activity: HomeActivity }) {
             <ActivityExtras activity={activity} />
 
             <div className="mt-5 border-t border-white/[0.06] pt-4">
-              {Object.keys(activity.reactions).length > 0 ? (
-                <ActivityReactions reactions={activity.reactions} compact />
-              ) : (
-                <Link
-                  href={activity.href}
-                  className="inline-flex text-sm font-medium text-brand hover:underline"
-                >
-                  View and respond →
-                </Link>
-              )}
+              <Link
+                href={activity.href}
+                className="inline-flex text-sm font-medium text-brand hover:underline"
+              >
+                View and respond →
+              </Link>
               {activity.commentCount > 0 && (
                 <div className="mt-3 flex items-center gap-4 text-caption text-fg-muted">
                   <span className="inline-flex items-center gap-1.5">

@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useId, type ReactNode } from "react";
 import { Button } from "./button";
 
 type ModalProps = {
@@ -32,6 +32,9 @@ export function Modal({
   footer,
   size = "md",
 }: ModalProps) {
+  const titleId = useId();
+  const descriptionId = useId();
+
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -59,6 +62,10 @@ export function Modal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
             transition={{ duration: 0.25, ease: [0.21, 0.47, 0.32, 0.98] }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={title ? titleId : undefined}
+            aria-describedby={description ? descriptionId : undefined}
             className={cn(
               "relative w-full rounded-2xl border border-border bg-bg-overlay shadow-xl",
               sizes[size]
@@ -67,12 +74,14 @@ export function Modal({
             <div className="flex items-start justify-between p-6 pb-0">
               <div>
                 {title && (
-                  <h2 className="text-lg font-semibold tracking-tight text-fg-primary">
+                  <h2 id={titleId} className="text-lg font-semibold tracking-tight text-fg-primary">
                     {title}
                   </h2>
                 )}
                 {description && (
-                  <p className="mt-1 text-sm text-fg-muted">{description}</p>
+                  <p id={descriptionId} className="mt-1 text-sm text-fg-muted">
+                    {description}
+                  </p>
                 )}
               </div>
               <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close">

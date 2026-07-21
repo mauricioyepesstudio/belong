@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { memo, useState } from "react";
+import { cn } from "@/lib/utils";
 import { GlassCard } from "../dashboard/primitives";
 
 const SECTIONS: Array<{
@@ -77,10 +78,14 @@ function RecommendationCardComponent({
             <Button type="button" size="sm" variant="secondary" onClick={() => onDetails(item)}>
               Details
             </Button>
-            <Link href={item.href}>
-              <Button type="button" size="sm" variant="brand">
-                View
-              </Button>
+            <Link
+              href={item.href}
+              className={cn(
+                "inline-flex h-8 items-center justify-center rounded-lg bg-brand px-3 text-xs font-medium text-white",
+                "transition-colors hover:bg-brand/90"
+              )}
+            >
+              View
             </Link>
           </div>
         </div>

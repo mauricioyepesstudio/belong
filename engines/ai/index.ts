@@ -15,8 +15,6 @@ export type {
 export { aiService, BelongAIService } from "./service";
 export { copilotService, BelongCopilotService } from "./copilot/service";
 export { buildCopilotContext } from "./copilot/context-builder";
-export { AICoach, AIInsightPanel } from "./components/ai-coach";
-export { CoachBriefing } from "./components/coach-briefing";
 export { CopilotPanel } from "./components/copilot-panel";
 export { generateDailyBriefing } from "./briefing";
 export { detectOpportunities, suggestConnections } from "./opportunities";

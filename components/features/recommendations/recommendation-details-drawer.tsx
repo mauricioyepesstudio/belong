@@ -65,8 +65,11 @@ export function RecommendationDetailsDrawer({
           <Button variant="ghost" onClick={onClose}>
             Close
           </Button>
-          <Link href={item.href}>
-            <Button variant="brand">View</Button>
+          <Link
+            href={item.href}
+            className="inline-flex h-10 items-center justify-center rounded-xl bg-brand px-4 text-sm font-medium text-white transition-colors hover:bg-brand/90"
+          >
+            View
           </Link>
         </>
       }
@@ -80,7 +83,7 @@ export function RecommendationDetailsDrawer({
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-fg-primary">Compatibility score</p>
             <p className="mt-1 text-caption text-fg-muted">
-              Deterministic score from weighted signals — not engagement-based.
+              Based on shared skills, interests, and community overlap.
             </p>
             <Badge
               variant={confidenceVariant(explanation.confidence)}
@@ -121,28 +124,6 @@ export function RecommendationDetailsDrawer({
           items={explanation.details.currentOpportunities}
           empty="No active opportunities surfaced"
         />
-
-        <section className="rounded-2xl border border-border-subtle bg-white/[0.02] p-4">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-fg-muted">
-            Scoring calculation
-          </h3>
-          <p className="mt-2 font-mono text-xs leading-relaxed text-fg-secondary">
-            {explanation.scoreBreakdown.formula}
-          </p>
-          <ul className="mt-3 space-y-2">
-            {explanation.scoreBreakdown.factors.map((factor) => (
-              <li
-                key={factor.key}
-                className="flex items-center justify-between gap-3 text-xs text-fg-muted"
-              >
-                <span className="capitalize">{factor.key.replace(/([A-Z])/g, " $1")}</span>
-                <span className="font-mono text-fg-secondary">
-                  {factor.score}/{factor.weight}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
       </div>
     </Modal>
   );

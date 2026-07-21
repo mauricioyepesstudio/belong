@@ -112,15 +112,16 @@ export function CommunityPostFeed({
         />
       ) : (
         posts.map((post) => (
-          <CommunityPostCard
-            key={post.id}
-            post={post}
-            isMember={isMember}
-            currentUserId={currentUserId}
-            canModerate={canModerate}
-            onPostUpdate={(updated) => onPostUpdate(post.id, updated)}
-            onPostDelete={onPostDelete}
-          />
+          <div key={post.id} id={`post-${post.id}`}>
+            <CommunityPostCard
+              post={post}
+              isMember={isMember}
+              currentUserId={currentUserId}
+              canModerate={canModerate}
+              onPostUpdate={(updated) => onPostUpdate(post.id, updated)}
+              onPostDelete={onPostDelete}
+            />
+          </div>
         ))
       )}
     </div>

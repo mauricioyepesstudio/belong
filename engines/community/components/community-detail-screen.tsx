@@ -54,6 +54,7 @@ type CommunityDetailScreenProps = {
   copilot: CopilotPanelData;
   currentUser: CurrentUser;
   inviteCandidates?: ConnectedUser[];
+  highlightPostId?: string | null;
 };
 
 export function CommunityDetailScreen({
@@ -61,6 +62,7 @@ export function CommunityDetailScreen({
   copilot,
   currentUser,
   inviteCandidates = [],
+  highlightPostId = null,
 }: CommunityDetailScreenProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -83,6 +85,18 @@ export function CommunityDetailScreen({
     setMemberCount(data.memberCount);
     setMembers(data.members);
   }, [data]);
+
+  useEffect(() => {
+    if (!highlightPostId) return;
+    setTab("feed");
+    const timer = window.setTimeout(() => {
+      document.getElementById(`post-${highlightPostId}`)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [highlightPostId, posts.length]);
 
   const isMember = Boolean(membership);
   const isOwner = membership?.role === "owner";

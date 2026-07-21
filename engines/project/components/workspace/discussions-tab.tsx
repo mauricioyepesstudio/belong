@@ -53,7 +53,10 @@ export function ProjectDiscussionsTab({
   }, [initial]);
 
   const handleCreate = () => {
-    if (!title.trim() || !content.trim()) return;
+    if (!title.trim() || !content.trim()) {
+      toast("Add a title and message to start the discussion", "error");
+      return;
+    }
     const draftTitle = title.trim();
     const draftContent = content.trim();
     startTransition(async () => {

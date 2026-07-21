@@ -7,6 +7,11 @@ import { ensureDefaultOrganization } from "@/lib/core/organizations";
 import { getWeekStartUtc } from "@/lib/engine/mission-progress";
 import { syncUserSkill } from "@/lib/engine/mission-progress";
 import { recordImpactAction } from "@/engines/impact";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackServerEvent,
+} from "@/systems/analytics/track-server";
 import { slugify } from "@/lib/supabase/notify";
 import type { SupabaseServerClient } from "@/lib/core/types";
 import type { BuildGoal, UserProfile } from "@/types/database.types";
@@ -400,6 +405,14 @@ export class OnboardingEngineServiceImpl implements OnboardingEngineService {
         module: "system",
         eventType: "profile_completed",
         sourceId: context.userId,
+      });
+
+      await trackServerEvent({
+        name: "profile_completed",
+        userId: context.userId,
+        screen: AnalyticsScreen.ONBOARDING,
+        source: AnalyticsSource.ONBOARDING,
+        entityId: context.userId,
       });
 
       const completedSession = await this.repository.upsert(context.userId, {

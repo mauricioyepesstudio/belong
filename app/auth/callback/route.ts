@@ -1,5 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { ensureUserProfile, isPasswordRecoveryPath } from "@/lib/auth/ensure-profile";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackServerEvent,
+} from "@/systems/analytics/track-server";
 import { NextResponse } from "next/server";
 
 function safeRedirectPath(next: string | null): string {
@@ -38,11 +43,33 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
     }
 
+    const { data: existingProfile } = await supabase
+      .from("users")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
     const profile = await ensureUserProfile(supabase, user);
     const redirectTo = safeRedirectPath(next);
 
     if (isPasswordRecoveryPath(next) || isPasswordRecoveryPath(redirectTo)) {
       return NextResponse.redirect(`${origin}${redirectTo}`);
+    }
+
+    if (!existingProfile) {
+      await trackServerEvent({
+        name: "signup_completed",
+        userId: user.id,
+        screen: AnalyticsScreen.AUTH_CALLBACK,
+        source: AnalyticsSource.AUTH_OAUTH,
+      });
+    } else {
+      await trackServerEvent({
+        name: "login",
+        userId: user.id,
+        screen: AnalyticsScreen.AUTH_CALLBACK,
+        source: AnalyticsSource.AUTH_OAUTH,
+      });
     }
 
     if (!profile?.onboarding_completed) {

@@ -8,6 +8,11 @@ import { syncUserSkill } from "@/lib/engine/mission-progress";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
 import { toUserErrorMessage } from "@/lib/errors/user-message";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackServerEvent,
+} from "@/systems/analytics/track-server";
 
 export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
@@ -137,6 +142,15 @@ export async function updateProfile(data: {
   revalidatePath("/profile");
   revalidatePath("/settings");
   revalidatePath("/", "layout");
+
+  await trackServerEvent({
+    name: "profile_updated",
+    userId: profile.id,
+    screen: AnalyticsScreen.SETTINGS,
+    source: AnalyticsSource.PROFILE_SETTINGS,
+    entityId: profile.id,
+  });
+
   return {};
 }
 

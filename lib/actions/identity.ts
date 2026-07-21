@@ -5,6 +5,11 @@ import { requireProfile } from "@/lib/auth/session";
 import { createIdentityEngineService } from "@/engines/identity/services/identity-service";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackServerEvent,
+} from "@/systems/analytics/track-server";
 
 function parseList(raw: string | null | undefined): string[] {
   if (!raw?.trim()) return [];
@@ -42,5 +47,14 @@ export async function updateCompatibilityMetadata(input: {
   revalidatePath("/profile");
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+
+  await trackServerEvent({
+    name: "profile_updated",
+    userId: profile.id,
+    screen: AnalyticsScreen.SETTINGS,
+    source: AnalyticsSource.PROFILE_COMPATIBILITY,
+    entityId: profile.id,
+  });
+
   return {};
 }

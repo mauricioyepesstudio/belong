@@ -19,6 +19,11 @@ import {
   requireCommunityMembership,
   requireProjectMembership,
 } from "@/lib/actions/_shared";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackServerEvent,
+} from "@/systems/analytics/track-server";
 
 export async function refreshProjectDetail(projectId: string): Promise<ProjectDetail | null> {
   const supabase = await createClient();
@@ -116,6 +121,16 @@ export async function createProject(data: {
   });
 
   revalidateProject(project.id);
+
+  await trackServerEvent({
+    name: "project_created",
+    userId: profile.id,
+    screen: AnalyticsScreen.PROJECTS,
+    source: AnalyticsSource.PROJECT_CREATE,
+    entityId: project.id,
+    properties: { community_id: data.communityId },
+  });
+
   return { id: project.id };
 }
 
@@ -338,6 +353,16 @@ export async function createProjectPost(
   }
 
   revalidateProject(projectId);
+
+  await trackServerEvent({
+    name: "post_created",
+    userId: profile.id,
+    screen: AnalyticsScreen.PROJECT_DETAIL,
+    source: AnalyticsSource.PROJECT_POST,
+    entityId: post.id,
+    properties: { project_id: projectId },
+  });
+
   return {
     post: {
       ...post,

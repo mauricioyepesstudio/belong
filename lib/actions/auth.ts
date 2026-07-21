@@ -2,6 +2,11 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { env } from "@/lib/env";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackServerEvent,
+} from "@/systems/analytics/track-server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -18,8 +23,16 @@ export async function signInWithEmail(
   next?: string
 ): Promise<AuthResult> {
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: error.message };
+  if (data.user) {
+    await trackServerEvent({
+      name: "login",
+      userId: data.user.id,
+      screen: AnalyticsScreen.LOGIN,
+      source: AnalyticsSource.AUTH_LOGIN_FORM,
+    });
+  }
   revalidatePath("/", "layout");
   redirect(safeInternalPath(next) ?? "/dashboard");
 }
@@ -40,6 +53,14 @@ export async function signUpWithEmail(
   });
   if (error) return { error: error.message };
   if (!data.session) return { needsEmailConfirmation: true };
+  if (data.user) {
+    await trackServerEvent({
+      name: "signup_completed",
+      userId: data.user.id,
+      screen: AnalyticsScreen.REGISTER,
+      source: AnalyticsSource.AUTH_REGISTER_FORM,
+    });
+  }
   revalidatePath("/", "layout");
   redirect("/onboarding");
 }

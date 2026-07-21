@@ -19,6 +19,11 @@ import {
   revalidateCommunity,
   requireCommunityMembership,
 } from "@/lib/actions/_shared";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackServerEvent,
+} from "@/systems/analytics/track-server";
 
 export async function refreshCommunityDetail(slug: string): Promise<CommunityDetail | null> {
   const supabase = await createClient();
@@ -68,6 +73,16 @@ export async function createCommunity(data: {
   }
 
   revalidateCommunity(community.slug);
+
+  await trackServerEvent({
+    name: "community_created",
+    userId: profile.id,
+    screen: AnalyticsScreen.COMMUNITY,
+    source: AnalyticsSource.COMMUNITY_CREATE,
+    entityId: community.id,
+    properties: { slug: community.slug },
+  });
+
   return { id: community.id, slug: community.slug };
 }
 
@@ -109,6 +124,15 @@ export async function joinCommunity(communityId: string): Promise<ActionResult> 
   }
 
   await logCommunityContribution(supabase, profile.id, communityId, "join");
+
+  await trackServerEvent({
+    name: "community_joined",
+    userId: profile.id,
+    screen: AnalyticsScreen.COMMUNITY,
+    source: AnalyticsSource.COMMUNITY_JOIN,
+    entityId: communityId,
+    properties: { slug: community.slug },
+  });
 
   revalidateCommunity(community.slug);
   return {};
@@ -201,6 +225,16 @@ export async function createCommunityPost(
   }
 
   revalidateCommunity(community?.slug);
+
+  await trackServerEvent({
+    name: "post_created",
+    userId: profile.id,
+    screen: AnalyticsScreen.COMMUNITY_DETAIL,
+    source: AnalyticsSource.COMMUNITY_POST,
+    entityId: post.id,
+    properties: { community_id: communityId },
+  });
+
   return {
     post: {
       ...post,

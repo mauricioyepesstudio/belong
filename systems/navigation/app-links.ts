@@ -1,6 +1,6 @@
 /** Stable in-app destinations — avoid dashboard hash links that target removed anchors. */
 export const appLinks = {
-  dashboardMissions: "/dashboard#missions",
+  dashboardMissions: "/profile?tab=missions",
   profileMissions: "/profile?tab=missions",
   profileSettings: "/settings?tab=profile",
   weeklyGoals: "/profile?tab=missions",

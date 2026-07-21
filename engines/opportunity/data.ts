@@ -239,7 +239,7 @@ async function fetchWeeklyGoalCandidates(
     id: goal.id,
     title: goal.title,
     description: null,
-    href: "/dashboard#missions",
+    href: "/profile?tab=missions",
     kind: "weekly" as const,
     status: goal.status,
   }));

@@ -6,6 +6,11 @@ import { createNotification } from "@/lib/supabase/notify";
 import type { Message } from "@/types/database.types";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackServerEvent,
+} from "@/systems/analytics/track-server";
 
 export async function fetchMessages(conversationId: string): Promise<Message[]> {
   const supabase = await createClient();
@@ -80,6 +85,16 @@ export async function sendMessage(
 
   revalidatePath("/messages");
   revalidatePath("/", "layout");
+
+  await trackServerEvent({
+    name: "message_sent",
+    userId: profile.id,
+    screen: AnalyticsScreen.MESSAGES,
+    source: AnalyticsSource.MESSAGES_SEND,
+    entityId: message.id,
+    properties: { conversation_id: conversationId },
+  });
+
   return { message };
 }
 

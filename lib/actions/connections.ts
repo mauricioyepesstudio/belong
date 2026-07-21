@@ -7,6 +7,11 @@ import { incrementWeeklyGoalByTitle } from "@/lib/engine/mission-progress";
 import { recordImpactAction } from "@/engines/impact";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackServerEvent,
+} from "@/systems/analytics/track-server";
 
 export type ConnectionRequest = {
   id: string;
@@ -149,6 +154,15 @@ export async function startConversation(otherUserId: string): Promise<ActionResu
 
   if (rpcError) return { error: rpcError.message };
   if (!conversationId) return { error: "Could not start conversation" };
+
+  await trackServerEvent({
+    name: "conversation_started",
+    userId: profile.id,
+    screen: AnalyticsScreen.COMMUNITY,
+    source: AnalyticsSource.CONNECTIONS_START,
+    entityId: conversationId as string,
+    properties: { other_user_id: otherUserId },
+  });
 
   revalidatePath("/messages");
   return { id: conversationId as string };

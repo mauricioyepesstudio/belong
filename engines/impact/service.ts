@@ -4,6 +4,11 @@ import {
   type ImpactEvent,
   type RecordImpactEventInput,
 } from "@/engines/identity/reputation";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackServerEvent,
+} from "@/systems/analytics/track-server";
 import { getImpactActionLabel, getImpactPoints } from "./config";
 import type { ImpactScoreEvent, ImpactScoreProfile } from "./score-types";
 
@@ -100,6 +105,18 @@ export async function recordImpactAction(
   return recordImpactEvent(supabase, {
     ...input,
     points: getImpactPoints(input.eventType, input.points),
+  }).then(async (created) => {
+    if (created) {
+      await trackServerEvent({
+        name: "impact_event_created",
+        userId: input.userId,
+        screen: AnalyticsScreen.DASHBOARD,
+        source: AnalyticsSource.IMPACT_ENGINE,
+        entityId: created.id,
+        properties: { event_type: input.eventType, points: created.points },
+      });
+    }
+    return created;
   });
 }
 

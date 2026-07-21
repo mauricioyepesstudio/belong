@@ -5,6 +5,7 @@ import {
   Crown,
   FolderKanban,
   LayoutDashboard,
+  Menu,
   MessageSquare,
   Settings,
   ShoppingBag,
@@ -35,7 +36,18 @@ export const mobileNav: NavItem[] = [
   { label: "Community", href: "/community", icon: Users },
   { label: "Projects", href: "/projects", icon: FolderKanban },
   { label: "Messages", href: "/messages", icon: MessageSquare },
+  { label: "More", href: "#more", icon: Menu },
+];
+
+/** Routes surfaced in the mobile More menu (not in the bottom bar). */
+export const mobileMoreNav: NavItem[] = [
   { label: "Profile", href: "/profile", icon: User },
+  { label: "Notifications", href: "/notifications", icon: Bell },
+  { label: "Organizations", href: "/organizations", icon: Building2 },
+  { label: "Events", href: "/events", icon: Calendar },
+  { label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
+  { label: "Creator", href: "/creator", icon: Crown },
+  { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 export const authRoutes = ["/login", "/register", "/forgot-password"] as const;

@@ -7,6 +7,7 @@ export {
   isNavActive,
   mainNav,
   mobileNav,
+  mobileMoreNav,
   platformRoutes,
   secondaryNav,
   withNotificationBadge,

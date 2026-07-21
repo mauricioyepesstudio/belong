@@ -25,7 +25,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { ConnectionStatus, LiveBadge, useMissionRealtime } from "@/engines/core/realtime";
+import { useMissionRealtime } from "@/engines/core/realtime";
 
 const statusVariant: Record<string, "brand" | "outline" | "default"> = {
   pending: "outline",
@@ -79,16 +79,12 @@ export function MissionDetailScreen({ data }: { data: DailyMissionDetailData }) 
       title={mission.title}
       description={mission.description ?? undefined}
       action={
-        <div className="flex flex-wrap items-center gap-2">
-          <LiveBadge label="Live mission" />
-          <ConnectionStatus />
-          <Link href="/dashboard">
+        <Link href="/dashboard">
           <Button variant="ghost">
             <ArrowLeft className="h-4 w-4" aria-hidden />
             Back to dashboard
           </Button>
-          </Link>
-        </div>
+        </Link>
       }
     >
       <div className="grid gap-6 lg:grid-cols-3">

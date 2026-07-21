@@ -2,16 +2,16 @@
 
 import type { HomeEngineData } from "@/engines/belong/data";
 import { useDashboardRealtime } from "@/engines/core/realtime";
+import { Modal } from "@/components/ui/modal";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { HomeComposer } from "./home-composer";
-import { HomeTimeline } from "./home-timeline";
-import { DiscoveryPanel } from "./discovery-panel";
-import { HomeWelcome } from "./home-welcome";
-import { HomePrimaryActions, type PrimaryActionId } from "./home-primary-actions";
-import { HomeImpactMetrics } from "./home-impact-metrics";
+import { HomeFocusWelcome } from "./home-focus-welcome";
 import { HomeRecommendations } from "./home-recommendations";
-import { ActiveMissions } from "../dashboard/active-missions";
+import { HomeContinue } from "./home-continue";
+import { HomeQuickActions, type QuickActionId } from "./home-quick-actions";
+import { HomeRecentActivity } from "./home-recent-activity";
+import { HomeTrendingCommunities } from "./home-trending-communities";
 import { DashboardActions } from "../dashboard/dashboard-actions";
 
 export function HomeScreen(data: HomeEngineData) {
@@ -21,85 +21,81 @@ export function HomeScreen(data: HomeEngineData) {
     profile,
     communities,
     discoverCommunities,
-    homeTimeline,
-    homeDiscovery,
-    homeImpactMetrics,
-    missionEngine,
+    recentProjects,
+    recentActivity,
+    upcomingEvents,
+    recentConversations,
+    todaySummary,
   } = data;
 
-  const [missionOpen, setMissionOpen] = useState(false);
   const [projectOpen, setProjectOpen] = useState(false);
   const [communityOpen, setCommunityOpen] = useState(false);
-  const [composerExpanded, setComposerExpanded] = useState(false);
-
-  const isNewUser = communities.length === 0;
-  const pendingMission = missionEngine.dailyMissions.find((m) => m.status === "pending");
+  const [composerOpen, setComposerOpen] = useState(false);
 
   useDashboardRealtime({ userId: profile.id });
 
-  const handlePrimaryAction = (action: PrimaryActionId) => {
+  const handleQuickAction = (action: QuickActionId) => {
     switch (action) {
-      case "share_idea":
-        setComposerExpanded(true);
-        composerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      case "create_post":
+        setComposerOpen(true);
+        break;
+      case "create_project":
+        setProjectOpen(true);
         break;
       case "join_community":
         setCommunityOpen(true);
         break;
-      case "create_community":
-        router.push("/community");
-        break;
-      case "start_project":
-        setProjectOpen(true);
-        break;
-      case "complete_mission":
-        if (pendingMission) router.push(pendingMission.action_href);
-        else setMissionOpen(true);
+      case "invite":
+        router.push("/community?tab=people");
         break;
     }
   };
 
   return (
-    <div className="space-y-10 md:space-y-12">
-      <HomeWelcome profile={profile} isReturningUser={communities.length > 0} />
+    <div className="mx-auto max-w-3xl space-y-8 pb-8">
+      <HomeFocusWelcome profile={profile} summary={todaySummary} />
 
-      <HomePrimaryActions isNewUser={isNewUser} onAction={handlePrimaryAction} />
+      <HomeRecommendations recommendations={data.opportunityRecommendations} compact />
 
-      <div id="missions">
-        <ActiveMissions missionEngine={missionEngine} onNewMission={() => setMissionOpen(true)} />
-      </div>
+      <HomeContinue
+        projects={recentProjects}
+        conversations={recentConversations}
+        events={upcomingEvents}
+        onResumeDraft={() => setComposerOpen(true)}
+      />
 
-      <HomeImpactMetrics metrics={homeImpactMetrics} />
+      <HomeQuickActions onAction={handleQuickAction} />
 
-      <HomeRecommendations recommendations={data.opportunityRecommendations} />
+      <HomeRecentActivity activities={recentActivity} />
 
-      <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start xl:gap-8">
-        <div className="min-w-0 space-y-10">
-          <div ref={composerRef}>
-            <HomeComposer
-              profile={profile}
-              communities={communities}
-              expanded={composerExpanded}
-              onExpandedChange={setComposerExpanded}
-              onNeedCommunity={() => setCommunityOpen(true)}
-            />
-          </div>
-          <HomeTimeline
-            activities={homeTimeline}
-            hasCommunities={communities.length > 0}
-            onExplore={() => setCommunityOpen(true)}
-            onCreateCommunity={() => router.push("/community")}
+      <HomeTrendingCommunities communities={discoverCommunities} />
+
+      <Modal
+        open={composerOpen}
+        onClose={() => setComposerOpen(false)}
+        title="Create post"
+        description="Share an update with your community"
+        size="xl"
+      >
+        <div ref={composerRef}>
+          <HomeComposer
+            profile={profile}
+            communities={communities}
+            expanded
+            hideHeader
+            onNeedCommunity={() => {
+              setComposerOpen(false);
+              setCommunityOpen(true);
+            }}
           />
         </div>
-
-        <DiscoveryPanel discovery={homeDiscovery} />
-      </div>
+      </Modal>
 
       <DashboardActions
         joinedCommunities={communities}
         discoverCommunities={discoverCommunities}
-        missionOpen={missionOpen}
-        onMissionOpenChange={setMissionOpen}
+        missionOpen={false}
+        onMissionOpenChange={() => {}}
         projectOpen={projectOpen}
         onProjectOpenChange={setProjectOpen}
         communityOpen={communityOpen}

@@ -1,10 +1,8 @@
 export { HomeScreen } from "./home-screen";
-export { HomeWelcome } from "./home-welcome";
-export { HomePrimaryActions, type PrimaryActionId } from "./home-primary-actions";
 export { HomeComposer } from "./home-composer";
-export { HomeTimeline } from "./home-timeline";
-export { HomeImpactMetrics, hasMeaningfulImpact } from "./home-impact-metrics";
-export { ActivityCard } from "./activity-card";
-export { ActivityReactions } from "./activity-reactions";
 export { HomeRecommendations } from "./home-recommendations";
-export { DiscoveryPanel } from "./discovery-panel";
+export { HomeFocusWelcome } from "./home-focus-welcome";
+export { HomeContinue, SectionHeading } from "./home-continue";
+export { HomeQuickActions, type QuickActionId } from "./home-quick-actions";
+export { HomeRecentActivity } from "./home-recent-activity";
+export { HomeTrendingCommunities } from "./home-trending-communities";

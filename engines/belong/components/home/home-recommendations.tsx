@@ -91,17 +91,18 @@ function RecommendationCard({
 
 export function HomeRecommendations({
   recommendations,
+  compact = false,
 }: {
   recommendations: OpportunityRecommendations;
+  compact?: boolean;
 }) {
   const [selected, setSelected] = useState<ScoredRecommendation | null>(null);
 
-  const total =
-    recommendations.people.length +
-    recommendations.projects.length +
-    recommendations.communities.length +
-    recommendations.organizations.length +
-    recommendations.missions.length;
+  const allItems = SECTIONS.flatMap(({ key }) => recommendations[key]);
+  const total = allItems.length;
+  const displayItems = compact
+    ? [...allItems].sort((a, b) => b.score - a.score).slice(0, 4)
+    : null;
 
   if (total === 0) {
     return (
@@ -136,38 +137,52 @@ export function HomeRecommendations({
           <h2 id="home-recommendations-heading" className="text-heading mt-1 text-fg-primary">
             Recommended for You
           </h2>
-          <p className="mt-1 text-caption text-fg-muted">
-            Every match includes a compatibility score, confidence level, and explained reasons.
-          </p>
+          {!compact && (
+            <p className="mt-1 text-caption text-fg-muted">
+              Every match includes a compatibility score, confidence level, and explained reasons.
+            </p>
+          )}
         </div>
 
-        <div className="space-y-8">
-          {SECTIONS.map(({ key, title, icon: Icon }) => {
-            const items = recommendations[key];
-            if (items.length === 0) return null;
+        {compact && displayItems ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {displayItems.map((item) => (
+              <RecommendationCard
+                key={`${item.category}-${item.id}`}
+                item={item}
+                onDetails={setSelected}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {SECTIONS.map(({ key, title, icon: Icon }) => {
+              const items = recommendations[key];
+              if (items.length === 0) return null;
 
-            return (
-              <div key={key}>
-                <div className="mb-3 flex items-center gap-2">
-                  <Icon className="h-4 w-4 text-brand" aria-hidden />
-                  <h3 className="text-sm font-semibold text-fg-primary">{title}</h3>
-                  <Badge variant="outline" className="text-micro">
-                    {items.length}
-                  </Badge>
+              return (
+                <div key={key}>
+                  <div className="mb-3 flex items-center gap-2">
+                    <Icon className="h-4 w-4 text-brand" aria-hidden />
+                    <h3 className="text-sm font-semibold text-fg-primary">{title}</h3>
+                    <Badge variant="outline" className="text-micro">
+                      {items.length}
+                    </Badge>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {items.map((item) => (
+                      <RecommendationCard
+                        key={`${item.category}-${item.id}`}
+                        item={item}
+                        onDetails={setSelected}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  {items.map((item) => (
-                    <RecommendationCard
-                      key={`${item.category}-${item.id}`}
-                      item={item}
-                      onDetails={setSelected}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <RecommendationDetailsDrawer

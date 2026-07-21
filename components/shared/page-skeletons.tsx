@@ -2,21 +2,39 @@ import { Skeleton, SkeletonCard } from "@/components/ui";
 
 export function DashboardSkeleton() {
   return (
-    <div className="space-y-8 lg:space-y-10">
-      <Skeleton className="h-44 rounded-3xl" />
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="space-y-10 md:space-y-12">
+      <Skeleton className="h-32 rounded-3xl" />
+      <div className="flex flex-wrap gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-28 rounded-2xl" />
+          <Skeleton key={i} className="h-11 w-36 rounded-2xl" />
         ))}
       </div>
-      <div className="grid gap-4 xl:grid-cols-12 xl:gap-5">
-        <Skeleton className="h-64 rounded-2xl xl:col-span-5" />
-        <Skeleton className="h-64 rounded-2xl xl:col-span-7" />
-        <Skeleton className="h-56 rounded-2xl xl:col-span-4" />
-        <Skeleton className="h-56 rounded-2xl xl:col-span-4" />
-        <Skeleton className="h-56 rounded-2xl xl:col-span-4" />
-        <Skeleton className="h-48 rounded-2xl xl:col-span-12" />
+      <Skeleton className="h-48 rounded-2xl" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 rounded-2xl" />
+        ))}
       </div>
+      <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start xl:gap-8">
+        <div className="space-y-10">
+          <Skeleton className="h-40 rounded-2xl" />
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-28 rounded-2xl" />
+            ))}
+          </div>
+        </div>
+        <Skeleton className="hidden h-64 rounded-2xl xl:block" />
+      </div>
+    </div>
+  );
+}
+
+export function DetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-8 w-56" />
+      <SkeletonCard />
     </div>
   );
 }

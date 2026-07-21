@@ -4,6 +4,7 @@ import {
   joinOrganization,
   leaveOrganization,
 } from "@/lib/actions/organizations";
+import type { OrganizationDetail } from "@/lib/core/organizations";
 import type { OrganizationInviteCandidate } from "@/lib/data/organizations";
 import { canAdminOrganization, canManageOrganization } from "@/lib/core/organizations";
 import type { CopilotPanelData } from "@/lib/data/ai-copilot";

@@ -44,6 +44,8 @@ type CommunityScreenProps = {
   discover: DiscoverCommunity[];
   pending: PendingConnection[];
   people: DiscoverUser[];
+  initialTab?: string;
+  initialQuery?: string;
 };
 
 export function CommunityScreen({
@@ -51,11 +53,16 @@ export function CommunityScreen({
   discover,
   pending: pendingRequests,
   people,
+  initialTab,
+  initialQuery,
 }: CommunityScreenProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [tab, setTab] = useState("joined");
-  const [query, setQuery] = useState("");
+  const validTabs = new Set(["joined", "discover", "people"]);
+  const [tab, setTab] = useState(
+    initialTab && validTabs.has(initialTab) ? initialTab : "joined"
+  );
+  const [query, setQuery] = useState(initialQuery ?? "");
   const [createOpen, setCreateOpen] = useState(false);
   const [monetizeOpen, setMonetizeOpen] = useState(false);
   const [monetizeId, setMonetizeId] = useState<string | null>(null);

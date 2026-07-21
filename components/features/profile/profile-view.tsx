@@ -203,18 +203,21 @@ export function ProfileView({
               ) : (
                 missions.map((m) => (
                   <StaggerItem key={m.id}>
-                    <Link href={`/missions/${m.id}`}>
-                      <Card className="transition-colors hover:border-brand/30">
-                        <CardContent className="pt-5">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-fg-primary">{m.title}</p>
-                            {m.is_primary && <Badge variant="brand">Primary</Badge>}
-                          </div>
-                          {m.description && <p className="mt-2 text-caption">{m.description}</p>}
-                          <p className="mt-3 text-sm text-brand">View mission →</p>
-                        </CardContent>
-                      </Card>
-                    </Link>
+                    <Card>
+                      <CardContent className="pt-5">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-fg-primary">{m.title}</p>
+                          {m.is_primary && <Badge variant="brand">Primary</Badge>}
+                        </div>
+                        {m.description && <p className="mt-2 text-caption">{m.description}</p>}
+                        <Link
+                          href="/settings?tab=profile"
+                          className="mt-3 inline-flex text-sm text-brand hover:underline"
+                        >
+                          Edit in settings →
+                        </Link>
+                      </CardContent>
+                    </Card>
                   </StaggerItem>
                 ))
               )}

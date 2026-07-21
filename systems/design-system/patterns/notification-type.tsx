@@ -59,7 +59,9 @@ export function getNotificationHref(type: NotificationType, metadata?: Json): st
   if (projectId) return `/projects/${projectId}`;
   if (communitySlug) return `/community/${communitySlug}`;
   if (communityId) return "/community";
-  if (listingId) return "/marketplace";
+  if (listingId) return `/marketplace/${listingId}`;
+  const eventId = metaString(metadata, "event_id");
+  if (eventId) return `/events/${eventId}`;
 
   return notificationTypeHrefs[type] ?? "/notifications";
 }

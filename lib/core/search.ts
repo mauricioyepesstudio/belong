@@ -93,7 +93,7 @@ export async function searchGlobal(
       type: "person" as const,
       title: u.full_name ?? "Builder",
       subtitle: u.role ?? undefined,
-      href: "/community",
+      href: `/community?tab=people&q=${encodeURIComponent(u.full_name ?? "")}`,
     })),
     ...(communities ?? []).map((c) => ({
       id: `community-${c.id}`,

@@ -253,19 +253,6 @@ export class OnboardingEngineServiceImpl implements OnboardingEngineService {
         return { error: profileFetchError?.message ?? "Profile not found" };
       }
 
-      const { error: profileError } = await this.supabase
-        .from("users")
-        .update({
-          build_goal: input.buildGoal,
-          build_vision: draft.buildVision?.trim() || null,
-          onboarding_completed: true,
-          role: goalLabel,
-          ...(draft.fullName?.trim() ? { full_name: draft.fullName.trim() } : {}),
-        })
-        .eq("id", context.userId);
-
-      if (profileError) return { error: profileError.message };
-
       const mission = await this.missionEngine.createMission(
         { userId: context.userId },
         {
@@ -393,6 +380,19 @@ export class OnboardingEngineServiceImpl implements OnboardingEngineService {
       }
 
       await syncUserSkill(this.supabase, context.userId, goalLabel);
+
+      const { error: profileError } = await this.supabase
+        .from("users")
+        .update({
+          build_goal: input.buildGoal,
+          build_vision: draft.buildVision?.trim() || null,
+          onboarding_completed: true,
+          role: goalLabel,
+          ...(draft.fullName?.trim() ? { full_name: draft.fullName.trim() } : {}),
+        })
+        .eq("id", context.userId);
+
+      if (profileError) return { error: profileError.message };
 
       const completedSession = await this.repository.upsert(context.userId, {
         current_step: ONBOARDING_STEP_ORDER[ONBOARDING_STEP_ORDER.length - 1],

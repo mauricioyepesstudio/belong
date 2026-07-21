@@ -1,7 +1,7 @@
 "use client";
 
 import { MissionCard } from "@/engines/mission";
-import { ImpactSection, getImpactActionLabel } from "@/engines/impact";
+import { ImpactSection, applyImpactScoreInsert } from "@/engines/impact";
 import { ReputationDashboard } from "@/engines/identity/components/reputation-dashboard";
 import { TIER_ICONS } from "@/engines/billing";
 import {
@@ -77,24 +77,7 @@ export function ProfileView({
           reputationScore: prev.scores.reputationScore + event.points,
         },
       }));
-      setImpactScore((prev) => ({
-        totalScore: prev.totalScore + event.points,
-        weeklyScore: prev.weeklyScore + event.points,
-        monthlyScore: prev.monthlyScore + event.points,
-        recentEvents: [
-          {
-            id: event.id,
-            action: event.eventType,
-            label: getImpactActionLabel(event.eventType),
-            points: event.points,
-            module: event.module,
-            sourceId: event.sourceId,
-            metadata: event.metadata,
-            createdAt: event.createdAt,
-          },
-          ...prev.recentEvents,
-        ].slice(0, 10),
-      }));
+      setImpactScore((prev) => applyImpactScoreInsert(prev, event));
     },
   });
 

@@ -138,12 +138,6 @@ export async function recordMissionActivity(
       weekly_completions: (momentum?.weekly_completions ?? 0) + 1,
     })
     .eq("user_id", userId);
-
-  await recordImpactAction(supabase, {
-    userId,
-    module: "mission",
-    eventType: "streak_activity",
-  });
 }
 
 export async function syncUserSkill(
@@ -164,7 +158,8 @@ export async function logCommunityContribution(
   supabase: SupabaseServerClient,
   userId: string,
   communityId: string,
-  contributionType: string
+  contributionType: string,
+  sourceEntityId?: string
 ) {
   const eventType =
     contributionType === "join"
@@ -181,7 +176,7 @@ export async function logCommunityContribution(
     userId,
     module: "community",
     eventType,
-    sourceId: communityId,
+    sourceId: sourceEntityId ?? communityId,
     metadata: { community_id: communityId, contribution_type: contributionType },
   });
 }

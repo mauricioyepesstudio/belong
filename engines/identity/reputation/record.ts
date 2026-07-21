@@ -53,10 +53,11 @@ async function applyEventSideEffects(
     eventType === "community_like"
   ) {
     const communityId =
-      sourceId ??
-      (metadata && typeof metadata === "object" && !Array.isArray(metadata)
+      metadata && typeof metadata === "object" && !Array.isArray(metadata)
         ? (metadata.community_id as string | undefined)
-        : undefined);
+        : eventType === "community_join"
+          ? sourceId ?? undefined
+          : undefined;
 
     if (communityId) {
       const contributionType =

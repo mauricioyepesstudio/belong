@@ -15,7 +15,7 @@ export function ImpactSection({ impact }: { impact: ImpactScoreProfile }) {
         <ImpactStatCard label="This month" value={impact.monthlyScore} />
       </div>
 
-      <GlassCard className="divide-y divide-white/[0.06]">
+      <GlassCard className="divide-y divide-border-subtle">
         <div className="p-5">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-brand" aria-hidden />
@@ -42,7 +42,6 @@ export function ImpactSection({ impact }: { impact: ImpactScoreProfile }) {
                 <p className="text-sm font-medium text-fg-primary">{event.label}</p>
                 <p className="text-micro text-fg-muted">
                   {formatDistanceToNow(event.createdAt)}
-                  {event.sourceId ? ` · ${event.sourceId.slice(0, 8)}…` : ""}
                 </p>
               </div>
               <Badge variant="outline" className="shrink-0 tabular-nums">

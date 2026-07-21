@@ -315,8 +315,8 @@ export async function createProjectPost(
     userId: profile.id,
     module: "project",
     eventType: "project_post",
-    sourceId: projectId,
-    metadata: { post_id: post.id },
+    sourceId: post.id,
+    metadata: { project_id: projectId, post_id: post.id },
   });
 
   await logProjectActivity(supabase, {
@@ -439,8 +439,8 @@ export async function createProjectPostComment(
     userId: profile.id,
     module: "project",
     eventType: "project_comment",
-    sourceId: post.project_id,
-    metadata: { post_id: postId, comment_id: comment.id },
+    sourceId: comment.id,
+    metadata: { project_id: post.project_id, post_id: postId, comment_id: comment.id },
   });
 
   if (post.author_id !== profile.id) {

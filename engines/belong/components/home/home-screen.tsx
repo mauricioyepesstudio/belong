@@ -1,6 +1,7 @@
 "use client";
 
 import type { HomeEngineData } from "@/engines/belong/data";
+import { applyImpactScoreInsert } from "@/engines/impact";
 import { useDashboardRealtime } from "@/engines/core/realtime";
 import { Modal } from "@/components/ui/modal";
 import { useRef, useState } from "react";
@@ -32,8 +33,14 @@ export function HomeScreen(data: HomeEngineData) {
   const [projectOpen, setProjectOpen] = useState(false);
   const [communityOpen, setCommunityOpen] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [impactScore, setImpactScore] = useState(data.impactScore);
 
-  useDashboardRealtime({ userId: profile.id });
+  useDashboardRealtime({
+    userId: profile.id,
+    onImpactInsert: (event) => {
+      setImpactScore((prev) => applyImpactScoreInsert(prev, event));
+    },
+  });
 
   const handleQuickAction = (action: QuickActionId) => {
     switch (action) {
@@ -56,7 +63,7 @@ export function HomeScreen(data: HomeEngineData) {
     <div className="mx-auto max-w-3xl space-y-8 pb-8">
       <HomeFocusWelcome profile={profile} summary={todaySummary} />
 
-      <HomeWeeklyImpact impact={data.impactScore} />
+      <HomeWeeklyImpact impact={impactScore} />
 
       <HomeRecommendations recommendations={data.opportunityRecommendations} compact />
 

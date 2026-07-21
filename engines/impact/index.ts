@@ -12,6 +12,10 @@ export {
 export {
   recordImpactAction,
   fetchImpactScoreProfile,
+  aggregateImpactScores,
+  weekStartIso,
+  monthStartIso,
   type RecordImpactActionInput,
 } from "./service";
+export { applyImpactScoreInsert } from "./apply-impact-score";
 export { ImpactSection } from "./components/impact-section";

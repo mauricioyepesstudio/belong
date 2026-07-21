@@ -188,7 +188,7 @@ export async function createCommunityPost(
 
   if (error) return { error: error.message };
 
-  await logCommunityContribution(supabase, profile.id, communityId, "post");
+  await logCommunityContribution(supabase, profile.id, communityId, "post", post.id);
 
   if (community && community.owner_id !== profile.id) {
     await createNotification(supabase, {
@@ -248,10 +248,14 @@ export async function togglePostLike(postId: string): Promise<ActionResult & { l
     return { liked: false };
   }
 
-  const { error } = await supabase.from("community_post_likes").insert({
-    post_id: postId,
-    user_id: profile.id,
-  });
+  const { data: like, error } = await supabase
+    .from("community_post_likes")
+    .insert({
+      post_id: postId,
+      user_id: profile.id,
+    })
+    .select("id")
+    .single();
 
   if (error) return { error: error.message };
 
@@ -265,7 +269,7 @@ export async function togglePostLike(postId: string): Promise<ActionResult & { l
     });
   }
 
-  await logCommunityContribution(supabase, profile.id, post.community_id, "like");
+  await logCommunityContribution(supabase, profile.id, post.community_id, "like", like.id);
 
   revalidateCommunity(community?.slug);
   return { liked: true };
@@ -320,7 +324,7 @@ export async function createPostComment(
     });
   }
 
-  await logCommunityContribution(supabase, profile.id, post.community_id, "comment");
+  await logCommunityContribution(supabase, profile.id, post.community_id, "comment", comment.id);
 
   revalidateCommunity(community?.slug);
   return {

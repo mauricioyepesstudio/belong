@@ -1,7 +1,8 @@
 "use client";
 
-import type { ProjectMember } from "@/lib/core";
+import type { CommunityMember, ProjectMember } from "@/lib/core";
 import { updateProjectMemberRole } from "@/lib/actions/project-workspace";
+import { inviteToProject } from "@/lib/actions/projects";
 import {
   Avatar,
   Badge,
@@ -9,33 +10,58 @@ import {
   Card,
   CardContent,
   EmptyState,
+  Label,
   useToast,
 } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import { Users } from "lucide-react";
-import Link from "next/link";
-import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
 
 const ROLE_OPTIONS = ["admin", "collaborator", "member"] as const;
 
 export function ProjectMembersTab({
   projectId,
   members,
+  communityMembers,
   currentUserId,
   isOwner,
   isAdmin,
 }: {
   projectId: string;
   members: ProjectMember[];
+  communityMembers: CommunityMember[];
   currentUserId: string;
   isOwner: boolean;
   isAdmin: boolean;
-  communityMemberIds?: string[];
 }) {
+  const router = useRouter();
   const { toast } = useToast();
+  const [inviteUserId, setInviteUserId] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const canManage = isOwner || isAdmin;
+  const memberIds = useMemo(() => new Set(members.map((m) => m.userId)), [members]);
+  const inviteCandidates = useMemo(
+    () =>
+      communityMembers.filter(
+        (m) => m.userId !== currentUserId && !memberIds.has(m.userId)
+      ),
+    [communityMembers, currentUserId, memberIds]
+  );
+
+  const handleInvite = () => {
+    if (!inviteUserId) return;
+    startTransition(async () => {
+      const result = await inviteToProject(projectId, inviteUserId);
+      if (result.error) toast(result.error, "error");
+      else {
+        toast("Member invited", "success");
+        setInviteUserId("");
+        router.refresh();
+      }
+    });
+  };
 
   const handleRoleChange = (userId: string, role: (typeof ROLE_OPTIONS)[number]) => {
     startTransition(async () => {
@@ -50,16 +76,40 @@ export function ProjectMembersTab({
       {canManage && (
         <Card>
           <CardContent className="space-y-3 pt-6">
-            <p className="text-sm font-medium text-fg-primary">Invite collaborators</p>
-            <p className="text-sm text-fg-secondary">
-              Connect with builders on the Community page, then ask them to join this
-              project&apos;s community. Direct invites from project settings are coming soon.
-            </p>
-            <Link href="/community">
-              <Button variant="secondary" size="sm">
-                Find people in Community
-              </Button>
-            </Link>
+            <p className="text-sm font-medium text-fg-primary">Invite from community</p>
+            {inviteCandidates.length === 0 ? (
+              <p className="text-sm text-fg-secondary">
+                No community members available to invite. Ask builders to join the
+                project&apos;s community first.
+              </p>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="invite-member">Community member</Label>
+                  <select
+                    id="invite-member"
+                    value={inviteUserId}
+                    onChange={(e) => setInviteUserId(e.target.value)}
+                    disabled={isPending}
+                    className="w-full rounded-xl border border-border-subtle bg-bg-surface px-3 py-2 text-sm text-fg-primary"
+                  >
+                    <option value="">Select a member…</option>
+                    {inviteCandidates.map((m) => (
+                      <option key={m.userId} value={m.userId}>
+                        {m.fullName ?? "Builder"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Button
+                  disabled={isPending || !inviteUserId}
+                  isLoading={isPending}
+                  onClick={handleInvite}
+                >
+                  Add to project
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       )}

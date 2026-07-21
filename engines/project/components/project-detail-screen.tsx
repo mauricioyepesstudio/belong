@@ -550,6 +550,7 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
           <ProjectMembersTab
             projectId={project.id}
             members={members}
+            communityMembers={data.communityMembers}
             currentUserId={currentUser.id}
             isOwner={isOwner}
             isAdmin={isAdmin}

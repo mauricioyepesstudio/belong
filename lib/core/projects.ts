@@ -7,6 +7,7 @@ import type {
 } from "@/types/database.types";
 import type { SupabaseServerClient } from "./types";
 import { fetchProjectWorkspaceBundle } from "./project-workspace";
+import { fetchCommunityMembers, type CommunityMember } from "./communities";
 
 export type ProjectCommunitySummary = Pick<Community, "id" | "name" | "slug">;
 
@@ -50,6 +51,7 @@ export type ProjectDetail = {
   memberCount: number;
   membership: { role: string; joinedAt: string } | null;
   members: ProjectMember[];
+  communityMembers: CommunityMember[];
   posts: ProjectPostWithMeta[];
   workspace: Awaited<ReturnType<typeof fetchProjectWorkspaceBundle>>;
 };
@@ -327,7 +329,7 @@ export async function fetchProjectDetail(
   const project = await fetchProjectById(supabase, projectId);
   if (!project) return null;
 
-  const [communityResult, memberCount, membership, members, posts, ownerResult] =
+  const [communityResult, memberCount, membership, members, communityMembers, posts, ownerResult] =
     await Promise.all([
       supabase
         .from("communities")
@@ -339,6 +341,7 @@ export async function fetchProjectDetail(
         ? fetchProjectMembership(supabase, project.id, currentUserId)
         : Promise.resolve(null),
       fetchProjectMembers(supabase, project.id),
+      fetchCommunityMembers(supabase, project.community_id),
       fetchProjectPosts(supabase, project.id, currentUserId),
       supabase
         .from("users")
@@ -365,6 +368,7 @@ export async function fetchProjectDetail(
     memberCount,
     membership,
     members,
+    communityMembers,
     posts,
     workspace,
   };

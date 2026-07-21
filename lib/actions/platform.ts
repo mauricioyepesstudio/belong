@@ -7,6 +7,7 @@ import { createIdentityEngineService, IdentityValidationError } from "@/engines/
 import { syncUserSkill } from "@/lib/engine/mission-progress";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
+import { toUserErrorMessage } from "@/lib/errors/user-message";
 
 export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
@@ -26,7 +27,9 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
     .from("avatars")
     .upload(path, file, { upsert: true, contentType: file.type });
 
-  if (uploadError) return { error: uploadError.message };
+  if (uploadError) {
+    return { error: toUserErrorMessage(uploadError, "Could not upload avatar. Please try again.") };
+  }
 
   const {
     data: { publicUrl },
@@ -52,6 +55,35 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   revalidatePath("/settings");
   revalidatePath("/", "layout");
   return { url };
+}
+
+export async function uploadPostImage(formData: FormData): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const file = formData.get("image") as File | null;
+  if (!file || file.size === 0) return { error: "No file provided" };
+
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const allowed = ["jpg", "jpeg", "png", "webp", "gif"];
+  if (!allowed.includes(ext)) return { error: "Invalid file type" };
+  if (file.size > 5 * 1024 * 1024) return { error: "Image must be under 5MB" };
+
+  const path = `${profile.id}/${Date.now()}.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("post-images")
+    .upload(path, file, { upsert: false, contentType: file.type });
+
+  if (uploadError) {
+    return { error: toUserErrorMessage(uploadError, "Could not upload image. Please try again.") };
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("post-images").getPublicUrl(path);
+
+  return { url: publicUrl };
 }
 
 export async function updateProfile(data: {

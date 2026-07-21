@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui";
+import { toUserErrorMessage } from "@/lib/errors/user-message";
 import Link from "next/link";
 
 type ErrorFallbackProps = {
@@ -16,7 +17,9 @@ export function ErrorFallback({ error, reset, title = "Something went wrong" }: 
         <span className="text-2xl" aria-hidden>!</span>
       </div>
       <h2 className="mt-6 text-heading text-fg-primary">{title}</h2>
-      <p className="mt-2 max-w-md text-body">{error.message || "An unexpected error occurred."}</p>
+      <p className="mt-2 max-w-md text-body">
+        {toUserErrorMessage(error, "An unexpected error occurred. Please try again.")}
+      </p>
       <div className="mt-8 flex gap-3">
         <Button onClick={reset}>Try again</Button>
         <Link href="/dashboard">

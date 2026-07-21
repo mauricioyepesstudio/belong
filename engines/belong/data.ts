@@ -36,6 +36,7 @@ import {
 import { buildHomeImpactMetrics } from "@/engines/belong/home/metrics";
 import { buildTodaySummary } from "@/engines/belong/home/summary";
 import { getOpportunityRecommendations } from "@/engines/opportunity";
+import { fetchImpactScoreProfile, type ImpactScoreProfile } from "@/engines/impact";
 import type { HomeActivity, HomeDiscoveryData, HomeImpactMetrics } from "@/engines/belong/home/types";
 import type { OpportunityRecommendations } from "@/engines/opportunity";
 
@@ -67,6 +68,7 @@ export type HomeEngineData = {
   opportunityRecommendations: OpportunityRecommendations;
   recentConversations: ConversationPreview[];
   todaySummary: string;
+  impactScore: ImpactScoreProfile;
 };
 
 export async function getHomeEngineData(): Promise<HomeEngineData> {
@@ -149,12 +151,13 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
     result.mission.lifeMissionProgress?.completionPercent ?? 0
   );
 
-  const [trendingConversations, topContributors, opportunityResult, recentConversations] =
+  const [trendingConversations, topContributors, opportunityResult, recentConversations, impactScore] =
     await Promise.all([
     fetchTrendingConversations(supabase, 5),
     fetchTopContributors(supabase, 5),
     getOpportunityRecommendations(supabase, profile),
     fetchConversationPreviews(supabase, profile.id, 4),
+    fetchImpactScoreProfile(supabase, profile.id, 5),
   ]);
 
   const engineData: Omit<
@@ -167,6 +170,7 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
     | "opportunityRecommendations"
     | "recentConversations"
     | "todaySummary"
+    | "impactScore"
   > & {
     upcomingEvents: EventWithMeta[];
     opportunities: Opportunity[];
@@ -230,5 +234,6 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
       recentConversations,
       recentProjects: engineData.recentProjects,
     }),
+    impactScore,
   };
 }

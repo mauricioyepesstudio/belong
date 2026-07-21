@@ -12,6 +12,7 @@ import { HomeContinue } from "./home-continue";
 import { HomeQuickActions, type QuickActionId } from "./home-quick-actions";
 import { HomeRecentActivity } from "./home-recent-activity";
 import { HomeTrendingCommunities } from "./home-trending-communities";
+import { HomeWeeklyImpact } from "./home-weekly-impact";
 import { DashboardActions } from "../dashboard/dashboard-actions";
 
 export function HomeScreen(data: HomeEngineData) {
@@ -54,6 +55,8 @@ export function HomeScreen(data: HomeEngineData) {
   return (
     <div className="mx-auto max-w-3xl space-y-8 pb-8">
       <HomeFocusWelcome profile={profile} summary={todaySummary} />
+
+      <HomeWeeklyImpact impact={data.impactScore} />
 
       <HomeRecommendations recommendations={data.opportunityRecommendations} compact />
 

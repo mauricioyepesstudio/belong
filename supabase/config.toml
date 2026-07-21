@@ -15,6 +15,17 @@ max_rows = 1000
 port = 54322
 major_version = 15
 
+[db.seed]
+enabled = true
+sql_paths = [
+  "./seeds/01-users.sql",
+  "./seeds/02-communities.sql",
+  "./seeds/03-projects.sql",
+  "./seeds/04-events.sql",
+  "./seeds/05-posts.sql",
+  "./seeds/06-missions.sql"
+]
+
 [studio]
 enabled = true
 port = 54323

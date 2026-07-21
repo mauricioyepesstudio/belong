@@ -10,6 +10,7 @@ import { DiscoveryPanel } from "./discovery-panel";
 import { HomeWelcome } from "./home-welcome";
 import { HomePrimaryActions, type PrimaryActionId } from "./home-primary-actions";
 import { HomeImpactMetrics } from "./home-impact-metrics";
+import { ActiveMissions } from "../dashboard/active-missions";
 import { DashboardActions } from "../dashboard/dashboard-actions";
 
 export function HomeScreen(data: HomeEngineData) {
@@ -62,6 +63,10 @@ export function HomeScreen(data: HomeEngineData) {
       <HomeWelcome profile={profile} isReturningUser={communities.length > 0} />
 
       <HomePrimaryActions isNewUser={isNewUser} onAction={handlePrimaryAction} />
+
+      <div id="missions">
+        <ActiveMissions missionEngine={missionEngine} onNewMission={() => setMissionOpen(true)} />
+      </div>
 
       <HomeImpactMetrics metrics={homeImpactMetrics} />
 

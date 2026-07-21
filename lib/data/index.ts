@@ -6,3 +6,7 @@ export * from "./messages";
 export * from "./notifications";
 export * from "./profile";
 export * from "./ai-copilot";
+export * from "./connections";
+export * from "./organizations";
+export * from "./billing";
+export * from "./marketplace";

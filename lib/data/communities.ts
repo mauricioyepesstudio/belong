@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, requireProfile } from "@/lib/auth/session";
 import {
@@ -26,11 +27,11 @@ export async function getDiscoverCommunities(search?: string) {
   return fetchDiscoverCommunities(supabase, { search });
 }
 
-export async function getCommunityDetail(slug: string) {
+export const getCommunityDetail = cache(async (slug: string) => {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   return fetchCommunityDetail(supabase, slug, profile?.id ?? null);
-}
+});
 
 export async function searchCommunities(query: string) {
   const supabase = await createClient();

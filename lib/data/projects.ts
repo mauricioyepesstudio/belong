@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, requireProfile } from "@/lib/auth/session";
 import { fetchProjectDetail, fetchDiscoverProjectsInCommunities, getAllProjectsForUser } from "@/lib/core";
@@ -23,8 +24,8 @@ export async function getDiscoverProjects() {
   return fetchDiscoverProjectsInCommunities(supabase, profile.id);
 }
 
-export async function getProjectDetail(projectId: string) {
+export const getProjectDetail = cache(async (projectId: string) => {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   return fetchProjectDetail(supabase, projectId, profile?.id ?? null);
-}
+});

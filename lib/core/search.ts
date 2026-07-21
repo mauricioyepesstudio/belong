@@ -1,6 +1,6 @@
 import type { SupabaseServerClient } from "./types";
 
-export type SearchResultType = "person" | "community" | "project" | "post" | "mission";
+export type SearchResultType = "person" | "community" | "project" | "organization" | "post" | "mission";
 
 export type SearchResult = {
   id: string;
@@ -24,12 +24,13 @@ export async function searchGlobal(
   if (query.length < 2) return [];
 
   const pattern = `%${escapeIlike(query)}%`;
-  const perType = Math.ceil(limit / 5);
+  const perType = Math.ceil(limit / 6);
 
   const [
     { data: people },
     { data: communities },
     { data: projects },
+    { data: organizations },
     { data: communityPosts },
     { data: projectPosts },
     { data: missions },
@@ -49,6 +50,11 @@ export async function searchGlobal(
     supabase
       .from("projects")
       .select("id, name, status")
+      .ilike("name", pattern)
+      .limit(perType),
+    supabase
+      .from("organizations")
+      .select("id, name, slug")
       .ilike("name", pattern)
       .limit(perType),
     supabase
@@ -109,6 +115,13 @@ export async function searchGlobal(
       subtitle: p.status,
       href: `/projects/${p.id}`,
     })),
+    ...(organizations ?? []).map((o) => ({
+      id: `organization-${o.id}`,
+      type: "organization" as const,
+      title: o.name,
+      subtitle: "Organization",
+      href: `/organizations/${o.slug}`,
+    })),
     ...(communityPosts ?? []).map((p) => {
       const community = communityMap.get(p.community_id);
       return {
@@ -116,7 +129,7 @@ export async function searchGlobal(
         type: "post" as const,
         title: p.content.slice(0, 80) + (p.content.length > 80 ? "…" : ""),
         subtitle: community?.name ?? "Community post",
-        href: community ? `/community/${community.slug}` : "/community",
+        href: community ? `/community/${community.slug}?post=${p.id}` : "/community",
       };
     }),
     ...(projectPosts ?? []).map((p) => {

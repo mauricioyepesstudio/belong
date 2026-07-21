@@ -1,7 +1,7 @@
 "use client";
 
 import { MissionCard } from "@/engines/mission";
-import { ImpactSection, applyImpactScoreInsert } from "@/engines/impact";
+import { ImpactSection, applyImpactScoreInsert, getImpactActionLabel } from "@/engines/impact";
 import { ReputationDashboard } from "@/engines/identity/components/reputation-dashboard";
 import { TIER_ICONS } from "@/engines/billing";
 import {
@@ -202,16 +202,24 @@ export function ProfileView({
               <CardContent className="pt-6">
                 <h3 className="text-sm font-medium text-fg-muted">Recent activity</h3>
                 {reputation.recentEvents.length === 0 ? (
-                  <p className="mt-4 text-caption text-fg-muted">
-                    Your impact events will appear here as you contribute.
-                  </p>
+                  <div className="mt-4">
+                    <p className="text-caption text-fg-muted">
+                      Your impact events will appear here as you contribute.
+                    </p>
+                    <Link
+                      href="/community"
+                      className="mt-3 inline-flex text-sm font-medium text-brand hover:underline"
+                    >
+                      Browse communities
+                    </Link>
+                  </div>
                 ) : (
                   <ul className="mt-4 divide-y divide-border-subtle">
                     {reputation.recentEvents.map((event) => (
                       <li key={event.id} className="flex items-center justify-between py-3">
                         <div>
-                          <p className="text-sm font-medium capitalize text-fg-primary">
-                            {event.eventType.replace(/_/g, " ")}
+                          <p className="text-sm font-medium text-fg-primary">
+                            {getImpactActionLabel(event.eventType)}
                           </p>
                           <p className="text-xs text-fg-muted capitalize">{event.module}</p>
                         </div>
@@ -330,7 +338,10 @@ export function ProfileView({
 
                 {compatibility.completeness.missingFields.length > 0 && (
                   <p className="text-caption text-fg-muted">
-                    Missing: {compatibility.completeness.missingFields.join(", ")}
+                    Still to add:{" "}
+                    {compatibility.completeness.missingFields
+                      .map((field) => COMPATIBILITY_FIELD_LABELS[field] ?? field)
+                      .join(", ")}
                   </p>
                 )}
 
@@ -378,6 +389,19 @@ export function ProfileView({
     </FeatureScreen>
   );
 }
+
+const COMPATIBILITY_FIELD_LABELS: Record<string, string> = {
+  name: "Name",
+  bio: "Bio",
+  location: "Location",
+  role: "Role",
+  skills: "Skills",
+  strengths: "Strengths",
+  interests: "Interests",
+  values: "Values",
+  personality: "Personality traits",
+  experience: "Experience",
+};
 
 function CompatibilityGroup({ label, items }: { label: string; items: string[] }) {
   return (

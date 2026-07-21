@@ -3,6 +3,7 @@
 import type { SearchResult } from "@/lib/core/search";
 import { Badge, EmptyState } from "@/systems/design-system";
 import {
+  Building2,
   FolderKanban,
   MessageSquare,
   Search,
@@ -21,6 +22,7 @@ const typeConfig: Record<
   person: { icon: User, label: "People" },
   community: { icon: Users, label: "Communities" },
   project: { icon: FolderKanban, label: "Projects" },
+  organization: { icon: Building2, label: "Organizations" },
   post: { icon: MessageSquare, label: "Posts" },
   mission: { icon: Target, label: "Missions" },
 };
@@ -38,7 +40,7 @@ export function SearchResultsView({
         <EmptyState
           icon={Search}
           title="Search BELONG"
-          description="Find people, communities, projects, posts, and missions across every module."
+          description="Find people, communities, projects, organizations, posts, and your daily missions."
           className="border-0 bg-transparent py-8"
         />
       </GlassCard>
@@ -52,6 +54,7 @@ export function SearchResultsView({
           icon={Search}
           title={`No results for "${query}"`}
           description="Try a different name, community, or keyword."
+          action={{ label: "Browse communities", href: "/community" }}
           className="border-0 bg-transparent py-8"
         />
       </GlassCard>
@@ -83,7 +86,7 @@ export function SearchResultsView({
                 {items.length}
               </Badge>
             </h2>
-            <GlassCard className="divide-y divide-white/[0.06]">
+            <GlassCard className="divide-y divide-border-subtle">
               {items.map((result) => (
                 <Link
                   key={result.id}

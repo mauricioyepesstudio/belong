@@ -5,6 +5,7 @@ import { formatDistanceToNow } from "@/lib/format";
 import Link from "next/link";
 import { GlassCard } from "../dashboard/primitives";
 import { SectionHeading } from "./home-continue";
+import { Button } from "@/systems/design-system";
 
 export function HomeRecentActivity({
   activities,
@@ -23,10 +24,20 @@ export function HomeRecentActivity({
 
       {items.length === 0 ? (
         <GlassCard className="px-5 py-6 text-center">
-          <p className="text-sm text-fg-muted">Your contributions and updates will appear here.</p>
+          <p className="text-sm text-fg-muted">
+            Your contributions and updates will appear here after you post, join, or complete a
+            mission.
+          </p>
+          <div className="mt-4">
+            <Link href="/community">
+              <Button size="sm" variant="brand">
+                Go to Community
+              </Button>
+            </Link>
+          </div>
         </GlassCard>
       ) : (
-        <GlassCard className="divide-y divide-white/[0.06]">
+        <GlassCard className="divide-y divide-border-subtle">
           {items.map((item) => (
             <Link
               key={item.id}

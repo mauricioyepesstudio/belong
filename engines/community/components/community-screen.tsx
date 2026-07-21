@@ -267,8 +267,17 @@ export function CommunityScreen({
           filtered.length === 0 ? (
             <EmptyState
               icon={Users}
-              title="No builders found"
-              description="More members will appear as BELONG grows."
+              title={query.trim() ? "No builders match your search" : "No builders found yet"}
+              description={
+                query.trim()
+                  ? "Try a different name or browse communities to meet builders there."
+                  : "Browse communities to connect with members, or check back as more builders join."
+              }
+              action={
+                query.trim()
+                  ? { label: "Clear search", onClick: () => setQuery("") }
+                  : { label: "Browse communities", href: "/community?tab=discover" }
+              }
             />
           ) : (
             <StaggerList className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

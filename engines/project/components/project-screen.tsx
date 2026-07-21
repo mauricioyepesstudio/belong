@@ -245,6 +245,11 @@ export function ProjectScreen({
           <Button
             onClick={() => setCreateOpen(true)}
             disabled={communities.length === 0}
+            title={
+              communities.length === 0
+                ? "Join or create a community before starting a project"
+                : undefined
+            }
           >
             <Plus className="h-4 w-4" aria-hidden />
             New project

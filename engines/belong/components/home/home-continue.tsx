@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getPostDraft, type PostDraft } from "./draft-storage";
 import { GlassCard } from "../dashboard/primitives";
+import { Button } from "@/systems/design-system";
 
 type ContinueItem = {
   id: string;
@@ -114,8 +115,21 @@ export function HomeContinue({
         />
         <GlassCard className="px-5 py-6 text-center">
           <p className="text-sm text-fg-muted">
-            Start a project, message someone, or join an event — picks will show up here.
+            Start a project, message someone, or join an event — your recent picks will show up
+            here.
           </p>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <Link href="/community">
+              <Button size="sm" variant="brand">
+                Browse communities
+              </Button>
+            </Link>
+            <Link href="/projects">
+              <Button size="sm" variant="secondary">
+                View projects
+              </Button>
+            </Link>
+          </div>
         </GlassCard>
       </section>
     );

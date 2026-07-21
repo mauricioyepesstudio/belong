@@ -347,8 +347,8 @@ export function ProfileView({
                 <EmptyState
                   icon={Target}
                   title="No missions yet"
-                  description="Define a mission during onboarding or from your dashboard to track what you're building."
-                  action={{ label: "Go to Home", href: "/dashboard" }}
+                  description="Define a mission during onboarding or update your build goal in Settings."
+                  action={{ label: "Edit build goal", href: "/settings?tab=profile" }}
                 />
               ) : (
                 missions.map((m) => (

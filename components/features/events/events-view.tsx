@@ -19,6 +19,7 @@ import {
 } from "@/systems/design-system";
 import type { Event } from "@/types/database.types";
 import { Calendar, MapPin, Plus, Users } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -100,7 +101,7 @@ export function EventsView({
             title={tab === "upcoming" ? "No upcoming events" : "No past events"}
             description={
               tab === "upcoming"
-                ? "Create an event or browse communities for gatherings."
+                ? "Create an event or browse communities where gatherings are posted."
                 : "Past events will appear here."
             }
             action={
@@ -108,7 +109,16 @@ export function EventsView({
                 ? { label: "Create event", onClick: () => setCreateOpen(true) }
                 : undefined
             }
-          />
+          >
+            {tab === "upcoming" && (
+              <Link
+                href="/community"
+                className="mt-4 inline-flex text-sm font-medium text-brand hover:underline"
+              >
+                Browse communities
+              </Link>
+            )}
+          </EmptyState>
         ) : (
           <StaggerList>
             <EntityGrid className="lg:grid-cols-2">

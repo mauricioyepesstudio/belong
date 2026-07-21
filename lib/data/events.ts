@@ -26,3 +26,14 @@ export async function getPastEvents() {
 
   return attachEventMeta(supabase, events, profile.id);
 }
+
+export async function getEventById(id: string) {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const { data: event } = await supabase.from("events").select("*").eq("id", id).maybeSingle();
+  if (!event) return null;
+
+  const [withMeta] = await attachEventMeta(supabase, [event], profile.id);
+  return withMeta ?? null;
+}

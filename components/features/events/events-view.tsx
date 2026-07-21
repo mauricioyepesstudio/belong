@@ -116,6 +116,7 @@ export function EventsView({
               <StaggerItem key={event.id}>
                 <EntityCard
                   icon={Calendar}
+                  href={`/events/${event.id}`}
                   title={event.title}
                   description={formatEventDate(event.starts_at)}
                   meta={

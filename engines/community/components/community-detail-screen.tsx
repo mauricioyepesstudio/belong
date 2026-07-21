@@ -41,7 +41,12 @@ import {
 import { ArrowLeft, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackClientEvent,
+} from "@/systems/analytics";
 
 type CurrentUser = {
   id: string;
@@ -78,6 +83,7 @@ export function CommunityDetailScreen({
   const [membership, setMembership] = useState(data.membership);
   const [memberCount, setMemberCount] = useState(data.memberCount);
   const [members, setMembers] = useState(data.members);
+  const viewedPostRef = useRef<string | null>(null);
 
   useEffect(() => {
     setPosts(data.posts);
@@ -88,15 +94,27 @@ export function CommunityDetailScreen({
 
   useEffect(() => {
     if (!highlightPostId) return;
+    if (viewedPostRef.current === highlightPostId) return;
     setTab("feed");
     const timer = window.setTimeout(() => {
-      document.getElementById(`post-${highlightPostId}`)?.scrollIntoView({
+      const el = document.getElementById(`post-${highlightPostId}`);
+      el?.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
+      if (el) {
+        viewedPostRef.current = highlightPostId;
+        void trackClientEvent({
+          name: "post_viewed",
+          userId: currentUser.id,
+          screen: AnalyticsScreen.COMMUNITY_DETAIL,
+          source: AnalyticsSource.COMMUNITY_FEED,
+          entityId: highlightPostId,
+        });
+      }
     }, 150);
     return () => window.clearTimeout(timer);
-  }, [highlightPostId, posts.length]);
+  }, [highlightPostId, posts.length, currentUser.id]);
 
   const isMember = Boolean(membership);
   const isOwner = membership?.role === "owner";

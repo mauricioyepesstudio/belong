@@ -37,11 +37,16 @@ import {
 import { ArrowLeft, DollarSign, FolderKanban } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import type { ProjectStatus } from "@/types/database.types";
 import type { CopilotPanelData } from "@/lib/data/ai-copilot";
 import { SegmentErrorBoundary } from "@/components/error/segment-error-boundary";
 import { CopilotPanel } from "@/engines/ai/components/copilot-panel";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackClientEvent,
+} from "@/systems/analytics";
 import {
   dedupeById,
   fetchAuthorMeta,
@@ -116,6 +121,19 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
     setEditDescription(data.project.description ?? "");
     setEditDeadline(data.project.deadline ?? "");
   }, [data]);
+
+  const openedProjectRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (openedProjectRef.current === project.id) return;
+    openedProjectRef.current = project.id;
+    void trackClientEvent({
+      name: "project_opened",
+      userId: currentUser.id,
+      screen: AnalyticsScreen.PROJECT_DETAIL,
+      source: AnalyticsSource.PROJECT_DETAIL,
+      entityId: project.id,
+    });
+  }, [project.id, currentUser.id]);
 
   const isMember = Boolean(membership);
   const isOwner = project.owner_id === currentUser.id;

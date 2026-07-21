@@ -14,6 +14,11 @@ import {
   useToast,
 } from "@/systems/design-system";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
+import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackClientEvent,
+} from "@/systems/analytics";
 import type { Notification } from "@/types/database.types";
 import { Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -75,6 +80,15 @@ export function NotificationsView({
           n.id === id ? { ...n, read_at: n.read_at ?? new Date().toISOString() } : n
         )
       );
+
+      await trackClientEvent({
+        name: "notification_opened",
+        userId,
+        screen: AnalyticsScreen.NOTIFICATIONS,
+        source: AnalyticsSource.NOTIFICATIONS_LIST,
+        entityId: id,
+      });
+
       router.push(href);
     });
   };

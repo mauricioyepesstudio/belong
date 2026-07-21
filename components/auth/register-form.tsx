@@ -4,6 +4,12 @@ import { AuthCard } from "@/components/auth/auth-card";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button, ErrorMessage, Input, Label } from "@/components/ui";
 import { signUpWithEmail } from "@/lib/actions/auth";
+import {
+  ANALYTICS_ANONYMOUS_USER_ID,
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackClientEvent,
+} from "@/systems/analytics";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 
@@ -21,6 +27,12 @@ export default function RegisterForm() {
     const password = formData.get("password") as string;
 
     startTransition(async () => {
+      await trackClientEvent({
+        name: "signup_started",
+        userId: ANALYTICS_ANONYMOUS_USER_ID,
+        screen: AnalyticsScreen.REGISTER,
+        source: AnalyticsSource.AUTH_REGISTER_FORM,
+      });
       const result = await signUpWithEmail(email, password, fullName);
       if (result?.error) {
         setError(result.error);

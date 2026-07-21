@@ -7,6 +7,11 @@ import { RecommendationExplanation } from "@/components/features/recommendations
 import { Avatar, Badge, Button } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import {
+  AnalyticsScreen,
+  AnalyticsSource,
+  trackClientEvent,
+} from "@/systems/analytics";
+import {
   Building2,
   FolderKanban,
   Sparkles,
@@ -38,9 +43,11 @@ const SECTIONS: Array<{
 function RecommendationCardComponent({
   item,
   onDetails,
+  onAccept,
 }: {
   item: ScoredRecommendation;
   onDetails: (item: ScoredRecommendation) => void;
+  onAccept: (item: ScoredRecommendation) => void;
 }) {
   const avatarUrl = item.meta?.avatarUrl ?? undefined;
 
@@ -80,6 +87,7 @@ function RecommendationCardComponent({
             </Button>
             <Link
               href={item.href}
+              onClick={() => onAccept(item)}
               className={cn(
                 "inline-flex h-8 items-center justify-center rounded-lg bg-brand px-3 text-xs font-medium text-white",
                 "transition-colors hover:bg-brand/90"
@@ -99,11 +107,36 @@ const RecommendationCard = memo(RecommendationCardComponent);
 export function HomeRecommendations({
   recommendations,
   compact = false,
+  userId,
 }: {
   recommendations: OpportunityRecommendations;
   compact?: boolean;
+  userId: string;
 }) {
   const [selected, setSelected] = useState<ScoredRecommendation | null>(null);
+
+  const openRecommendation = (item: ScoredRecommendation) => {
+    void trackClientEvent({
+      name: "recommendation_opened",
+      userId,
+      screen: AnalyticsScreen.DASHBOARD,
+      source: AnalyticsSource.RECOMMENDATION_HOME,
+      entityId: item.id,
+      properties: { category: item.category },
+    });
+    setSelected(item);
+  };
+
+  const acceptRecommendation = (item: ScoredRecommendation) => {
+    void trackClientEvent({
+      name: "recommendation_accepted",
+      userId,
+      screen: AnalyticsScreen.DASHBOARD,
+      source: AnalyticsSource.RECOMMENDATION_HOME,
+      entityId: item.id,
+      properties: { category: item.category },
+    });
+  };
 
   const allItems = SECTIONS.flatMap(({ key }) => recommendations[key]);
   const total = allItems.length;
@@ -157,7 +190,8 @@ export function HomeRecommendations({
               <RecommendationCard
                 key={`${item.category}-${item.id}`}
                 item={item}
-                onDetails={setSelected}
+                onDetails={openRecommendation}
+                onAccept={acceptRecommendation}
               />
             ))}
           </div>
@@ -181,7 +215,8 @@ export function HomeRecommendations({
                       <RecommendationCard
                         key={`${item.category}-${item.id}`}
                         item={item}
-                        onDetails={setSelected}
+                        onDetails={openRecommendation}
+                onAccept={acceptRecommendation}
                       />
                     ))}
                   </div>

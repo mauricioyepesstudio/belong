@@ -65,7 +65,11 @@ export function HomeScreen(data: HomeEngineData) {
 
       <HomeWeeklyImpact impact={impactScore} />
 
-      <HomeRecommendations recommendations={data.opportunityRecommendations} compact />
+      <HomeRecommendations
+        recommendations={data.opportunityRecommendations}
+        compact
+        userId={profile.id}
+      />
 
       <HomeContinue
         projects={recentProjects}

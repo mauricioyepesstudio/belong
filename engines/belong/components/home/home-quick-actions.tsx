@@ -14,7 +14,7 @@ const ACTIONS: Array<{
   { id: "create_post", label: "Create Post", icon: PenLine },
   { id: "create_project", label: "Create Project", icon: FolderKanban },
   { id: "join_community", label: "Join Community", icon: Users },
-  { id: "invite", label: "Invite Someone", icon: UserPlus },
+  { id: "invite", label: "Find People", icon: UserPlus },
 ];
 
 export function HomeQuickActions({

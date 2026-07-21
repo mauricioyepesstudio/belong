@@ -258,7 +258,7 @@ export function OnboardingFlow({ initialName = "" }: OnboardingFlowProps) {
                   isLoading={pending}
                   onClick={() => setStep("complete")}
                 >
-                  Enter BELONG
+                  Continue
                 </Button>
               </div>
             </motion.div>
@@ -293,7 +293,7 @@ export function OnboardingFlow({ initialName = "" }: OnboardingFlowProps) {
                 transition={{ delay: 0.3 }}
                 className="mt-3 max-w-md text-body"
               >
-                Your profile and home feed are ready. Enter BELONG when you want to get started.
+                Your profile and home feed are ready. Tap below to start exploring.
               </motion.p>
               <motion.div
                 initial={{ opacity: 0 }}

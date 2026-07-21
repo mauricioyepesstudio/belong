@@ -18,7 +18,7 @@ export function HomeFocusWelcome({
       <header>
         <p className="text-label">Focus</p>
         <h1 className="text-heading-lg mt-1 text-fg-primary">
-          {formatGreeting()}, {firstName}
+          {`${formatGreeting()}, ${firstName}`}
         </h1>
         <p className="mt-2 text-body text-fg-secondary">{summary}</p>
       </header>

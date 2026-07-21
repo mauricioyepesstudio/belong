@@ -65,7 +65,11 @@ export function NotificationsView({
 
   const markOne = (id: string, href: string) => {
     startTransition(async () => {
-      await markNotificationRead(id);
+      const result = await markNotificationRead(id);
+      if (result?.error) {
+        toast(result.error, "error");
+        return;
+      }
       setItems((prev) =>
         prev.map((n) =>
           n.id === id ? { ...n, read_at: n.read_at ?? new Date().toISOString() } : n

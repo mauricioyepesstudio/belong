@@ -30,10 +30,17 @@ type ProfileViewProps = {
   stats: UserStats;
   missions: Mission[];
   reputation: ReputationProfile;
+  initialTab?: string;
 };
 
-export function ProfileView({ profile, stats, missions, reputation: initialReputation }: ProfileViewProps) {
-  const [tab, setTab] = useState("reputation");
+export function ProfileView({
+  profile,
+  stats,
+  missions,
+  reputation: initialReputation,
+  initialTab = "reputation",
+}: ProfileViewProps) {
+  const [tab, setTab] = useState(initialTab);
   const [reputation, setReputation] = useState(initialReputation);
   const primaryMission = missions.find((m) => m.is_primary) ?? missions[0];
   const TierIcon = TIER_ICONS[profile.subscription_tier ?? "free"];
@@ -196,15 +203,18 @@ export function ProfileView({ profile, stats, missions, reputation: initialReput
               ) : (
                 missions.map((m) => (
                   <StaggerItem key={m.id}>
-                    <Card>
-                      <CardContent className="pt-5">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-fg-primary">{m.title}</p>
-                          {m.is_primary && <Badge variant="brand">Primary</Badge>}
-                        </div>
-                        {m.description && <p className="mt-2 text-caption">{m.description}</p>}
-                      </CardContent>
-                    </Card>
+                    <Link href={`/missions/${m.id}`}>
+                      <Card className="transition-colors hover:border-brand/30">
+                        <CardContent className="pt-5">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-fg-primary">{m.title}</p>
+                            {m.is_primary && <Badge variant="brand">Primary</Badge>}
+                          </div>
+                          {m.description && <p className="mt-2 text-caption">{m.description}</p>}
+                          <p className="mt-3 text-sm text-brand">View mission →</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   </StaggerItem>
                 ))
               )}

@@ -22,7 +22,7 @@ import {
 import { formatInitials } from "@/lib/format";
 import type { UserProfile } from "@/types/database.types";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 export function SettingsView({
   profile,
@@ -35,11 +35,23 @@ export function SettingsView({
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [tab, setTab] = useState("account");
+  const initialSettingsTab = searchParams.get("tab");
+  const [tab, setTab] = useState(
+    initialSettingsTab === "profile" || initialSettingsTab === "billing"
+      ? initialSettingsTab
+      : "account"
+  );
   const [isSaving, startSaveTransition] = useTransition();
   const [isUploading, startUploadTransition] = useTransition();
   const [isUpdatingPassword, startPasswordTransition] = useTransition();
   const showPasswordReset = searchParams.get("recovery") === "1";
+
+  useEffect(() => {
+    const settingsTab = searchParams.get("tab");
+    if (settingsTab === "profile" || settingsTab === "billing") {
+      setTab(settingsTab);
+    }
+  }, [searchParams]);
 
   const saveAccount = (formData: FormData) => {
     startSaveTransition(async () => {

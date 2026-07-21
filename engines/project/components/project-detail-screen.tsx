@@ -8,8 +8,9 @@ import {
   updateProject,
 } from "@/lib/actions/projects";
 import { enableProjectFunding } from "@/lib/actions/billing";
+import { uploadPostImage } from "@/lib/actions/platform";
 import { formatCents, FundProjectModal } from "@/engines/billing";
-import { ProjectPostCard } from "./project-post-card";
+import { ProjectPostFeed } from "./project-post-feed";
 import { ProjectOverviewTab } from "./workspace/overview-tab";
 import { ProjectActivityTab } from "./workspace/activity-tab";
 import { ProjectTasksTab } from "./workspace/tasks-tab";
@@ -33,12 +34,13 @@ import {
   Textarea,
   useToast,
 } from "@/systems/design-system";
-import { ArrowLeft, DollarSign, FolderKanban, MessageSquarePlus } from "lucide-react";
+import { ArrowLeft, DollarSign, FolderKanban } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import type { ProjectStatus } from "@/types/database.types";
 import type { CopilotPanelData } from "@/lib/data/ai-copilot";
+import { SegmentErrorBoundary } from "@/components/error/segment-error-boundary";
 import { CopilotPanel } from "@/engines/ai/components/copilot-panel";
 import {
   dedupeById,
@@ -81,11 +83,17 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
   const { toast } = useToast();
   const [tab, setTab] = useState("overview");
   const [postBody, setPostBody] = useState("");
+  const [postImageUrl, setPostImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [fundOpen, setFundOpen] = useState(false);
   const [backOpen, setBackOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const { project, community, owner } = data;
+  const [editName, setEditName] = useState(project.name);
+  const [editDescription, setEditDescription] = useState(project.description ?? "");
+  const [editDeadline, setEditDeadline] = useState(project.deadline ?? "");
   const [posts, setPosts] = useState(data.posts);
   const [membership, setMembership] = useState(data.membership);
   const [memberCount, setMemberCount] = useState(data.memberCount);
@@ -104,6 +112,9 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
     setProgress(data.project.progress);
     setStatus(data.project.status);
     setFundingEnabled(data.project.funding_enabled);
+    setEditName(data.project.name);
+    setEditDescription(data.project.description ?? "");
+    setEditDeadline(data.project.deadline ?? "");
   }, [data]);
 
   const isMember = Boolean(membership);
@@ -292,11 +303,12 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
   const handlePost = () => {
     if (!postBody.trim()) return;
     startTransition(async () => {
-      const result = await createProjectPost(project.id, postBody.trim());
+      const result = await createProjectPost(project.id, postBody.trim(), postImageUrl);
       if (result.error) toast(result.error, "error");
       else if (result.post) {
         toast("Update published", "success");
         setPostBody("");
+        setPostImageUrl(null);
         setPosts((prev) => [result.post!, ...prev]);
         router.refresh();
         void syncFromServer();
@@ -304,8 +316,41 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
     });
   };
 
+  const handlePostImage = (file: File | null) => {
+    if (!file) return;
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.set("image", file);
+    startTransition(async () => {
+      const result = await uploadPostImage(formData);
+      setUploadingImage(false);
+      if (result.error) toast(result.error, "error");
+      else if (result.url) {
+        setPostImageUrl(result.url);
+        toast("Image attached", "success");
+      }
+    });
+  };
+
   const handlePostUpdate = (postId: string, updated: ProjectPostWithMeta) => {
     setPosts((prev) => prev.map((p) => (p.id === postId ? updated : p)));
+  };
+
+  const handleSaveProjectEdit = () => {
+    startTransition(async () => {
+      const result = await updateProject(project.id, {
+        name: editName,
+        description: editDescription,
+        deadline: editDeadline || null,
+      });
+      if (result.error) toast(result.error, "error");
+      else {
+        toast("Project updated", "success");
+        setEditOpen(false);
+        router.refresh();
+        void syncFromServer();
+      }
+    });
   };
 
   const handleStatusChange = (nextStatus: ProjectStatus) => {
@@ -413,6 +458,9 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
               <div className="flex flex-col gap-2 sm:items-end">
                 {isOwner && (
                   <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="secondary" onClick={() => setEditOpen(true)}>
+                      Edit details
+                    </Button>
                     {statusOptions.map((option) => (
                       <Button
                         key={option.value}
@@ -470,14 +518,16 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
         </Card>
 
         {isMember && (
-          <CopilotPanel
-            contextType="project"
-            contextId={project.id}
-            contextName={project.name}
-            canUse={copilot.canUse}
-            canApply={copilot.canApply}
-            recentActions={copilot.recentActions}
-          />
+          <SegmentErrorBoundary title="Copilot unavailable">
+            <CopilotPanel
+              contextType="project"
+              contextId={project.id}
+              contextName={project.name}
+              canUse={copilot.canUse}
+              canApply={copilot.canApply}
+              recentActions={copilot.recentActions}
+            />
+          </SegmentErrorBoundary>
         )}
 
         <div className="mt-6 overflow-x-auto">
@@ -504,37 +554,21 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
         {tab === "activity" && (
           <div className="space-y-6">
             <ProjectActivityTab activity={workspace.activity} postsCount={posts.length} />
-            {isMember && (
-              <Card>
-                <CardContent className="pt-6">
-                  <Label htmlFor="project-post-content" className="sr-only">
-                    Write an update
-                  </Label>
-                  <Textarea
-                    id="project-post-content"
-                    placeholder="Share a project update..."
-                    value={postBody}
-                    onChange={(e) => setPostBody(e.target.value)}
-                    rows={3}
-                    disabled={isPending}
-                  />
-                  <div className="mt-3 flex justify-end">
-                    <Button disabled={isPending || !postBody.trim()} onClick={handlePost}>
-                      <MessageSquarePlus className="h-4 w-4" aria-hidden />
-                      Post
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            {posts.map((post) => (
-              <ProjectPostCard
-                key={post.id}
-                post={post}
-                isMember={isMember}
-                onPostUpdate={(updated) => handlePostUpdate(post.id, updated)}
-              />
-            ))}
+            <ProjectPostFeed
+              posts={posts}
+              isMember={isMember}
+              isOwner={isOwner}
+              currentUserId={currentUser.id}
+              isPending={isPending}
+              uploadingImage={uploadingImage}
+              postBody={postBody}
+              postImageUrl={postImageUrl}
+              onPostBodyChange={setPostBody}
+              onPostImage={handlePostImage}
+              onPublish={handlePost}
+              onPostUpdate={handlePostUpdate}
+              onPostDelete={(postId) => setPosts((prev) => prev.filter((p) => p.id !== postId))}
+            />
           </div>
         )}
 
@@ -614,6 +648,50 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
             </Button>
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        title="Edit project"
+        description="Update name, description, and deadline."
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="edit-project-name">Name</Label>
+            <Input
+              id="edit-project-name"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-project-description">Description</Label>
+            <Textarea
+              id="edit-project-description"
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-project-deadline">Deadline</Label>
+            <Input
+              id="edit-project-deadline"
+              type="date"
+              value={editDeadline}
+              onChange={(e) => setEditDeadline(e.target.value)}
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="ghost" onClick={() => setEditOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="brand" isLoading={isPending} onClick={handleSaveProjectEdit}>
+              Save changes
+            </Button>
+          </div>
+        </div>
       </Modal>
 
       <FundProjectModal

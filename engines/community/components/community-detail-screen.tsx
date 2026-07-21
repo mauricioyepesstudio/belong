@@ -1,13 +1,16 @@
 "use client";
 
 import {
+  addCommunityMember,
   createCommunityPost,
   joinCommunity,
   leaveCommunity,
   refreshCommunityDetail,
+  removeCommunityMember,
 } from "@/lib/actions/communities";
+import { uploadPostImage } from "@/lib/actions/platform";
 import { configurePaidCommunity } from "@/lib/actions/billing";
-import { CommunityPostCard } from "./community-post-card";
+import { CommunityPostFeed } from "./community-post-feed";
 import type { CommunityDetail, CommunityMember, CommunityPostWithMeta } from "@/lib/core";
 import {
   Avatar,
@@ -21,12 +24,13 @@ import {
   Label,
   Modal,
   Tabs,
-  Textarea,
   useToast,
 } from "@/systems/design-system";
 import { formatCents } from "@/engines/billing";
 import { formatInitials } from "@/lib/format";
 import type { CopilotPanelData } from "@/lib/data/ai-copilot";
+import type { ConnectedUser } from "@/lib/data/connections";
+import { SegmentErrorBoundary } from "@/components/error/segment-error-boundary";
 import { CopilotPanel } from "@/engines/ai/components/copilot-panel";
 import {
   dedupeById,
@@ -34,7 +38,7 @@ import {
   mapCommunityPostRow,
   useCommunityRealtime,
 } from "@/engines/core/realtime";
-import { ArrowLeft, MessageSquarePlus, Users } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
@@ -49,13 +53,21 @@ type CommunityDetailScreenProps = {
   data: CommunityDetail;
   copilot: CopilotPanelData;
   currentUser: CurrentUser;
+  inviteCandidates?: ConnectedUser[];
 };
 
-export function CommunityDetailScreen({ data, copilot, currentUser }: CommunityDetailScreenProps) {
+export function CommunityDetailScreen({
+  data,
+  copilot,
+  currentUser,
+  inviteCandidates = [],
+}: CommunityDetailScreenProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [tab, setTab] = useState("feed");
   const [postBody, setPostBody] = useState("");
+  const [postImageUrl, setPostImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [monetizeOpen, setMonetizeOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -74,6 +86,7 @@ export function CommunityDetailScreen({ data, copilot, currentUser }: CommunityD
 
   const isMember = Boolean(membership);
   const isOwner = membership?.role === "owner";
+  const canModerate = membership?.role === "owner" || membership?.role === "admin";
 
   const syncFromServer = useCallback(async () => {
     const fresh = await refreshCommunityDetail(community.slug);
@@ -161,14 +174,57 @@ export function CommunityDetailScreen({ data, copilot, currentUser }: CommunityD
   const handlePost = () => {
     if (!postBody.trim()) return;
     startTransition(async () => {
-      const result = await createCommunityPost(community.id, postBody.trim());
+      const result = await createCommunityPost(community.id, postBody.trim(), postImageUrl);
       if (result.error) toast(result.error, "error");
       else if (result.post) {
         toast("Post published", "success");
         setPostBody("");
+        setPostImageUrl(null);
         setPosts((prev) => [result.post!, ...prev]);
         router.refresh();
         void syncFromServer();
+      }
+    });
+  };
+
+  const handlePostImage = (file: File | null) => {
+    if (!file) return;
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.set("image", file);
+    startTransition(async () => {
+      const result = await uploadPostImage(formData);
+      setUploadingImage(false);
+      if (result.error) toast(result.error, "error");
+      else if (result.url) {
+        setPostImageUrl(result.url);
+        toast("Image attached", "success");
+      }
+    });
+  };
+
+  const handleInviteMember = (userId: string) => {
+    startTransition(async () => {
+      const result = await addCommunityMember(community.id, userId);
+      if (result.error) toast(result.error, "error");
+      else {
+        toast("Member added", "success");
+        router.refresh();
+        void syncFromServer();
+      }
+    });
+  };
+
+  const handleRemoveMember = (userId: string) => {
+    if (!confirm("Remove this member from the community?")) return;
+    startTransition(async () => {
+      const result = await removeCommunityMember(community.id, userId);
+      if (result.error) toast(result.error, "error");
+      else {
+        toast("Member removed", "success");
+        setMembers((prev) => prev.filter((m) => m.userId !== userId));
+        setMemberCount((c) => Math.max(0, c - 1));
+        router.refresh();
       }
     });
   };
@@ -273,15 +329,17 @@ export function CommunityDetailScreen({ data, copilot, currentUser }: CommunityD
         </Card>
 
         {isMember && (
-          <CopilotPanel
-            contextType="community"
-            contextId={community.id}
-            slug={community.slug}
-            contextName={community.name}
-            canUse={copilot.canUse}
-            canApply={copilot.canApply}
-            recentActions={copilot.recentActions}
-          />
+          <SegmentErrorBoundary title="Copilot unavailable">
+            <CopilotPanel
+              contextType="community"
+              contextId={community.id}
+              slug={community.slug}
+              contextName={community.name}
+              canUse={copilot.canUse}
+              canApply={copilot.canApply}
+              recentActions={copilot.recentActions}
+            />
+          </SegmentErrorBoundary>
         )}
 
         <div className="mt-6 overflow-x-auto">
@@ -296,65 +354,59 @@ export function CommunityDetailScreen({ data, copilot, currentUser }: CommunityD
         </div>
 
         {tab === "feed" ? (
+          <CommunityPostFeed
+            posts={posts}
+            isMember={isMember}
+            isPaid={Boolean(community.is_paid)}
+            canModerate={canModerate}
+            currentUserId={currentUser.id}
+            isPending={isPending}
+            uploadingImage={uploadingImage}
+            postBody={postBody}
+            postImageUrl={postImageUrl}
+            onPostBodyChange={setPostBody}
+            onPostImage={handlePostImage}
+            onPublish={handlePost}
+            onJoin={handleJoin}
+            onPostUpdate={handlePostUpdate}
+            onPostDelete={(postId) => setPosts((prev) => prev.filter((p) => p.id !== postId))}
+          />
+        ) : (
           <div className="mt-6 space-y-4">
-            {isMember ? (
+            {canModerate && inviteCandidates.length > 0 && (
               <Card>
                 <CardContent className="pt-6">
-                  <Label htmlFor="post-content" className="sr-only">
-                    Write a post
-                  </Label>
-                  <Textarea
-                    id="post-content"
-                    placeholder="Share an update with your community..."
-                    value={postBody}
-                    onChange={(e) => setPostBody(e.target.value)}
-                    rows={3}
-                    disabled={isPending}
-                  />
-                  <div className="mt-3 flex justify-end">
-                    <Button disabled={isPending || !postBody.trim()} onClick={handlePost}>
-                      <MessageSquarePlus className="h-4 w-4" aria-hidden />
-                      Post
-                    </Button>
-                  </div>
+                  <p className="mb-3 text-sm font-medium text-fg-primary">Invite connections</p>
+                  <ul className="space-y-2">
+                    {inviteCandidates
+                      .filter((u) => !members.some((m) => m.userId === u.id))
+                      .slice(0, 6)
+                      .map((user) => (
+                        <li
+                          key={user.id}
+                          className="flex items-center justify-between gap-3 rounded-xl bg-bg-hover px-3 py-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Avatar
+                              src={user.avatar_url ?? undefined}
+                              fallback={formatInitials(user.full_name)}
+                              size="sm"
+                            />
+                            <span className="text-sm">{user.full_name ?? "Builder"}</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            disabled={isPending}
+                            onClick={() => handleInviteMember(user.id)}
+                          >
+                            Add
+                          </Button>
+                        </li>
+                      ))}
+                  </ul>
                 </CardContent>
               </Card>
-            ) : (
-              <EmptyState
-                icon={MessageSquarePlus}
-                title="Join to participate"
-                description="Become a member to post, comment, and like in this community."
-                action={{
-                  label: community.is_paid ? "Subscribe" : "Join community",
-                  onClick: handleJoin,
-                }}
-                className="py-10"
-              />
             )}
-
-            {posts.length === 0 ? (
-              <EmptyState
-                icon={MessageSquarePlus}
-                title="No activity yet"
-                description={
-                  isMember
-                    ? "Be the first to share something with this community."
-                    : "This community has not had any posts yet."
-                }
-              />
-            ) : (
-              posts.map((post) => (
-                <CommunityPostCard
-                  key={post.id}
-                  post={post}
-                  isMember={isMember}
-                  onPostUpdate={(updated) => handlePostUpdate(post.id, updated)}
-                />
-              ))
-            )}
-          </div>
-        ) : (
-          <div className="mt-6">
             {members.length === 0 ? (
               <EmptyState
                 icon={Users}
@@ -397,6 +449,18 @@ export function CommunityDetailScreen({ data, copilot, currentUser }: CommunityD
                             <p className="mt-0.5 truncate text-caption text-fg-muted">{member.bio}</p>
                           )}
                         </div>
+                        {canModerate &&
+                          member.userId !== currentUser.id &&
+                          member.role !== "owner" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              disabled={isPending}
+                              onClick={() => handleRemoveMember(member.userId)}
+                            >
+                              Remove
+                            </Button>
+                          )}
                       </li>
                     ))}
                   </ul>

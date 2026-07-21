@@ -25,7 +25,7 @@ export function MissionCard({ profile, mission, compact }: MissionCardProps) {
         icon={Sparkles}
         title="Define your mission"
         description="Share what you're building so the right people can find you."
-        action={{ label: "Edit profile", href: "/profile" }}
+        action={{ label: "Edit profile", href: "/settings?tab=profile" }}
         className="border-none py-4"
       />
     );
@@ -57,7 +57,7 @@ export function MissionCard({ profile, mission, compact }: MissionCardProps) {
       )}
       {!compact && (
         <Link
-          href="/profile"
+          href="/settings?tab=profile"
           className="inline-flex items-center gap-1 text-sm text-brand hover:underline"
         >
           Edit profile

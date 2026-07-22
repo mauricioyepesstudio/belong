@@ -10,7 +10,7 @@ import type {
   ProjectPostWithMeta,
 } from "@/lib/core";
 import { fetchProjectDetail } from "@/lib/core/projects";
-import { recordImpactAction } from "@/engines/impact";
+import { recordImpactAction } from "@/engines/impact/record-action.server";
 import { logProjectActivity } from "@/lib/actions/project-workspace";
 import { ensureDefaultOrganization } from "@/lib/core/organizations";
 import {

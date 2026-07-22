@@ -6,7 +6,7 @@ import type { ActionResult } from "@/lib/actions/types";
 import type { ProjectTaskPriority, ProjectTaskStatus } from "@/lib/core/project-workspace";
 import type { Json } from "@/types/database.types";
 import type { Database } from "@/types/database.types";
-import { recordImpactAction } from "@/engines/impact";
+import { recordImpactAction } from "@/engines/impact/record-action.server";
 import { revalidateProject, requireProjectMember } from "@/lib/actions/_shared";
 
 async function requireProjectAdmin(

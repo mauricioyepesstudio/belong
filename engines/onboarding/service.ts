@@ -6,7 +6,7 @@ import { fetchUserStats } from "@/lib/core";
 import { ensureDefaultOrganization } from "@/lib/core/organizations";
 import { getWeekStartUtc } from "@/lib/engine/mission-progress";
 import { syncUserSkill } from "@/lib/engine/mission-progress";
-import { recordImpactAction } from "@/engines/impact";
+import { recordImpactAction } from "@/engines/impact/record-action.server";
 import {
   AnalyticsScreen,
   AnalyticsSource,

@@ -1,6 +1,6 @@
 import type { SupabaseServerClient } from "@/lib/core/types";
 import { createNotification } from "@/lib/supabase/notify";
-import { recordImpactAction } from "@/engines/impact";
+import { recordImpactAction } from "@/engines/impact/record-action.server";
 
 export function getWeekStartUtc(): string {
   const d = new Date();

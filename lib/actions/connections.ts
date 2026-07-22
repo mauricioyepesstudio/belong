@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
 import { createNotification } from "@/lib/supabase/notify";
 import { incrementWeeklyGoalByTitle } from "@/lib/engine/mission-progress";
-import { recordImpactAction } from "@/engines/impact";
+import { recordImpactAction } from "@/engines/impact/record-action.server";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
 import {

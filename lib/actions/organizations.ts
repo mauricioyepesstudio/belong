@@ -15,7 +15,7 @@ import {
   fetchOrganizationDetail,
   fetchOrganizationMembership,
 } from "@/lib/core/organizations";
-import { recordImpactAction } from "@/engines/impact";
+import { recordImpactAction } from "@/engines/impact/record-action.server";
 import { revalidateOrganization } from "@/lib/actions/_shared";
 
 export async function refreshOrganizationDetail(slug: string): Promise<OrganizationDetail | null> {

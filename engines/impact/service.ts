@@ -1,15 +1,6 @@
 import type { SupabaseServerClient } from "@/lib/core/types";
-import {
-  recordImpactEvent,
-  type ImpactEvent,
-  type RecordImpactEventInput,
-} from "@/engines/identity/reputation";
-import {
-  AnalyticsScreen,
-  AnalyticsSource,
-  trackServerEvent,
-} from "@/systems/analytics/track-server";
-import { getImpactActionLabel, getImpactPoints } from "./config";
+import { type ImpactEvent } from "@/engines/identity/reputation";
+import { getImpactActionLabel } from "./config";
 import type { ImpactScoreEvent, ImpactScoreProfile } from "./score-types";
 
 export function weekStartIso(date = new Date()): string {
@@ -77,47 +68,6 @@ function mapScoreEvent(event: ImpactEvent): ImpactScoreEvent {
     metadata: event.metadata,
     createdAt: event.createdAt,
   };
-}
-
-export type RecordImpactActionInput = Omit<RecordImpactEventInput, "points"> & {
-  points?: number;
-};
-
-/** Records a participation impact event using configurable v1 point values. */
-export async function recordImpactAction(
-  supabase: SupabaseServerClient,
-  input: RecordImpactActionInput
-): Promise<ImpactEvent | null> {
-  if (input.sourceId) {
-    const { data: existing } = await supabase
-      .from("impact_events")
-      .select("*")
-      .eq("user_id", input.userId)
-      .eq("event_type", input.eventType)
-      .eq("source_id", input.sourceId)
-      .maybeSingle();
-
-    if (existing) {
-      return mapDbRowToImpactEvent(existing as Parameters<typeof mapDbRowToImpactEvent>[0]);
-    }
-  }
-
-  return recordImpactEvent(supabase, {
-    ...input,
-    points: getImpactPoints(input.eventType, input.points),
-  }).then(async (created) => {
-    if (created) {
-      await trackServerEvent({
-        name: "impact_event_created",
-        userId: input.userId,
-        screen: AnalyticsScreen.DASHBOARD,
-        source: AnalyticsSource.IMPACT_ENGINE,
-        entityId: created.id,
-        properties: { event_type: input.eventType, points: created.points },
-      });
-    }
-    return created;
-  });
 }
 
 export async function fetchImpactScoreProfile(

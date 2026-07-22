@@ -23,7 +23,7 @@ import { createProjectPost } from "@/lib/actions/projects";
 import { createProjectMilestone, createProjectTask } from "@/lib/actions/project-workspace";
 import { saveLifeMission } from "@/lib/actions/life-mission";
 import { createNotification } from "@/lib/supabase/notify";
-import { recordImpactAction } from "@/engines/impact";
+import { recordImpactAction } from "@/engines/impact/record-action.server";
 
 function revalidateCopilotContext(
   contextType: AICopilotContextType,

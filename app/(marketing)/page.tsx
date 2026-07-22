@@ -12,23 +12,23 @@ export const metadata: Metadata = {
 const pillars = [
   {
     icon: Users,
-    title: "Communities",
-    description: "Find your people. Join purpose-driven groups or build paid memberships.",
+    title: "CONNECT",
+    description: "Meet people who share your purpose.",
   },
   {
     icon: FolderKanban,
-    title: "Projects",
-    description: "Ship what matters. Track progress, collaborate, and raise funding.",
+    title: "COLLABORATE",
+    description: "Build meaningful projects together.",
   },
   {
     icon: Calendar,
-    title: "Events",
-    description: "Gather builders. Host workshops, meetups, and moments that move you forward.",
+    title: "GROW",
+    description: "Develop new skills and expand your network.",
   },
   {
     icon: ShoppingBag,
-    title: "Marketplace",
-    description: "Monetize your craft. Sell templates, resources, and digital goods.",
+    title: "CREATE IMPACT",
+    description: "Turn collaboration into measurable real-world impact.",
   },
 ];
 
@@ -43,28 +43,33 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-4xl text-center">
           <p className="text-label text-brand">{siteConfig.tagline}</p>
           <h1 className="mt-4 text-display text-fg-primary md:text-5xl lg:text-6xl">
-            The platform for builders who want their work to matter
+            Build your future.
+            <br />
+            Help build the future of others.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-fg-secondary">
-            {siteConfig.description} Communities, projects, events, messaging, and a creator
-            economy — unified in one beautiful workspace.
+            BELONG helps people connect, collaborate, and create measurable impact through
+            communities, projects, and meaningful relationships.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
             <Link href="/register">
               <Button size="lg" variant="brand">
-                Start building free
+                Join BELONG
               </Button>
             </Link>
-            <Link href="/login">
+            <Link href="#features">
               <Button size="lg" variant="secondary">
-                Sign in
+                Explore BELONG
               </Button>
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="border-t border-border-subtle bg-bg-elevated/50 px-4 py-20 md:px-6">
+      <section
+        id="features"
+        className="border-t border-border-subtle bg-bg-elevated/50 px-4 py-20 md:px-6"
+      >
         <div className="mx-auto max-w-6xl">
           <div className="text-center">
             <h2 className="text-2xl font-semibold text-fg-primary md:text-3xl">
@@ -93,10 +98,10 @@ export default function LandingPage() {
       <section className="px-4 py-20 md:px-6">
         <div className="mx-auto max-w-3xl rounded-3xl border border-brand/20 bg-gradient-to-br from-brand/10 to-transparent p-10 text-center">
           <Sparkles className="mx-auto h-8 w-8 text-brand" aria-hidden />
-          <h2 className="mt-4 text-2xl font-semibold text-fg-primary">AI Coach built in</h2>
+          <h2 className="mt-4 text-2xl font-semibold text-fg-primary">Your AI Mentor</h2>
           <p className="mt-3 text-fg-secondary">
-            Personalized next steps based on your connections, projects, and community activity —
-            so you always know what to do next.
+            Personalized guidance to help you discover opportunities, collaborate, and grow every
+            day.
           </p>
           <Link href="/register" className="mt-8 inline-block">
             <Button variant="brand">

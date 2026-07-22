@@ -12,13 +12,13 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               href="/login"
               className="rounded-xl px-4 py-2 text-sm font-medium text-fg-secondary transition-colors hover:text-fg-primary"
             >
-              Sign in
+              Sign In
             </Link>
             <Link
               href="/register"
               className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
             >
-              Get started
+              Join BELONG
             </Link>
           </nav>
         </div>

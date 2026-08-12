@@ -62,17 +62,20 @@ export function StaggerList({
   children,
   className,
   stagger = 0.06,
+  reveal = true,
 }: {
   children: ReactNode;
   className?: string;
   stagger?: number;
+  reveal?: boolean;
 }) {
   return (
     <motion.div
       className={className}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-40px" }}
+      initial={reveal ? "hidden" : false}
+      animate={reveal ? undefined : "visible"}
+      whileInView={reveal ? "visible" : undefined}
+      viewport={reveal ? { once: true, margin: "-40px" } : undefined}
       variants={{ visible: { transition: { staggerChildren: stagger } } }}
     >
       {children}

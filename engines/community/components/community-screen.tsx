@@ -300,7 +300,10 @@ export function CommunityScreen({
               }
             />
           ) : (
-            <StaggerList className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <StaggerList
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              reveal={false}
+            >
               {(filtered as DiscoverUser[]).map((person) => {
                 const connection =
                   connectionOverrides.get(person.id) ?? person.connection;
@@ -421,7 +424,7 @@ export function CommunityScreen({
             }
           />
         ) : (
-          <StaggerList>
+          <StaggerList reveal={false}>
             <EntityGrid>
             {(filtered as (UserCommunity | DiscoverCommunity)[]).map((c) => {
               const role = membershipById.get(c.id);

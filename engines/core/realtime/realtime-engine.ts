@@ -27,13 +27,16 @@ class RealtimeEngine {
     const managed = this.channels.get(key);
     if (!managed) return;
 
+    // Remove ownership before Supabase emits CLOSED. This prevents the status
+    // callback from scheduling a retry for a channel React already disposed.
+    this.channels.delete(key);
+
     if (managed.retryTimer) {
       clearTimeout(managed.retryTimer);
     }
 
     this.connectionManager.getClient().removeChannel(managed.channel);
     this.connectionManager.handleChannelRemoved();
-    this.channels.delete(key);
   }
 
   publish(channelName: string, event: string, payload: Record<string, unknown>) {
@@ -115,14 +118,18 @@ class RealtimeEngine {
       retryTimer: null,
     };
 
-    this.subscribeManaged(managed);
     this.channels.set(config.key, managed);
+    this.subscribeManaged(managed);
     return managed;
   }
 
   private subscribeManaged(managed: ManagedChannel) {
     this.connectionManager.markConnecting();
     managed.channel.subscribe(async (status) => {
+      // Status events can arrive after removeChannel during navigation or
+      // React Strict Mode remounts. Ignore callbacks from stale instances.
+      if (this.channels.get(managed.key) !== managed) return;
+
       this.connectionManager.handleChannelStatus(status);
 
       if (status === "SUBSCRIBED") {
@@ -142,9 +149,10 @@ class RealtimeEngine {
         if (managed.retryTimer) clearTimeout(managed.retryTimer);
         managed.retryTimer = setTimeout(() => {
           managed.retryTimer = null;
+          if (this.channels.get(managed.key) !== managed) return;
+          this.channels.delete(managed.key);
           this.connectionManager.getClient().removeChannel(managed.channel);
-          const next = this.attachChannel(managed.config);
-          this.channels.set(managed.key, next);
+          this.attachChannel(managed.config);
         }, Math.min(1000 * 2 ** managed.retryCount, 30_000));
       }
     });

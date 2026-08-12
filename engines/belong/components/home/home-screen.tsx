@@ -84,7 +84,12 @@ export function HomeScreen(data: HomeEngineData) {
           </div>
         }
         activity={<HomeRecentActivity activities={recentActivity} />}
-        discover={<HomeTrendingCommunities communities={discoverCommunities} />}
+        discover={
+          <HomeTrendingCommunities
+            communities={discoverCommunities}
+            joinedCount={communities.length}
+          />
+        }
       />
 
       <Modal

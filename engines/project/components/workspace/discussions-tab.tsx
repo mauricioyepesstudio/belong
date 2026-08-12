@@ -27,12 +27,14 @@ export function ProjectDiscussionsTab({
   isMember,
   currentUserId,
   currentUserName,
+  onActivityCommitted,
 }: {
   projectId: string;
   discussions: ProjectDiscussion[];
   isMember: boolean;
   currentUserId: string;
   currentUserName: string | null;
+  onActivityCommitted?: () => void;
 }) {
   const { toast } = useToast();
   const [discussions, setDiscussions] = useState(initial);
@@ -49,7 +51,8 @@ export function ProjectDiscussionsTab({
   });
 
   useEffect(() => {
-    setDiscussions(initial);
+    const syncId = window.setTimeout(() => setDiscussions(initial), 0);
+    return () => window.clearTimeout(syncId);
   }, [initial]);
 
   const handleCreate = () => {
@@ -123,6 +126,7 @@ export function ProjectDiscussionsTab({
               : d
           )
         );
+        onActivityCommitted?.();
       }
     });
   };

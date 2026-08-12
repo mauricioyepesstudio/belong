@@ -119,8 +119,7 @@ export function ProjectScreen({
       else {
         toast("Joined project", "success");
         setJoinedIds((prev) => new Set(prev).add(projectId));
-        setTab("mine-active");
-        router.refresh();
+        router.push(`/projects/${projectId}`);
       }
     });
   };
@@ -179,13 +178,7 @@ export function ProjectScreen({
                   : ""}
               </span>
             </div>
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs text-fg-muted">
-                <span>Progress</span>
-                <span>{project.progress}%</span>
-              </div>
-              <ProgressBar value={project.progress} animate={false} />
-            </div>
+            <ProgressBar value={project.progress} animate={false} />
             {project.funding_enabled && project.funding_goal_cents ? (
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-fg-muted">
@@ -206,7 +199,7 @@ export function ProjectScreen({
               disabled={isPending}
               onClick={() => handleJoin(project.id)}
             >
-              Join project
+              Join &amp; contribute
             </Button>
           ) : isOwner && !project.funding_enabled ? (
             <Button
@@ -313,7 +306,7 @@ export function ProjectScreen({
             }
           />
         ) : (
-          <StaggerList>
+          <StaggerList key={tab}>
             <EntityGrid>
               {list.map((p) => (
                 <StaggerItem key={p.id}>

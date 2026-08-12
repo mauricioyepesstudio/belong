@@ -108,20 +108,6 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
   const [status, setStatus] = useState(project.status);
   const [fundingEnabled, setFundingEnabled] = useState(project.funding_enabled);
 
-  useEffect(() => {
-    setPosts(data.posts);
-    setMembership(data.membership);
-    setMemberCount(data.memberCount);
-    setMembers(data.members);
-    setWorkspace(data.workspace);
-    setProgress(data.project.progress);
-    setStatus(data.project.status);
-    setFundingEnabled(data.project.funding_enabled);
-    setEditName(data.project.name);
-    setEditDescription(data.project.description ?? "");
-    setEditDeadline(data.project.deadline ?? "");
-  }, [data]);
-
   const openedProjectRef = useRef<string | null>(null);
   useEffect(() => {
     if (openedProjectRef.current === project.id) return;
@@ -425,11 +411,15 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
           </Link>
         }
       >
-        <Card>
-          <CardContent className="space-y-4 pt-6">
+        <Card id="project-membership" className="relative scroll-mt-24 overflow-hidden border-brand/20 bg-[radial-gradient(circle_at_18%_12%,rgba(139,92,246,0.14),transparent_38%),linear-gradient(145deg,rgba(15,15,35,0.96),rgba(6,5,20,0.98))] shadow-[0_28px_80px_-48px_var(--brand-glow)]">
+          <div
+            className="pointer-events-none absolute -left-20 -top-24 h-64 w-64 rounded-full bg-brand/10 blur-3xl"
+            aria-hidden
+          />
+          <CardContent className="relative space-y-5 pt-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex items-start gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand/20 to-brand-secondary/10">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/25 to-brand-secondary/10 shadow-[0_0_30px_-12px_var(--brand-glow)]">
                   <FolderKanban className="h-7 w-7 text-brand" aria-hidden />
                 </div>
                 <div className="min-w-0">
@@ -445,6 +435,7 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
                         {membership.role}
                       </Badge>
                     )}
+                    {!membership && <Badge variant="outline">Visitor</Badge>}
                     {fundingEnabled && <Badge variant="brand">Funding</Badge>}
                     <Link href={`/community/${community.slug}`}>
                       <Badge variant="outline">{community.name}</Badge>
@@ -457,13 +448,7 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
                       <> · Due {new Date(project.deadline).toLocaleDateString()}</>
                     )}
                   </p>
-                  <div className="mt-3 max-w-xs space-y-1">
-                    <div className="flex justify-between text-xs text-fg-muted">
-                      <span>Progress</span>
-                      <span>{progress}%</span>
-                    </div>
-                    <ProgressBar value={progress} animate={false} />
-                  </div>
+                  <ProgressBar value={progress} animate={false} className="mt-4 max-w-sm" />
                   {fundingEnabled && project.funding_goal_cents && (
                     <div className="mt-3 max-w-xs space-y-1">
                       <div className="flex justify-between text-xs text-fg-muted">
@@ -558,25 +543,54 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
           </SegmentErrorBoundary>
         )}
 
-        <div className="mt-6 overflow-x-auto">
-          <Tabs
-            tabs={[
-              { id: "overview", label: "Overview" },
-              { id: "activity", label: "Activity", count: workspace.activity.length + posts.length },
-              { id: "tasks", label: "Tasks", count: workspace.tasks.length },
-              { id: "members", label: "Members", count: memberCount },
-              { id: "files", label: "Files", count: workspace.files.length },
-              { id: "discussions", label: "Discussions", count: workspace.discussions.length },
-              { id: "goals", label: "Goals", count: workspace.goals.length },
-              { id: "analytics", label: "Analytics" },
-            ]}
-            active={tab}
-            onChange={setTab}
-          />
+        {!isMember && (
+          <div
+            role="status"
+            className="flex flex-col gap-2 rounded-2xl border border-brand/15 bg-brand/[0.04] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div>
+              <p className="text-sm font-medium text-fg-primary">You are viewing this project as a visitor</p>
+              <p className="mt-0.5 text-caption text-fg-muted">
+                {isCommunityMember
+                  ? "Join the project to collaborate on tasks, files, discussions, and goals."
+                  : `Join ${community.name} first, then return to become a project member.`}
+              </p>
+            </div>
+            <Link
+              href={isCommunityMember ? "#project-membership" : `/community/${community.slug}`}
+              onClick={isCommunityMember ? handleJoin : undefined}
+              className="shrink-0 text-xs font-semibold text-brand hover:underline focus-ring"
+            >
+              {isCommunityMember ? "Join project" : `Open ${community.name}`} →
+            </Link>
+          </div>
+        )}
+
+        <div className="sticky top-[calc(var(--header-height)+0.75rem)] z-20 -mx-1 mt-6 overflow-x-auto rounded-2xl bg-bg-base/85 p-1 backdrop-blur-xl">
+          <div className="min-w-max">
+            <Tabs
+              tabs={[
+                { id: "overview", label: "Overview" },
+                { id: "activity", label: "Activity", count: workspace.activity.length },
+                { id: "tasks", label: "Tasks", count: workspace.tasks.length },
+                { id: "members", label: "Members", count: memberCount },
+                { id: "files", label: "Files", count: workspace.files.length },
+                { id: "discussions", label: "Discussions", count: workspace.discussions.length },
+                { id: "goals", label: "Goals", count: workspace.goals.length },
+                { id: "analytics", label: "Analytics" },
+              ]}
+              active={tab}
+              onChange={setTab}
+            />
+          </div>
         </div>
 
         {tab === "overview" && (
-          <ProjectOverviewTab data={{ ...data, project: { ...project, progress, status }, workspace }} />
+          <ProjectOverviewTab
+            data={{ ...data, project: { ...project, progress, status }, workspace }}
+            isMember={isMember}
+            onNavigate={setTab}
+          />
         )}
 
         {tab === "activity" && (
@@ -605,6 +619,9 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
             projectId={project.id}
             tasks={workspace.tasks}
             isMember={isMember}
+            currentUserId={currentUser.id}
+            currentUserName={currentUser.fullName}
+            onActivityCommitted={() => void syncFromServer()}
           />
         )}
 
@@ -634,6 +651,7 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
             isMember={isMember}
             currentUserId={currentUser.id}
             currentUserName={currentUser.fullName}
+            onActivityCommitted={() => void syncFromServer()}
           />
         )}
 

@@ -15,12 +15,16 @@ import type { LucideIcon } from "lucide-react";
 
 const activityIcons: Record<string, LucideIcon> = {
   task_created: Target,
+  task_moved: Target,
+  task_claimed: UserPlus,
+  task_unassigned: UserPlus,
   task_completed: CheckCircle2,
   member_joined: UserPlus,
   file_uploaded: FileUp,
   goal_completed: Target,
   milestone_completed: CheckCircle2,
   discussion_started: MessageSquare,
+  discussion_replied: MessageSquare,
   post_created: MessageSquare,
 };
 

@@ -130,7 +130,7 @@ export async function updateProjectTask(
 
   const { data: task } = await supabase
     .from("project_tasks")
-    .select("project_id, title, status")
+    .select("project_id, title, status, assignee_id")
     .eq("id", taskId)
     .single();
 
@@ -138,6 +138,17 @@ export async function updateProjectTask(
 
   const err = await requireProjectMember(supabase, task.project_id, profile.id);
   if (err) return err;
+
+  if (data.assigneeId) {
+    const { data: assignee } = await supabase
+      .from("project_members")
+      .select("user_id")
+      .eq("project_id", task.project_id)
+      .eq("user_id", data.assigneeId)
+      .maybeSingle();
+
+    if (!assignee) return { error: "Assignee must be a project member" };
+  }
 
   const updates: Database["public"]["Tables"]["project_tasks"]["Update"] = {};
   if (data.title !== undefined) updates.title = data.title.trim();
@@ -170,6 +181,28 @@ export async function updateProjectTask(
       eventType: "project_task_completed",
       sourceId: task.project_id,
       metadata: { task_id: taskId, project_id: task.project_id },
+    });
+  } else if (data.status !== undefined && data.status !== task.status) {
+    const statusLabel = data.status.replace(/_/g, " ");
+    await logProjectActivity(supabase, {
+      projectId: task.project_id,
+      actorId: profile.id,
+      activityType: "task_moved",
+      title: `Moved task "${task.title}" to ${statusLabel}`,
+      metadata: { task_id: taskId, from_status: task.status, to_status: data.status },
+    });
+  }
+
+  if (data.assigneeId !== undefined && data.assigneeId !== task.assignee_id) {
+    const claimedByActor = data.assigneeId === profile.id;
+    await logProjectActivity(supabase, {
+      projectId: task.project_id,
+      actorId: profile.id,
+      activityType: data.assigneeId ? "task_claimed" : "task_unassigned",
+      title: data.assigneeId
+        ? `${claimedByActor ? "Claimed" : "Assigned"} task "${task.title}"`
+        : `Unassigned task "${task.title}"`,
+      metadata: { task_id: taskId, assignee_id: data.assigneeId },
     });
   }
 
@@ -401,6 +434,15 @@ export async function replyToProjectDiscussion(
   });
 
   if (error) return { error: error.message };
+
+  await logProjectActivity(supabase, {
+    projectId: discussion.project_id,
+    actorId: profile.id,
+    activityType: "discussion_replied",
+    title: `Replied to discussion "${discussion.title}"`,
+    metadata: { discussion_id: discussionId, parent_reply_id: parentReplyId ?? null },
+  });
+
   revalidateProject(discussion.project_id);
   return {};
 }

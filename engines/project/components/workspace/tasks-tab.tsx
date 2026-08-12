@@ -1,7 +1,7 @@
 "use client";
 
 import type { ProjectTask, ProjectTaskStatus } from "@/lib/core/project-workspace";
-import { createProjectTask, moveProjectTask } from "@/lib/actions/project-workspace";
+import { createProjectTask, moveProjectTask, updateProjectTask } from "@/lib/actions/project-workspace";
 import {
   Badge,
   Button,
@@ -12,7 +12,7 @@ import {
   Label,
   useToast,
 } from "@/systems/design-system";
-import { FolderKanban, Plus } from "lucide-react";
+import { FolderKanban, Plus, UserCheck } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 
 const COLUMNS: { id: ProjectTaskStatus; label: string }[] = [
@@ -33,10 +33,16 @@ export function ProjectTasksTab({
   projectId,
   tasks: initialTasks,
   isMember,
+  currentUserId,
+  currentUserName,
+  onActivityCommitted,
 }: {
   projectId: string;
   tasks: ProjectTask[];
   isMember: boolean;
+  currentUserId: string;
+  currentUserName: string | null;
+  onActivityCommitted?: () => void;
 }) {
   const { toast } = useToast();
   const [tasks, setTasks] = useState(initialTasks);
@@ -45,7 +51,8 @@ export function ProjectTasksTab({
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
   useEffect(() => {
-    setTasks(initialTasks);
+    const syncId = window.setTimeout(() => setTasks(initialTasks), 0);
+    return () => window.clearTimeout(syncId);
   }, [initialTasks]);
 
   const tasksByStatus = (status: ProjectTaskStatus) =>
@@ -96,8 +103,31 @@ export function ProjectTasksTab({
     startTransition(async () => {
       const result = await moveProjectTask(draggingId, status, index);
       if (result.error) toast(result.error, "error");
+      else onActivityCommitted?.();
     });
     setDraggingId(null);
+  };
+
+  const handleClaim = (task: ProjectTask) => {
+    const previousTasks = tasks;
+    setTasks((current) =>
+      current.map((item) =>
+        item.id === task.id
+          ? { ...item, assigneeId: currentUserId, assigneeName: currentUserName ?? "You" }
+          : item
+      )
+    );
+
+    startTransition(async () => {
+      const result = await updateProjectTask(task.id, { assigneeId: currentUserId });
+      if (result.error) {
+        setTasks(previousTasks);
+        toast(result.error, "error");
+      } else {
+        toast("Task claimed", "success");
+        onActivityCommitted?.();
+      }
+    });
   };
 
   if (!isMember) {
@@ -169,7 +199,23 @@ export function ProjectTasksTab({
                     )}
                   </div>
                   {task.assigneeName && (
-                    <p className="mt-1 text-micro text-fg-muted">@{task.assigneeName}</p>
+                    <p className="mt-2 text-micro text-fg-muted">
+                      {task.assigneeId === currentUserId ? "Assigned to you" : `@${task.assigneeName}`}
+                    </p>
+                  )}
+                  {!task.assigneeId && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="mt-2 h-7 px-2 text-xs"
+                      disabled={isPending}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onClick={() => handleClaim(task)}
+                    >
+                      <UserCheck className="h-3.5 w-3.5" aria-hidden />
+                      Claim task
+                    </Button>
                   )}
                 </div>
               ))}

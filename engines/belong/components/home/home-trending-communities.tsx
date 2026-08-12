@@ -8,8 +8,10 @@ import { SectionHeading } from "./home-continue";
 
 export function HomeTrendingCommunities({
   communities,
+  joinedCount,
 }: {
   communities: DiscoverCommunity[];
+  joinedCount: number;
 }) {
   const trending = [...communities]
     .sort((a, b) => b.memberCount - a.memberCount)
@@ -24,11 +26,18 @@ export function HomeTrendingCommunities({
           title="Trending communities"
         />
         <GlassCard className="px-5 py-6 text-center">
-          <p className="text-sm text-fg-muted">
-            Explore communities to find builders working on what you care about.
+          <p className="text-sm font-medium text-fg-primary">
+            {joinedCount > 0
+              ? "You’re connected to every available community."
+              : "Communities are taking shape."}
+          </p>
+          <p className="mt-1 text-sm text-fg-muted">
+            {joinedCount > 0
+              ? "Keep contributing, or start a new space around a shared purpose."
+              : "Explore again soon to meet builders working on what matters to you."}
           </p>
           <Link href="/community" className="mt-3 inline-flex text-sm font-medium text-brand hover:underline">
-            Browse communities
+            {joinedCount > 0 ? "Open your communities" : "Browse communities"}
           </Link>
         </GlassCard>
       </section>

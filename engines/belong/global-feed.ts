@@ -60,6 +60,38 @@ export type UserActivityItem = {
   createdAt: string;
 };
 
+const DUPLICATE_ACTIVITY_WINDOW_MS = 5 * 60 * 1000;
+
+function activityIdentity(item: UserActivityItem): string {
+  const normalizedTitle = item.title.trim().toLowerCase();
+  const isCommunityJoin =
+    (item.type === "contribution" && normalizedTitle === "join") ||
+    (item.type === "community" && normalizedTitle.startsWith("joined "));
+
+  if (isCommunityJoin) return `community-join:${item.href}`;
+  return `${item.type}:${normalizedTitle}:${item.subtitle?.trim().toLowerCase() ?? ""}:${item.href}`;
+}
+
+function removeDuplicateActivity(items: UserActivityItem[]): UserActivityItem[] {
+  const latestByIdentity = new Map<string, number>();
+
+  return items.filter((item) => {
+    const identity = activityIdentity(item);
+    const timestamp = new Date(item.createdAt).getTime();
+    const previousTimestamp = latestByIdentity.get(identity);
+
+    if (
+      previousTimestamp !== undefined &&
+      Math.abs(previousTimestamp - timestamp) <= DUPLICATE_ACTIVITY_WINDOW_MS
+    ) {
+      return false;
+    }
+
+    latestByIdentity.set(identity, timestamp);
+    return true;
+  });
+}
+
 export async function fetchUserRecentActivity(
   supabase: SupabaseServerClient,
   userId: string,
@@ -392,11 +424,9 @@ export async function fetchUserRecentActivity(
       href: "/events",
       createdAt: r.registered_at,
     })),
-  ]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, limit);
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  return items;
+  return removeDuplicateActivity(items).slice(0, limit);
 }
 
 function daysAgo(n: number): string {

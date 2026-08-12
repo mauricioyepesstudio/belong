@@ -125,6 +125,7 @@ export type ProjectCandidate = {
   status: string;
   communityId: string;
   communityName: string;
+  communitySlug: string;
   communityTag: string | null;
 };
 

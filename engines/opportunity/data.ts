@@ -123,7 +123,7 @@ async function fetchProjectCandidates(
 ): Promise<ProjectCandidate[]> {
   let query = supabase
     .from("projects")
-    .select("id, name, description, status, community_id, communities(name, tag)")
+    .select("id, name, description, status, community_id, communities(name, slug, tag)")
     .neq("owner_id", userId)
     .in("status", ["planning", "active"])
     .order("updated_at", { ascending: false })
@@ -136,7 +136,11 @@ async function fetchProjectCandidates(
   const { data } = await query;
 
   return (data ?? []).map((project) => {
-    const community = project.communities as { name?: string; tag?: string | null } | null;
+    const community = project.communities as {
+      name?: string;
+      slug?: string;
+      tag?: string | null;
+    } | null;
     return {
       id: project.id,
       name: project.name,
@@ -144,6 +148,7 @@ async function fetchProjectCandidates(
       status: project.status,
       communityId: project.community_id,
       communityName: community?.name ?? "Community project",
+      communitySlug: community?.slug ?? "",
       communityTag: community?.tag ?? null,
     };
   });

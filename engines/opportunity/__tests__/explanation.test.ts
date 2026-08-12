@@ -151,6 +151,7 @@ describe("opportunity matchers with explanation", () => {
       status: "active",
       communityId: "comm-5",
       communityName: "AI Builders Lab",
+      communitySlug: "ai-builders",
       communityTag: "AI",
     };
 

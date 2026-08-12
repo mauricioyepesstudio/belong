@@ -55,6 +55,9 @@ function RecommendationCardComponent({
   onAccept: (item: ScoredRecommendation) => void;
 }) {
   const avatarUrl = item.meta?.avatarUrl ?? undefined;
+  const actionHref = item.meta?.actionHref ?? item.href;
+  const actionLabel = item.meta?.actionLabel ?? recommendationActionLabel(item.category);
+  const actionHint = item.meta?.actionHint;
 
   return (
     <div className="rounded-2xl border border-border-subtle bg-white/[0.02] p-4 transition-colors hover:border-brand/30 hover:bg-brand/5">
@@ -85,20 +88,21 @@ function RecommendationCardComponent({
           )}
 
           <RecommendationExplanation item={item} className="mt-3" limit={3} />
+          {actionHint && <p className="mt-3 text-xs text-brand">{actionHint}</p>}
 
           <div className="mt-4 flex flex-wrap gap-2">
             <Button type="button" size="sm" variant="secondary" onClick={() => onDetails(item)}>
               Details
             </Button>
             <Link
-              href={item.href}
+              href={actionHref}
               onClick={() => onAccept(item)}
               className={cn(
                 "inline-flex h-8 items-center justify-center rounded-lg bg-brand px-3 text-xs font-medium text-white",
                 "transition-colors hover:bg-brand/90"
               )}
             >
-              {recommendationActionLabel(item.category)}
+              {actionLabel}
             </Link>
           </div>
         </div>

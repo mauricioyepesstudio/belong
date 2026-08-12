@@ -221,12 +221,12 @@ export function scoreProjectMatch(
   candidate: ProjectCandidate
 ): ScoredRecommendation | null {
   const factors: ScoreFactorInput[] = [];
+  const isCommunityMember = profile.communityIds.includes(candidate.communityId);
+  const requiresCommunityMembership = !isCommunityMember && Boolean(candidate.communitySlug);
   const projectText = `${candidate.name} ${candidate.description ?? ""} ${candidate.communityTag ?? ""}`;
   const skillsNeeded = textContainsAny(projectText, profile.skills);
   const sharedInterests = textContainsAny(projectText, profile.interests);
-  const sharedCommunities = profile.communityIds.includes(candidate.communityId)
-    ? [candidate.communityName]
-    : [];
+  const sharedCommunities = isCommunityMember ? [candidate.communityName] : [];
 
   if (skillsNeeded.length > 0) {
     factors.push({
@@ -308,7 +308,17 @@ export function scoreProjectMatch(
     candidate.communityName,
     `/projects/${candidate.id}`,
     factors,
-    signals
+    signals,
+    {
+      actionHref: requiresCommunityMembership
+        ? `/community/${candidate.communitySlug}`
+        : `/projects/${candidate.id}`,
+      actionLabel: requiresCommunityMembership ? "Join community first" : "Open project",
+      actionHint: requiresCommunityMembership
+        ? `Join ${candidate.communityName} before contributing to this project.`
+        : `You already belong to ${candidate.communityName}.`,
+      requiresCommunityMembership: requiresCommunityMembership ? "true" : "false",
+    }
   );
 }
 

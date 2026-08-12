@@ -36,6 +36,11 @@ export function OpportunityScreen({
   const topOpportunity = Object.values(recommendations)
     .flat()
     .sort((a, b) => b.score - a.score)[0];
+  const topActionHref = topOpportunity?.meta?.actionHref ?? topOpportunity?.href;
+  const topActionLabel =
+    topOpportunity?.meta?.actionLabel ??
+    (topOpportunity ? recommendationActionLabel(topOpportunity.category) : "Open opportunity");
+  const topActionHint = topOpportunity?.meta?.actionHint;
 
   return (
     <FeatureScreen
@@ -88,10 +93,13 @@ export function OpportunityScreen({
                 <p className="mt-1 text-sm text-fg-muted">
                   {topOpportunity.explanation.bullets[0]?.label ?? "A strong match based on your BELONG activity and profile."}
                 </p>
+                {topActionHint && (
+                  <p className="mt-2 text-xs text-brand">{topActionHint}</p>
+                )}
               </div>
             </div>
             <Link
-              href={topOpportunity.href}
+              href={topActionHref ?? topOpportunity.href}
               onClick={() => {
                 void trackClientEvent({
                   name: "recommendation_accepted",
@@ -99,12 +107,16 @@ export function OpportunityScreen({
                   screen: AnalyticsScreen.OPPORTUNITIES,
                   source: AnalyticsSource.RECOMMENDATION_OPPORTUNITIES,
                   entityId: topOpportunity.id,
-                  properties: { category: topOpportunity.category, placement: "next_best_move" },
+                  properties: {
+                    category: topOpportunity.category,
+                    placement: "next_best_move",
+                    action: topActionLabel,
+                  },
                 });
               }}
               className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-medium text-white transition-colors hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary"
             >
-              {recommendationActionLabel(topOpportunity.category)}
+              {topActionLabel}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </div>

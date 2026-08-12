@@ -109,12 +109,33 @@ describe("opportunity matchers", () => {
       status: "active",
       communityId: "comm-5",
       communityName: "AI Builders Lab",
+      communitySlug: "ai-builders",
       communityTag: "AI",
     };
 
     const result = scoreProjectMatch(baseProfile, candidate);
     expect(result).not.toBeNull();
     expect(result!.reasons.length).toBeGreaterThan(0);
+    expect(result!.meta?.actionHref).toBe("/community/ai-builders");
+    expect(result!.meta?.actionLabel).toBe("Join community first");
+  });
+
+  it("opens a project directly when the user already belongs to its community", () => {
+    const candidate: ProjectCandidate = {
+      id: "proj-2",
+      name: "Founder Launchpad",
+      description: "A startup project for founders",
+      status: "active",
+      communityId: "comm-1",
+      communityName: "Indie Founders Circle",
+      communitySlug: "indie-founders",
+      communityTag: "Startups",
+    };
+
+    const result = scoreProjectMatch(baseProfile, candidate);
+    expect(result).not.toBeNull();
+    expect(result!.meta?.actionHref).toBe("/projects/proj-2");
+    expect(result!.meta?.actionLabel).toBe("Open project");
   });
 
   it("scores communities by tag and interests", () => {

@@ -21,6 +21,7 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
 
   return (
     <MessagesView
+      key={activeId ?? "no-conversation"}
       conversations={conversations}
       initialMessages={messages}
       activeConversationId={activeId}

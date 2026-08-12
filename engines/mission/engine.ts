@@ -112,10 +112,7 @@ export function buildDailyMissionTemplates(
   return templates.slice(0, 4);
 }
 
-export function buildWeeklyGoalTemplates(
-  profile: UserProfile,
-  stats: UserStats
-): WeeklyTemplate[] {
+export function buildWeeklyGoalTemplates(profile: UserProfile): WeeklyTemplate[] {
   const goal = getBuildGoalOption(profile.build_goal);
   return [
     {

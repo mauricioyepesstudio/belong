@@ -14,7 +14,7 @@ import {
 } from "@/systems/analytics/track-server";
 import { slugify } from "@/lib/supabase/notify";
 import type { SupabaseServerClient } from "@/lib/core/types";
-import type { BuildGoal, UserProfile } from "@/types/database.types";
+import type { UserProfile } from "@/types/database.types";
 import {
   FIRST_ONBOARDING_STEP,
   ONBOARDING_SESSION_STATUS,

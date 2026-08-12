@@ -40,13 +40,14 @@ export function HomeComposer({
   useEffect(() => {
     const draft = getPostDraft();
     if (!draft) return;
-    setContent(draft.content);
-    if (draft.communityId && communities.some((c) => c.id === draft.communityId)) {
-      setCommunityId(draft.communityId);
-    }
-    if (draft.content.trim()) {
-      setExpanded(true);
-    }
+    const timer = window.setTimeout(() => {
+      setContent(draft.content);
+      if (draft.communityId && communities.some((c) => c.id === draft.communityId)) {
+        setCommunityId(draft.communityId);
+      }
+      if (draft.content.trim()) setExpanded(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [communities, setExpanded]);
 
   useEffect(() => {

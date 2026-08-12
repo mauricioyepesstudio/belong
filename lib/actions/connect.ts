@@ -2,7 +2,7 @@
 
 import { requireProfile } from "@/lib/auth/session";
 import type { ActionResult } from "@/lib/actions/types";
-import { isStripeConfigured, MIN_LISTING_CENTS } from "@/lib/stripe/config";
+import { isStripeConfigured } from "@/lib/stripe/config";
 import { getStripe } from "@/lib/stripe/server";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";

@@ -8,7 +8,6 @@ import {
   MIN_COMMUNITY_SUB_CENTS,
   MIN_DONATION_CENTS,
   MIN_FUNDING_CENTS,
-  MIN_LISTING_CENTS,
   STRIPE_PRICES,
 } from "@/lib/stripe/config";
 import { getOrCreateStripeCustomer } from "@/lib/stripe/customer";

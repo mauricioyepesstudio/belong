@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Notification } from "@/types/database.types";
 import Link from "next/link";
+import { createElement } from "react";
 
 type NotificationRowProps = {
   notification: Notification;
@@ -12,7 +13,10 @@ type NotificationRowProps = {
 };
 
 export function NotificationRow({ notification, onNavigate, compact }: NotificationRowProps) {
-  const Icon = getNotificationIcon(notification.type);
+  const icon = createElement(getNotificationIcon(notification.type), {
+    className: "h-4 w-4",
+    "aria-hidden": true,
+  });
   const href = getNotificationHref(notification.type, notification.metadata);
   const isUnread = !notification.read_at;
 
@@ -24,7 +28,7 @@ export function NotificationRow({ notification, onNavigate, compact }: Notificat
           isUnread ? "bg-brand/10 text-brand" : "bg-bg-hover text-fg-muted"
         )}
       >
-        <Icon className="h-4 w-4" aria-hidden />
+        {icon}
       </div>
       <div className="min-w-0 flex-1">
         <p

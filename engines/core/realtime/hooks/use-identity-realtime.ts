@@ -25,7 +25,10 @@ function mapImpactRow(row: Record<string, unknown>): ImpactEvent {
 
 export function useIdentityRealtime(handlers: IdentityRealtimeHandlers) {
   const handlersRef = useRef(handlers);
-  handlersRef.current = handlers;
+
+  useEffect(() => {
+    handlersRef.current = handlers;
+  }, [handlers]);
 
   useEffect(() => {
     const { userId } = handlersRef.current;
@@ -59,7 +62,10 @@ export function useDashboardRealtime(handlers: IdentityRealtimeHandlers & {
   onProjectUpdate?: (row: Record<string, unknown>) => void;
 }) {
   const handlersRef = useRef(handlers);
-  handlersRef.current = handlers;
+
+  useEffect(() => {
+    handlersRef.current = handlers;
+  }, [handlers]);
 
   useEffect(() => {
     const { userId } = handlersRef.current;

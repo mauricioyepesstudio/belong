@@ -16,6 +16,54 @@ import {
 import { Target } from "lucide-react";
 import { useState, useTransition } from "react";
 
+function GoalList({
+  items,
+  label,
+  isMember,
+  isPending,
+  onBumpProgress,
+}: {
+  items: ProjectGoal[];
+  label: string;
+  isMember: boolean;
+  isPending: boolean;
+  onBumpProgress: (goalId: string, current: number) => void;
+}) {
+  return (
+    <div>
+      <h3 className="mb-3 text-sm font-medium text-fg-muted">{label}</h3>
+      {items.length === 0 ? (
+        <p className="text-caption">No {label.toLowerCase()} yet.</p>
+      ) : (
+        <ul className="space-y-3">
+          {items.map((goal) => (
+            <li key={goal.id} className="rounded-xl border border-border-subtle p-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-medium text-fg-primary">{goal.title}</p>
+                <Badge variant={goal.status === "completed" ? "success" : "outline"}>
+                  {goal.progressPercent}%
+                </Badge>
+              </div>
+              <ProgressBar value={goal.progressPercent} className="mt-3" />
+              {isMember && goal.status !== "completed" && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="mt-3"
+                  disabled={isPending}
+                  onClick={() => onBumpProgress(goal.id, goal.progressPercent)}
+                >
+                  +25% progress
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function ProjectGoalsTab({
   projectId,
   goals: initialGoals,
@@ -58,40 +106,6 @@ export function ProjectGoalsTab({
     });
   };
 
-  const GoalList = ({ items, label }: { items: ProjectGoal[]; label: string }) => (
-    <div>
-      <h3 className="mb-3 text-sm font-medium text-fg-muted">{label}</h3>
-      {items.length === 0 ? (
-        <p className="text-caption">No {label.toLowerCase()} yet.</p>
-      ) : (
-        <ul className="space-y-3">
-          {items.map((g) => (
-            <li key={g.id} className="rounded-xl border border-border-subtle p-4">
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-medium text-fg-primary">{g.title}</p>
-                <Badge variant={g.status === "completed" ? "success" : "outline"}>
-                  {g.progressPercent}%
-                </Badge>
-              </div>
-              <ProgressBar value={g.progressPercent} className="mt-3" />
-              {isMember && g.status !== "completed" && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="mt-3"
-                  disabled={isPending}
-                  onClick={() => bumpProgress(g.id, g.progressPercent)}
-                >
-                  +25% progress
-                </Button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-
   if (!isMember) {
     return (
       <EmptyState
@@ -132,8 +146,20 @@ export function ProjectGoalsTab({
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <GoalList items={weekly} label="Weekly goals" />
-        <GoalList items={quarterly} label="Quarter goals" />
+        <GoalList
+          items={weekly}
+          label="Weekly goals"
+          isMember={isMember}
+          isPending={isPending}
+          onBumpProgress={bumpProgress}
+        />
+        <GoalList
+          items={quarterly}
+          label="Quarter goals"
+          isMember={isMember}
+          isPending={isPending}
+          onBumpProgress={bumpProgress}
+        />
       </div>
     </div>
   );

@@ -1,7 +1,3 @@
-import type { AIInsight } from "./types";
-import type { DailyBriefing } from "./briefing";
-import type { ConnectionSuggestion, Opportunity, TopImpactAction } from "./coach-types";
-
 export type { AIInsightPriority, AIInsight, AIContext, AIService } from "./types";
 export type { DailyBriefing, CoachContext } from "./briefing";
 export type { Opportunity, ConnectionSuggestion, TopImpactAction } from "./coach-types";

@@ -172,7 +172,7 @@ export async function ensureWeeklyGoalsLinked(
     return;
   }
 
-  const templates = buildWeeklyGoalTemplates(profile, stats);
+  const templates = buildWeeklyGoalTemplates(profile);
   const rows = templates.map((t) => ({
     user_id: userId,
     title: t.title,

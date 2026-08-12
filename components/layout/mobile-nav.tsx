@@ -9,7 +9,7 @@ import {
   isNavActive,
   withNotificationBadge,
 } from "@/systems/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 function isActive(pathname: string, href: string) {
   return isNavActive(pathname, href);
@@ -25,14 +25,10 @@ export function MobileNav({
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
 
-  let nav = withNotificationBadge(mobileNav, "/messages", unreadMessages);
-  let moreItems = withNotificationBadge(mobileMoreNav, "/notifications", unreadNotifications);
+  const nav = withNotificationBadge(mobileNav, "/messages", unreadMessages);
+  const moreItems = withNotificationBadge(mobileMoreNav, "/notifications", unreadNotifications);
 
   const moreActive = mobileMoreNav.some((item) => isActive(pathname, item.href));
-
-  useEffect(() => {
-    setMoreOpen(false);
-  }, [pathname]);
 
   return (
     <>
@@ -56,6 +52,7 @@ export function MobileNav({
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    onClick={() => setMoreOpen(false)}
                     className={cn(
                       "flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors",
                       active ? "bg-brand/10 text-brand" : "text-fg-secondary hover:bg-bg-hover"

@@ -21,7 +21,7 @@ import type {
 export function createMissionEngineAdapter(): MissionEngineAdapter {
   return {
     name: ENGINE_NAMES.mission,
-    async fetch(context, options) {
+    async fetch(context) {
       const stats =
         context.runtime?.stats ??
         (await fetchUserStats(context.supabase, context.userId));
@@ -38,7 +38,7 @@ export function createMissionEngineAdapter(): MissionEngineAdapter {
 export function createImpactEngineAdapter(): ImpactEngineAdapter {
   return {
     name: ENGINE_NAMES.impact,
-    async fetch(context, mission, options) {
+    async fetch(context, mission) {
       const runtime = context.runtime;
       if (!runtime) {
         throw new Error("ImpactEngineAdapter requires CoreEngineContext.runtime");

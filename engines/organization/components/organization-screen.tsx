@@ -19,7 +19,6 @@ import {
 } from "@/systems/design-system";
 import { StaggerItem, StaggerList } from "@/components/motion/fade-in";
 import { Building2, Plus } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 

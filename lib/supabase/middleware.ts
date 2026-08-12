@@ -43,11 +43,7 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  const publicRoutes = [...authRoutes, "/auth/callback", "/"];
   const isAuthRoute = authRoutes.some((r) => pathname.startsWith(r));
-  const isPublicRoute = publicRoutes.some((r) =>
-    r === "/" ? pathname === "/" : pathname.startsWith(r)
-  );
   const isOnboarding = pathname.startsWith("/onboarding");
   const isMarketingHome = pathname === "/";
 

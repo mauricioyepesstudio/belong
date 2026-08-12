@@ -24,7 +24,7 @@ import { formatInitials } from "@/lib/format";
 import type { UserProfile } from "@/types/database.types";
 import type { ProfileCompatibility } from "@/lib/data/profile";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 
 export function SettingsView({
   profile,
@@ -39,23 +39,25 @@ export function SettingsView({
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
-  const initialSettingsTab = searchParams.get("tab");
-  const [tab, setTab] = useState(
-    initialSettingsTab === "profile" || initialSettingsTab === "billing"
-      ? initialSettingsTab
-      : "account"
-  );
+  const requestedTab = searchParams.get("tab");
+  const [selectedTab, setSelectedTab] = useState("account");
+  const tab =
+    requestedTab === "profile" || requestedTab === "billing" || requestedTab === "account"
+      ? requestedTab
+      : selectedTab;
   const [isSaving, startSaveTransition] = useTransition();
   const [isUploading, startUploadTransition] = useTransition();
   const [isUpdatingPassword, startPasswordTransition] = useTransition();
   const showPasswordReset = searchParams.get("recovery") === "1";
 
-  useEffect(() => {
-    const settingsTab = searchParams.get("tab");
-    if (settingsTab === "profile" || settingsTab === "billing") {
-      setTab(settingsTab);
-    }
-  }, [searchParams]);
+  const handleTabChange = (nextTab: string) => {
+    setSelectedTab(nextTab);
+    const params = new URLSearchParams(searchParams.toString());
+    if (nextTab === "account") params.delete("tab");
+    else params.set("tab", nextTab);
+    const query = params.toString();
+    router.replace(query ? `/settings?${query}` : "/settings", { scroll: false });
+  };
 
   const saveCompatibility = (formData: FormData) => {
     startSaveTransition(async () => {
@@ -138,7 +140,7 @@ export function SettingsView({
             { id: "billing", label: "Billing" },
           ]}
           active={tab}
-          onChange={setTab}
+          onChange={handleTabChange}
         />
       }
     >

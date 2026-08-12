@@ -8,7 +8,7 @@ import { formatDistanceToNow, formatInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Message } from "@/types/database.types";
 import { ArrowLeft, MessageSquare, Search } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 
 type ConversationItem = {
   id: string;
@@ -60,17 +60,6 @@ export function MessagesView({
     }
   }, [toast]);
 
-  useEffect(() => {
-    if (activeConversationId) {
-      setActive(activeConversationId);
-      setMobileShowThread(true);
-    }
-  }, [activeConversationId]);
-
-  useEffect(() => {
-    if (active) loadMessages(active);
-  }, [active, loadMessages]);
-
   const onRealtimeMessage = useCallback((message: Message) => {
     setMessages((prev) => {
       if (prev.some((m) => m.id === message.id)) return prev;
@@ -83,6 +72,7 @@ export function MessagesView({
   const handleSelectConversation = (conversationId: string) => {
     setActive(conversationId);
     setMobileShowThread(true);
+    void loadMessages(conversationId);
   };
 
   const handleSend = () => {

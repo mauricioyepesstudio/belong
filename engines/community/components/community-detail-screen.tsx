@@ -83,14 +83,16 @@ export function CommunityDetailScreen({
   const [membership, setMembership] = useState(data.membership);
   const [memberCount, setMemberCount] = useState(data.memberCount);
   const [members, setMembers] = useState(data.members);
+  const [previousData, setPreviousData] = useState(data);
   const viewedPostRef = useRef<string | null>(null);
 
-  useEffect(() => {
+  if (data !== previousData) {
+    setPreviousData(data);
     setPosts(data.posts);
     setMembership(data.membership);
     setMemberCount(data.memberCount);
     setMembers(data.members);
-  }, [data]);
+  }
 
   useEffect(() => {
     if (!highlightPostId) return;

@@ -46,15 +46,17 @@ function PostCardComponent({
   const [menuOpen, setMenuOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const menuRef = useRef<HTMLDivElement>(null);
+  const [previousPost, setPreviousPost] = useState(post);
+
+  if (post !== previousPost) {
+    setPreviousPost(post);
+    setLocalPost(post);
+    setEditBody(post.content);
+  }
 
   const isAuthor = localPost.author_id === currentUserId;
   const canManage = isAuthor || canModerate;
   const imageUrl = localPost.image_url;
-
-  useEffect(() => {
-    setLocalPost(post);
-    setEditBody(post.content);
-  }, [post]);
 
   useEffect(() => {
     if (!menuOpen) return;

@@ -52,6 +52,7 @@ export function useTypingIndicator(options: {
   useEffect(() => {
     if (!discussionId) return;
 
+    const timers = timersRef.current;
     const channelName = realtimeChannels.discussion(discussionId);
     const unsubscribe = getRealtimeEngine().subscribe({
       key: `typing:${discussionId}`,
@@ -64,10 +65,10 @@ export function useTypingIndicator(options: {
 
     return () => {
       unsubscribe();
-      for (const timer of timersRef.current.values()) {
+      for (const timer of timers.values()) {
         clearTimeout(timer);
       }
-      timersRef.current.clear();
+      timers.clear();
     };
   }, [discussionId, markTyping]);
 

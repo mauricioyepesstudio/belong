@@ -9,7 +9,10 @@ export function useMissionRealtime(handlers: {
   onMissionUpdate?: (row: Record<string, unknown>) => void;
 }) {
   const handlersRef = useRef(handlers);
-  handlersRef.current = handlers;
+
+  useEffect(() => {
+    handlersRef.current = handlers;
+  }, [handlers]);
 
   useEffect(() => {
     const { missionId } = handlersRef.current;

@@ -2,7 +2,6 @@ import type {
   OnboardingAIProvider,
   OnboardingCompleteInput,
   OnboardingCompleteResult,
-  OnboardingDraft,
   OnboardingEngineContext,
   OnboardingEngineResult,
   OnboardingSession,

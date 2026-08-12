@@ -56,7 +56,8 @@ export function HomeContinue({
   const [draft, setDraft] = useState<PostDraft | null>(null);
 
   useEffect(() => {
-    setDraft(getPostDraft());
+    const timer = window.setTimeout(() => setDraft(getPostDraft()), 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const items: ContinueItem[] = [];

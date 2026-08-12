@@ -1,4 +1,3 @@
-import type { SupabaseServerClient } from "@/lib/core/types";
 import type { DailyMission } from "@/engines/mission/types";
 import type { ImpactEngineData } from "@/engines/impact/types";
 import type { UserCommunity } from "@/lib/core/communities";

@@ -19,7 +19,10 @@ type CommunityRealtimeHandlers = {
 
 export function useCommunityRealtime(handlers: CommunityRealtimeHandlers) {
   const handlersRef = useRef(handlers);
-  handlersRef.current = handlers;
+
+  useEffect(() => {
+    handlersRef.current = handlers;
+  }, [handlers]);
 
   const [activeUsers, setActiveUsers] = useState(0);
   const [presenceState, setPresenceState] = useState<PresenceState>({});

@@ -6,7 +6,7 @@ import { Button, ErrorMessage, Input, Label } from "@/components/ui";
 import { signInWithEmail } from "@/lib/actions/auth";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 
 const AUTH_ERRORS: Record<string, string> = {
   auth_callback_failed: "Sign in failed. Please try again or use email instead.",
@@ -21,16 +21,11 @@ export default function LoginForm() {
   const errorDescription = searchParams.get("error_description");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
-
-  useEffect(() => {
-    if (authError) {
-      setError(
-        errorDescription ??
-          AUTH_ERRORS[authError] ??
-          "Sign in failed. Please try again."
-      );
-    }
-  }, [authError, errorDescription]);
+  const displayedError =
+    error ||
+    (authError
+      ? errorDescription ?? AUTH_ERRORS[authError] ?? "Sign in failed. Please try again."
+      : "");
 
   const handleSubmit = (formData: FormData) => {
     setError("");
@@ -55,7 +50,7 @@ export default function LoginForm() {
       }
     >
       <form action={handleSubmit} className="space-y-5">
-        {error && <ErrorMessage>{error}</ErrorMessage>}
+        {displayedError && <ErrorMessage>{displayedError}</ErrorMessage>}
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input id="email" name="email" type="email" placeholder="you@example.com" required autoComplete="email" />

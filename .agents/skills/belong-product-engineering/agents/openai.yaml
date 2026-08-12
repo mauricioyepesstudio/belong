@@ -1,0 +1,4 @@
+interface:
+  display_name: "BELONG Product Engineering"
+  short_description: "Build BELONG safely from its real architecture"
+  default_prompt: "Use $belong-product-engineering to implement and verify this BELONG product change."

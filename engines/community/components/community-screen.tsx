@@ -38,6 +38,7 @@ import type { CommunityMemberRole } from "@/types/database.types";
 import { MessageSquare, Plus, UserPlus, Users, DollarSign } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
+import type { UserConnectionState } from "@/lib/core/connection-state";
 
 type CommunityScreenProps = {
   joined: UserCommunity[];
@@ -67,7 +68,9 @@ export function CommunityScreen({
   const [monetizeOpen, setMonetizeOpen] = useState(false);
   const [monetizeId, setMonetizeId] = useState<string | null>(null);
   const [tipUser, setTipUser] = useState<DiscoverUser | null>(null);
-  const [pendingConnectIds, setPendingConnectIds] = useState<Set<string>>(new Set());
+  const [connectionOverrides, setConnectionOverrides] = useState<
+    Map<string, UserConnectionState>
+  >(new Map());
   const [isPending, startTransition] = useTransition();
   const [membershipOverrides, setMembershipOverrides] = useState<
     Map<string, CommunityMemberRole | "left">
@@ -156,11 +159,23 @@ export function CommunityScreen({
     });
   };
 
-  const handleConnection = (connectionId: string, accept: boolean) => {
+  const handleConnection = (
+    connectionId: string,
+    accept: boolean,
+    userId?: string
+  ) => {
     startTransition(async () => {
       const result = await respondToConnection(connectionId, accept);
       if (result.error) toast(result.error, "error");
       else {
+        if (userId) {
+          setConnectionOverrides((prev) =>
+            new Map(prev).set(userId, {
+              id: accept ? connectionId : null,
+              state: accept ? "connected" : "none",
+            })
+          );
+        }
         toast(accept ? "Connection accepted" : "Request declined", "success");
         router.refresh();
       }
@@ -172,7 +187,12 @@ export function CommunityScreen({
       const result = await sendConnectionRequest(userId);
       if (result.error) toast(result.error, "error");
       else {
-        setPendingConnectIds((prev) => new Set(prev).add(userId));
+        setConnectionOverrides((prev) =>
+          new Map(prev).set(userId, {
+            id: result.id ?? null,
+            state: "pending-sent",
+          })
+        );
         toast("Connection request sent", "success");
       }
     });
@@ -281,10 +301,15 @@ export function CommunityScreen({
             />
           ) : (
             <StaggerList className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {(filtered as DiscoverUser[]).map((person) => (
-                <StaggerItem key={person.id}>
-                  <Card>
-                    <CardContent className="pt-6">
+              {(filtered as DiscoverUser[]).map((person) => {
+                const connection =
+                  connectionOverrides.get(person.id) ?? person.connection;
+                const receivedConnectionId =
+                  connection.state === "pending-received" ? connection.id : null;
+                return (
+                  <StaggerItem key={person.id}>
+                    <Card>
+                      <CardContent className="pt-6">
                       <div className="flex items-center gap-3">
                         <Avatar
                           src={person.avatar_url ?? undefined}
@@ -300,16 +325,48 @@ export function CommunityScreen({
                         </div>
                       </div>
                       <div className="mt-4 flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="flex-1"
-                          disabled={isPending || pendingConnectIds.has(person.id)}
-                          onClick={() => handleConnect(person.id)}
-                        >
-                          <UserPlus className="h-3.5 w-3.5" aria-hidden />
-                          {pendingConnectIds.has(person.id) ? "Pending" : "Connect"}
-                        </Button>
+                        {receivedConnectionId ? (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="flex-1"
+                              disabled={isPending}
+                              onClick={() =>
+                                handleConnection(receivedConnectionId, false, person.id)
+                              }
+                            >
+                              Decline
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="flex-1"
+                              disabled={isPending}
+                              onClick={() =>
+                                handleConnection(receivedConnectionId, true, person.id)
+                              }
+                            >
+                              Accept
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="flex-1"
+                            disabled={isPending || connection.state !== "none"}
+                            onClick={() => handleConnect(person.id)}
+                          >
+                            {connection.state === "none" && (
+                              <UserPlus className="h-3.5 w-3.5" aria-hidden />
+                            )}
+                            {connection.state === "connected"
+                              ? "Connected"
+                              : connection.state === "pending-sent"
+                                ? "Pending"
+                                : "Connect"}
+                          </Button>
+                        )}
                         {person.connect_charges_enabled && (
                           <Button
                             size="sm"
@@ -331,10 +388,11 @@ export function CommunityScreen({
                           <MessageSquare className="h-3.5 w-3.5" aria-hidden />
                         </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-                </StaggerItem>
-              ))}
+                      </CardContent>
+                    </Card>
+                  </StaggerItem>
+                );
+              })}
             </StaggerList>
           )
         ) : filtered.length === 0 ? (

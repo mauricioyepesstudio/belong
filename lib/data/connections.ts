@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
 import type { UserProfile } from "@/types/database.types";
+import {
+  resolveConnectionState,
+  type UserConnectionState,
+} from "@/lib/core/connection-state";
 
 export type PendingConnection = {
   id: string;
@@ -11,7 +15,7 @@ export type PendingConnection = {
 export type DiscoverUser = Pick<
   UserProfile,
   "id" | "full_name" | "avatar_url" | "role" | "build_goal" | "connect_charges_enabled"
->;
+> & { connection: UserConnectionState };
 
 export async function getPendingConnections(): Promise<PendingConnection[]> {
   const supabase = await createClient();
@@ -49,15 +53,38 @@ export async function getDiscoverUsers(limit = 24): Promise<DiscoverUser[]> {
   const supabase = await createClient();
   const profile = await requireProfile();
 
-  const { data } = await supabase
-    .from("users")
-    .select("id, full_name, avatar_url, role, build_goal, connect_charges_enabled")
-    .neq("id", profile.id)
-    .eq("onboarding_completed", true)
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  const [{ data: users }, { data: connections }] = await Promise.all([
+    supabase
+      .from("users")
+      .select("id, full_name, avatar_url, role, build_goal, connect_charges_enabled")
+      .neq("id", profile.id)
+      .eq("onboarding_completed", true)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    supabase
+      .from("connections")
+      .select("id, requester_id, recipient_id, status")
+      .or(`requester_id.eq.${profile.id},recipient_id.eq.${profile.id}`),
+  ]);
 
-  return data ?? [];
+  const connectionsByUser = new Map<string, NonNullable<typeof connections>>();
+  for (const connection of connections ?? []) {
+    const otherId =
+      connection.requester_id === profile.id
+        ? connection.recipient_id
+        : connection.requester_id;
+    const userConnections = connectionsByUser.get(otherId) ?? [];
+    userConnections.push(connection);
+    connectionsByUser.set(otherId, userConnections);
+  }
+
+  return (users ?? []).map((user) => ({
+    ...user,
+    connection: resolveConnectionState(
+      profile.id,
+      connectionsByUser.get(user.id) ?? []
+    ),
+  }));
 }
 
 export type ConnectedUser = Pick<

@@ -7,14 +7,14 @@ import { Modal } from "@/components/ui/modal";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { HomeComposer } from "./home-composer";
-import { HomeFocusWelcome } from "./home-focus-welcome";
 import { HomeRecommendations } from "./home-recommendations";
 import { HomeContinue } from "./home-continue";
 import { HomeQuickActions, type QuickActionId } from "./home-quick-actions";
 import { HomeRecentActivity } from "./home-recent-activity";
 import { HomeTrendingCommunities } from "./home-trending-communities";
-import { HomeWeeklyImpact } from "./home-weekly-impact";
 import { DashboardActions } from "../dashboard/dashboard-actions";
+import { HomeUniverse } from "./home-universe";
+import { HomeCommandDeck } from "./home-command-deck";
 
 export function HomeScreen(data: HomeEngineData) {
   const router = useRouter();
@@ -27,7 +27,6 @@ export function HomeScreen(data: HomeEngineData) {
     recentActivity,
     upcomingEvents,
     recentConversations,
-    todaySummary,
   } = data;
 
   const [projectOpen, setProjectOpen] = useState(false);
@@ -60,29 +59,33 @@ export function HomeScreen(data: HomeEngineData) {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 pb-8">
-      <HomeFocusWelcome profile={profile} summary={todaySummary} />
-
-      <HomeWeeklyImpact impact={impactScore} />
-
-      <HomeRecommendations
-        recommendations={data.opportunityRecommendations}
-        compact
-        userId={profile.id}
+    <div className="space-y-8 pb-8">
+      <HomeUniverse
+        data={{ ...data, impactScore }}
+        onCreateProject={() => setProjectOpen(true)}
+        onJoinCommunity={() => setCommunityOpen(true)}
       />
 
-      <HomeContinue
-        projects={recentProjects}
-        conversations={recentConversations}
-        events={upcomingEvents}
-        onResumeDraft={() => setComposerOpen(true)}
+      <HomeCommandDeck
+        quickActions={<HomeQuickActions onAction={handleQuickAction} />}
+        forYou={
+          <div className="space-y-8">
+            <HomeRecommendations
+              recommendations={data.opportunityRecommendations}
+              compact
+              userId={profile.id}
+            />
+            <HomeContinue
+              projects={recentProjects}
+              conversations={recentConversations}
+              events={upcomingEvents}
+              onResumeDraft={() => setComposerOpen(true)}
+            />
+          </div>
+        }
+        activity={<HomeRecentActivity activities={recentActivity} />}
+        discover={<HomeTrendingCommunities communities={discoverCommunities} />}
       />
-
-      <HomeQuickActions onAction={handleQuickAction} />
-
-      <HomeRecentActivity activities={recentActivity} />
-
-      <HomeTrendingCommunities communities={discoverCommunities} />
 
       <Modal
         open={composerOpen}

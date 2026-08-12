@@ -186,13 +186,17 @@ export function HomeRecommendations({
 
         {compact && displayItems ? (
           <div className="grid gap-3 sm:grid-cols-2">
-            {displayItems.map((item) => (
-              <RecommendationCard
+            {displayItems.map((item, index) => (
+              <div
                 key={`${item.category}-${item.id}`}
-                item={item}
-                onDetails={openRecommendation}
-                onAccept={acceptRecommendation}
-              />
+                className={index === displayItems.length - 1 && displayItems.length % 2 === 1 ? "sm:col-span-2" : undefined}
+              >
+                <RecommendationCard
+                  item={item}
+                  onDetails={openRecommendation}
+                  onAccept={acceptRecommendation}
+                />
+              </div>
             ))}
           </div>
         ) : (

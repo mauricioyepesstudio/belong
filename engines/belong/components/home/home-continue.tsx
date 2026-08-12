@@ -29,7 +29,7 @@ function ContinueRow({ item }: { item: ContinueItem }) {
   return (
     <Link
       href={item.href}
-      className="flex items-center gap-3 rounded-xl border border-border-subtle bg-white/[0.02] px-4 py-3 transition-colors hover:border-brand/30 hover:bg-brand/5"
+      className="flex items-center gap-3 rounded-xl border border-border-subtle bg-white/[0.02] px-4 py-3 transition-colors only:sm:col-span-2 hover:border-brand/30 hover:bg-brand/5"
     >
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
         <Icon className="h-4 w-4" aria-hidden />
@@ -149,7 +149,7 @@ export function HomeContinue({
               key={item.id}
               type="button"
               onClick={onResumeDraft}
-              className="flex w-full items-center gap-3 rounded-xl border border-border-subtle bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-brand/30 hover:bg-brand/5"
+              className="flex w-full items-center gap-3 rounded-xl border border-border-subtle bg-white/[0.02] px-4 py-3 text-left transition-colors only:sm:col-span-2 hover:border-brand/30 hover:bg-brand/5"
             >
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
                 <FileEdit className="h-4 w-4" aria-hidden />

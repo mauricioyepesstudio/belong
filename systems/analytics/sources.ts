@@ -19,6 +19,7 @@ export const AnalyticsSource = {
   IMPACT_ENGINE: "impact.engine",
   SEARCH_GLOBAL: "search.global",
   RECOMMENDATION_HOME: "recommendation.home",
+  RECOMMENDATION_OPPORTUNITIES: "recommendation.opportunities",
   NOTIFICATIONS_LIST: "notifications.list",
 } as const;
 

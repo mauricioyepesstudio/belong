@@ -87,7 +87,7 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
     { label: "Communities", href: "/community", value: data.communities.length, icon: UsersRound, position: styles.nodeCommunities, tone: "violet" },
     { label: "Projects", href: "/projects", value: data.stats.projects, icon: FolderKanban, position: styles.nodeProjects, tone: "amber" },
     { label: "Events", href: "/events", value: data.upcomingEvents.length, icon: CalendarDays, position: styles.nodeEvents, tone: "cyan" },
-    { label: "Opportunities", href: "/search", value: data.opportunities.length, icon: Sparkles, position: styles.nodeOpportunities, tone: "amber" },
+    { label: "Opportunities", href: "/opportunities", value: data.opportunityRecommendations.projects.length + data.opportunityRecommendations.people.length + data.opportunityRecommendations.communities.length + data.opportunityRecommendations.missions.length, icon: Sparkles, position: styles.nodeOpportunities, tone: "amber" },
     { label: "Resources", href: "/marketplace", value: "Explore", icon: Compass, position: styles.nodeResources, tone: "violet" },
   ];
 

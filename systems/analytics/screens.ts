@@ -13,6 +13,7 @@ export const AnalyticsScreen = {
   PROFILE: "profile",
   SETTINGS: "settings",
   SEARCH: "search",
+  OPPORTUNITIES: "opportunities",
   AUTH_CALLBACK: "auth_callback",
 } as const;
 
@@ -32,5 +33,6 @@ export function pathnameToScreen(pathname: string): string {
   if (pathname.startsWith("/profile")) return AnalyticsScreen.PROFILE;
   if (pathname.startsWith("/settings")) return AnalyticsScreen.SETTINGS;
   if (pathname.startsWith("/search")) return AnalyticsScreen.SEARCH;
+  if (pathname.startsWith("/opportunities")) return AnalyticsScreen.OPPORTUNITIES;
   return pathname.replace(/^\//, "").replace(/\//g, "_") || "unknown";
 }

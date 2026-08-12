@@ -48,6 +48,7 @@ export {
 } from "./profile-vector";
 export { fetchOpportunityCandidates } from "./data";
 export { getOpportunityRecommendations, getCompatibilityProfile } from "./service";
+export { OpportunityScreen } from "./components/opportunity-screen";
 
 export type {
   CompatibilityProfile,

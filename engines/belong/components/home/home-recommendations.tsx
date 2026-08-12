@@ -11,6 +11,10 @@ import {
   AnalyticsSource,
   trackClientEvent,
 } from "@/systems/analytics";
+import type {
+  AnalyticsScreenName,
+  AnalyticsSourceName,
+} from "@/systems/analytics";
 import {
   Building2,
   FolderKanban,
@@ -108,10 +112,18 @@ export function HomeRecommendations({
   recommendations,
   compact = false,
   userId,
+  heading = "Recommended for You",
+  description = "Every match includes a compatibility score, confidence level, and explained reasons.",
+  analyticsScreen = AnalyticsScreen.DASHBOARD,
+  analyticsSource = AnalyticsSource.RECOMMENDATION_HOME,
 }: {
   recommendations: OpportunityRecommendations;
   compact?: boolean;
   userId: string;
+  heading?: string;
+  description?: string;
+  analyticsScreen?: AnalyticsScreenName;
+  analyticsSource?: AnalyticsSourceName;
 }) {
   const [selected, setSelected] = useState<ScoredRecommendation | null>(null);
 
@@ -119,8 +131,8 @@ export function HomeRecommendations({
     void trackClientEvent({
       name: "recommendation_opened",
       userId,
-      screen: AnalyticsScreen.DASHBOARD,
-      source: AnalyticsSource.RECOMMENDATION_HOME,
+      screen: analyticsScreen,
+      source: analyticsSource,
       entityId: item.id,
       properties: { category: item.category },
     });
@@ -131,8 +143,8 @@ export function HomeRecommendations({
     void trackClientEvent({
       name: "recommendation_accepted",
       userId,
-      screen: AnalyticsScreen.DASHBOARD,
-      source: AnalyticsSource.RECOMMENDATION_HOME,
+      screen: analyticsScreen,
+      source: analyticsSource,
       entityId: item.id,
       properties: { category: item.category },
     });
@@ -150,7 +162,7 @@ export function HomeRecommendations({
         <div className="mb-3">
           <p className="text-label">Opportunity graph</p>
           <h2 id="home-recommendations-heading" className="text-heading mt-1 text-fg-primary">
-            Recommended for You
+            {heading}
           </h2>
         </div>
         <GlassCard className="px-6 py-8 text-center">
@@ -175,11 +187,11 @@ export function HomeRecommendations({
         <div className="mb-4">
           <p className="text-label">Opportunity graph</p>
           <h2 id="home-recommendations-heading" className="text-heading mt-1 text-fg-primary">
-            Recommended for You
+            {heading}
           </h2>
           {!compact && (
             <p className="mt-1 text-caption text-fg-muted">
-              Every match includes a compatibility score, confidence level, and explained reasons.
+              {description}
             </p>
           )}
         </div>

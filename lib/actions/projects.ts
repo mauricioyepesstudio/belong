@@ -149,7 +149,7 @@ export async function updateProject(
 
   const { data: project } = await supabase
     .from("projects")
-    .select("owner_id")
+    .select("name, owner_id, status")
     .eq("id", projectId)
     .single();
 
@@ -194,13 +194,34 @@ export async function updateProject(
 
   if (error) return { error: error.message };
 
-  if (data.status === "completed") {
+  const projectWasCompleted = project.status === "completed";
+  const projectIsNowCompleted = data.status === "completed";
+
+  if (projectIsNowCompleted && !projectWasCompleted) {
     await recordImpactAction(supabase, {
       userId: profile.id,
       module: "project",
       eventType: "project_completed",
       sourceId: projectId,
     });
+
+    const { data: members } = await supabase
+      .from("project_members")
+      .select("user_id")
+      .eq("project_id", projectId)
+      .neq("user_id", profile.id);
+
+    await Promise.all(
+      (members ?? []).map((member) =>
+        createNotification(supabase, {
+          userId: member.user_id,
+          title: "Project completed",
+          body: `${project.name} was marked complete`,
+          type: "project",
+          metadata: { project_id: projectId },
+        })
+      )
+    );
   }
 
   revalidateProject(projectId);

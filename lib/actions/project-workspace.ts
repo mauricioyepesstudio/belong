@@ -8,6 +8,7 @@ import type { Json } from "@/types/database.types";
 import type { Database } from "@/types/database.types";
 import { recordImpactAction } from "@/engines/impact/record-action.server";
 import { revalidateProject, requireProjectMember } from "@/lib/actions/_shared";
+import { createNotification } from "@/lib/supabase/notify";
 
 async function requireProjectAdmin(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -31,6 +32,20 @@ async function requireProjectAdmin(
 
   if (member?.role === "admin") return null;
   return { error: "Not authorized" };
+}
+
+async function requireProjectOwner(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  projectId: string,
+  userId: string
+): Promise<ActionResult | null> {
+  const { data: project } = await supabase
+    .from("projects")
+    .select("owner_id")
+    .eq("id", projectId)
+    .single();
+
+  return project?.owner_id === userId ? null : { error: "Only the project owner can approve completed work" };
 }
 
 export async function logProjectActivity(
@@ -139,6 +154,11 @@ export async function updateProjectTask(
   const err = await requireProjectMember(supabase, task.project_id, profile.id);
   if (err) return err;
 
+  if (data.status === "done" && task.status !== "done") {
+    const ownerError = await requireProjectOwner(supabase, task.project_id, profile.id);
+    if (ownerError) return ownerError;
+  }
+
   if (data.assigneeId) {
     const { data: assignee } = await supabase
       .from("project_members")
@@ -171,17 +191,44 @@ export async function updateProjectTask(
       projectId: task.project_id,
       actorId: profile.id,
       activityType: "task_completed",
-      title: `Completed task "${task.title}"`,
-      metadata: { task_id: taskId },
+      title: `Approved task "${task.title}"`,
+      metadata: { task_id: taskId, assignee_id: task.assignee_id },
     });
 
     await recordImpactAction(supabase, {
-      userId: profile.id,
+      userId: task.assignee_id ?? profile.id,
       module: "project",
       eventType: "project_task_completed",
-      sourceId: task.project_id,
+      sourceId: taskId,
       metadata: { task_id: taskId, project_id: task.project_id },
     });
+
+    if (task.assignee_id && task.assignee_id !== profile.id) {
+      await createNotification(supabase, {
+        userId: task.assignee_id,
+        type: "project",
+        title: "Contribution approved",
+        body: `Your work on "${task.title}" was approved`,
+        metadata: { project_id: task.project_id, task_id: taskId },
+      });
+    }
+
+    const [{ count: totalTasks }, { count: completedTasks }] = await Promise.all([
+      supabase
+        .from("project_tasks")
+        .select("*", { count: "exact", head: true })
+        .eq("project_id", task.project_id),
+      supabase
+        .from("project_tasks")
+        .select("*", { count: "exact", head: true })
+        .eq("project_id", task.project_id)
+        .eq("status", "done"),
+    ]);
+
+    const progress = totalTasks
+      ? Math.round(((completedTasks ?? 0) / totalTasks) * 100)
+      : 0;
+    await supabase.from("projects").update({ progress }).eq("id", task.project_id);
   } else if (data.status !== undefined && data.status !== task.status) {
     const statusLabel = data.status.replace(/_/g, " ");
     await logProjectActivity(supabase, {

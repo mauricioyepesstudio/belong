@@ -12,7 +12,7 @@ import {
   Label,
   useToast,
 } from "@/systems/design-system";
-import { FolderKanban, Plus, UserCheck } from "lucide-react";
+import { CheckCircle2, FolderKanban, Plus, UserCheck } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 
 const COLUMNS: { id: ProjectTaskStatus; label: string }[] = [
@@ -35,6 +35,7 @@ export function ProjectTasksTab({
   isMember,
   currentUserId,
   currentUserName,
+  canApproveWork,
   onActivityCommitted,
 }: {
   projectId: string;
@@ -42,6 +43,7 @@ export function ProjectTasksTab({
   isMember: boolean;
   currentUserId: string;
   currentUserName: string | null;
+  canApproveWork: boolean;
   onActivityCommitted?: () => void;
 }) {
   const { toast } = useToast();
@@ -93,6 +95,11 @@ export function ProjectTasksTab({
     if (!draggingId) return;
     const task = tasks.find((t) => t.id === draggingId);
     if (!task || task.status === status && task.sortOrder === index) return;
+    if (status === "done" && task.status !== "done" && !canApproveWork) {
+      toast("The project owner must approve work before it is completed", "error");
+      setDraggingId(null);
+      return;
+    }
 
     setTasks((prev) =>
       prev.map((t) =>
@@ -106,6 +113,29 @@ export function ProjectTasksTab({
       else onActivityCommitted?.();
     });
     setDraggingId(null);
+  };
+
+  const handleApprove = (task: ProjectTask) => {
+    const previousTasks = tasks;
+    const doneIndex = tasksByStatus("done").length;
+    setTasks((current) =>
+      current.map((item) =>
+        item.id === task.id
+          ? { ...item, status: "done", sortOrder: doneIndex, completedAt: new Date().toISOString() }
+          : item
+      )
+    );
+
+    startTransition(async () => {
+      const result = await moveProjectTask(task.id, "done", doneIndex);
+      if (result.error) {
+        setTasks(previousTasks);
+        toast(result.error, "error");
+      } else {
+        toast("Contribution approved", "success");
+        onActivityCommitted?.();
+      }
+    });
   };
 
   const handleClaim = (task: ProjectTask) => {
@@ -215,6 +245,20 @@ export function ProjectTasksTab({
                     >
                       <UserCheck className="h-3.5 w-3.5" aria-hidden />
                       Claim task
+                    </Button>
+                  )}
+                  {task.status === "review" && canApproveWork && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="brand"
+                      className="mt-2 h-7 px-2 text-xs"
+                      disabled={isPending}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onClick={() => handleApprove(task)}
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+                      Approve work
                     </Button>
                   )}
                 </div>

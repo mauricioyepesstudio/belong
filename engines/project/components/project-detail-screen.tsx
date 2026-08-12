@@ -661,6 +661,7 @@ export function ProjectDetailScreen({
             isMember={isMember}
             currentUserId={currentUser.id}
             currentUserName={currentUser.fullName}
+            canApproveWork={isOwner || membership?.role === "owner"}
             onActivityCommitted={() => void syncFromServer()}
           />
         )}

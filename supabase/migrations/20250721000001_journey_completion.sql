@@ -61,10 +61,12 @@ values (
 )
 on conflict (id) do nothing;
 
+drop policy if exists "Post images are publicly accessible" on storage.objects;
 create policy "Post images are publicly accessible"
   on storage.objects for select
   using (bucket_id = 'post-images');
 
+drop policy if exists "Users upload post images to own folder" on storage.objects;
 create policy "Users upload post images to own folder"
   on storage.objects for insert
   with check (
@@ -72,6 +74,7 @@ create policy "Users upload post images to own folder"
     and auth.uid()::text = (storage.foldername(name))[1]
   );
 
+drop policy if exists "Users update own post images" on storage.objects;
 create policy "Users update own post images"
   on storage.objects for update
   using (
@@ -79,6 +82,7 @@ create policy "Users update own post images"
     and auth.uid()::text = (storage.foldername(name))[1]
   );
 
+drop policy if exists "Users delete own post images" on storage.objects;
 create policy "Users delete own post images"
   on storage.objects for delete
   using (
@@ -87,6 +91,7 @@ create policy "Users delete own post images"
   );
 
 -- Community managers can add members
+drop policy if exists "Owners and admins add community members" on public.community_members;
 create policy "Owners and admins add community members"
   on public.community_members for insert
   with check (
@@ -100,6 +105,7 @@ create policy "Owners and admins add community members"
   );
 
 -- Community managers can delete any post in their community
+drop policy if exists "Community managers delete posts" on public.community_posts;
 create policy "Community managers delete posts"
   on public.community_posts for delete
   using (

@@ -26,6 +26,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   return (
     <ProjectDetailScreen
+      key={`${data.project.id}:${data.project.updated_at}`}
       data={data}
       copilot={copilot}
       currentUser={{

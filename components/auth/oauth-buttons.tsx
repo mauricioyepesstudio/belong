@@ -1,19 +1,33 @@
 "use client";
 
 import { Button } from "@/components/ui";
-import { signInWithOAuth } from "@/lib/actions/auth";
-import { useState, useTransition } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
 
 export function OAuthButtons() {
   const [error, setError] = useState("");
-  const [pending, startTransition] = useTransition();
+  const [pendingProvider, setPendingProvider] = useState<"google" | "apple" | null>(null);
 
-  const handleOAuth = (provider: "google" | "apple") => {
+  const handleOAuth = async (provider: "google" | "apple") => {
     setError("");
-    startTransition(async () => {
-      const result = await signInWithOAuth(provider);
-      if (result?.error) setError(result.error);
+    setPendingProvider(provider);
+
+    const supabase = createClient();
+    const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        skipBrowserRedirect: true,
+      },
     });
+
+    if (oauthError || !data.url) {
+      setError(oauthError?.message ?? "Could not start sign in. Please try again.");
+      setPendingProvider(null);
+      return;
+    }
+
+    window.location.assign(data.url);
   };
 
   return (
@@ -36,8 +50,8 @@ export function OAuthButtons() {
         type="button"
         variant="secondary"
         className="w-full"
-        disabled={pending}
-        isLoading={pending}
+        disabled={pendingProvider !== null}
+        isLoading={pendingProvider === "google"}
         onClick={() => handleOAuth("google")}
       >
         <GoogleIcon />
@@ -48,8 +62,8 @@ export function OAuthButtons() {
         type="button"
         variant="secondary"
         className="w-full"
-        disabled={pending}
-        isLoading={pending}
+        disabled={pendingProvider !== null}
+        isLoading={pendingProvider === "apple"}
         onClick={() => handleOAuth("apple")}
       >
         <AppleIcon />

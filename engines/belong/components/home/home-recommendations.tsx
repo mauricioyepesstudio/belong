@@ -28,6 +28,7 @@ import Link from "next/link";
 import { memo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "../dashboard/primitives";
+import { selectCompactRecommendations } from "@/engines/belong/home/recommendations";
 
 const SECTIONS: Array<{
   key: keyof OpportunityRecommendations;
@@ -158,7 +159,7 @@ export function HomeRecommendations({
   const allItems = SECTIONS.flatMap(({ key }) => recommendations[key]);
   const total = allItems.length;
   const displayItems = compact
-    ? [...allItems].sort((a, b) => b.score - a.score).slice(0, 4)
+    ? selectCompactRecommendations(recommendations)
     : null;
 
   if (total === 0) {

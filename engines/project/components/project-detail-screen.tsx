@@ -138,6 +138,9 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
   const isMember = Boolean(membership);
   const isOwner = project.owner_id === currentUser.id;
   const isAdmin = membership?.role === "admin" || isOwner;
+  const isCommunityMember = data.communityMembers.some(
+    (member) => member.userId === currentUser.id
+  );
 
   const fundingProgress =
     project.funding_goal_cents && project.funding_goal_cents > 0
@@ -493,10 +496,17 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
                   </div>
                 )}
                 <div className="flex flex-wrap gap-2">
-                  {!isMember && (
+                  {!isMember && isCommunityMember && (
                     <Button disabled={isPending} onClick={handleJoin} className="w-full sm:w-auto">
                       Join project
                     </Button>
+                  )}
+                  {!isMember && !isCommunityMember && (
+                    <Link href={`/community/${community.slug}`} className="w-full sm:w-auto">
+                      <Button variant="brand" className="w-full sm:w-auto">
+                        Join {community.name} first
+                      </Button>
+                    </Link>
                   )}
                   {isMember && !isOwner && (
                     <Button

@@ -222,7 +222,8 @@ export async function joinProject(projectId: string): Promise<ActionResult> {
   const communityError = await requireCommunityMembership(
     supabase,
     project.community_id,
-    profile.id
+    profile.id,
+    "Join the project's community before joining this project"
   );
   if (communityError) return communityError;
 

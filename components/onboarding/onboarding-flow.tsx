@@ -285,7 +285,7 @@ export function OnboardingFlow({ initialName = "" }: OnboardingFlowProps) {
                 transition={{ delay: 0.2 }}
                 className="mt-8 text-heading-lg text-fg-primary"
               >
-                You&apos;re ready to build
+                Your direction is set
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0 }}
@@ -293,7 +293,8 @@ export function OnboardingFlow({ initialName = "" }: OnboardingFlowProps) {
                 transition={{ delay: 0.3 }}
                 className="mt-3 max-w-md text-body"
               >
-                Your profile and home feed are ready. Tap below to start exploring.
+                Next, find a community, meet builders, and turn your goal into a
+                project. Home will guide you one step at a time.
               </motion.p>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -302,7 +303,7 @@ export function OnboardingFlow({ initialName = "" }: OnboardingFlowProps) {
                 className="mt-8"
               >
                 <Button size="lg" isLoading={pending} onClick={submit}>
-                  Enter BELONG
+                  Go to my home
                 </Button>
               </motion.div>
             </motion.div>

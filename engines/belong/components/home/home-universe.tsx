@@ -20,6 +20,10 @@ import {
 import Link from "next/link";
 import type { ComponentType } from "react";
 import styles from "./home-universe.module.css";
+import {
+  resolveHomeHeroActions,
+  type HomeHeroAction,
+} from "@/engines/belong/home/activation";
 
 type UniverseProps = {
   data: HomeEngineData;
@@ -81,6 +85,37 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
   );
   const latestActivity = data.recentActivity.slice(0, 3);
   const topOpportunity = data.opportunities[0];
+  const heroActions = resolveHomeHeroActions(data.stats, data.primaryRecommendation);
+
+  const renderHeroAction = (action: HomeHeroAction, primary: boolean) => {
+    const className = primary ? styles.primaryButton : styles.secondaryButton;
+    const content = (
+      <>
+        {primary && <Sparkles className="h-4 w-4" aria-hidden />}
+        {action.label}
+      </>
+    );
+
+    if (action.kind === "href" && action.href) {
+      return (
+        <Link href={action.href} className={className}>
+          {content}
+        </Link>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={
+          action.kind === "join-community" ? onJoinCommunity : onCreateProject
+        }
+        className={className}
+      >
+        {content}
+      </button>
+    );
+  };
 
   const nodes: UniverseNode[] = [
     { label: "People", href: "/community?tab=people", value: data.stats.connections, icon: UserRound, position: styles.nodePeople, tone: "cyan" },
@@ -113,12 +148,8 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
           <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">{data.todaySummary}</p>
         </div>
         <div className="flex gap-2">
-          <button type="button" onClick={onJoinCommunity} className={styles.secondaryButton}>
-            Join a community
-          </button>
-          <button type="button" onClick={onCreateProject} className={styles.primaryButton}>
-            <Sparkles className="h-4 w-4" aria-hidden /> Create
-          </button>
+          {renderHeroAction(heroActions.secondary, false)}
+          {renderHeroAction(heroActions.primary, true)}
         </div>
       </header>
 

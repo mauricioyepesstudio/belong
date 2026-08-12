@@ -4,6 +4,7 @@ import type { OpportunityRecommendations, ScoredRecommendation } from "@/engines
 import { confidenceVariant } from "@/engines/opportunity";
 import { RecommendationDetailsDrawer } from "@/components/features/recommendations/recommendation-details-drawer";
 import { RecommendationExplanation } from "@/components/features/recommendations/recommendation-explanation";
+import { recommendationActionLabel } from "@/components/features/recommendations/recommendation-action";
 import { Avatar, Badge, Button } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import {
@@ -97,7 +98,7 @@ function RecommendationCardComponent({
                 "transition-colors hover:bg-brand/90"
               )}
             >
-              View
+              {recommendationActionLabel(item.category)}
             </Link>
           </div>
         </div>

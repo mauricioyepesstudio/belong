@@ -2,9 +2,11 @@
 
 import { HomeRecommendations } from "@/engines/belong/components/home";
 import type { OpportunityRecommendations } from "@/engines/opportunity/types";
-import { FeatureScreen } from "@/systems/design-system";
-import { AnalyticsScreen, AnalyticsSource } from "@/systems/analytics";
-import { ArrowRight, Compass, HeartHandshake, TrendingUp } from "lucide-react";
+import { Badge, FeatureScreen } from "@/systems/design-system";
+import { AnalyticsScreen, AnalyticsSource, trackClientEvent } from "@/systems/analytics";
+import { recommendationActionLabel } from "@/components/features/recommendations/recommendation-action";
+import { ArrowRight, Compass, HeartHandshake, Sparkles, TrendingUp } from "lucide-react";
+import Link from "next/link";
 
 const PATHWAYS = [
   {
@@ -31,6 +33,10 @@ export function OpportunityScreen({
   recommendations: OpportunityRecommendations;
   userId: string;
 }) {
+  const topOpportunity = Object.values(recommendations)
+    .flat()
+    .sort((a, b) => b.score - a.score)[0];
+
   return (
     <FeatureScreen
       label="Opportunity radar"
@@ -57,6 +63,53 @@ export function OpportunityScreen({
           </article>
         ))}
       </section>
+
+      {topOpportunity && (
+        <section
+          aria-labelledby="next-best-opportunity-heading"
+          className="relative overflow-hidden rounded-2xl border border-brand/30 bg-brand/10 p-5 sm:p-6"
+        >
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_20%,rgba(139,92,246,0.18),transparent_38%)]" />
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-white shadow-[0_0_32px_rgba(139,92,246,0.35)]">
+                <Sparkles className="h-5 w-5" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-label">Your next best move</p>
+                  <Badge variant="outline" className="text-micro">
+                    {topOpportunity.score}% match
+                  </Badge>
+                </div>
+                <h2 id="next-best-opportunity-heading" className="mt-2 text-xl font-semibold text-fg-primary">
+                  {topOpportunity.title}
+                </h2>
+                <p className="mt-1 text-sm text-fg-muted">
+                  {topOpportunity.explanation.bullets[0]?.label ?? "A strong match based on your BELONG activity and profile."}
+                </p>
+              </div>
+            </div>
+            <Link
+              href={topOpportunity.href}
+              onClick={() => {
+                void trackClientEvent({
+                  name: "recommendation_accepted",
+                  userId,
+                  screen: AnalyticsScreen.OPPORTUNITIES,
+                  source: AnalyticsSource.RECOMMENDATION_OPPORTUNITIES,
+                  entityId: topOpportunity.id,
+                  properties: { category: topOpportunity.category, placement: "next_best_move" },
+                });
+              }}
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-medium text-white transition-colors hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary"
+            >
+              {recommendationActionLabel(topOpportunity.category)}
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
+        </section>
+      )}
 
       <HomeRecommendations
         recommendations={recommendations}

@@ -11,6 +11,7 @@ import {
   ExplanationBulletRow,
   RecommendationExplanation,
 } from "./recommendation-explanation";
+import { recommendationActionLabel } from "./recommendation-action";
 
 function DetailSection({
   title,
@@ -69,7 +70,7 @@ export function RecommendationDetailsDrawer({
             href={item.href}
             className="inline-flex h-10 items-center justify-center rounded-xl bg-brand px-4 text-sm font-medium text-white transition-colors hover:bg-brand/90"
           >
-            View
+            {recommendationActionLabel(item.category)}
           </Link>
         </>
       }

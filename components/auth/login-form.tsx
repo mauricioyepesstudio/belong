@@ -1,7 +1,6 @@
 "use client";
 
 import { AuthCard } from "@/components/auth/auth-card";
-import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button, ErrorMessage, Input, Label } from "@/components/ui";
 import { signInWithEmail } from "@/lib/actions/auth";
 import Link from "next/link";
@@ -66,9 +65,6 @@ export default function LoginForm() {
           Sign in
         </Button>
       </form>
-      <div className="mt-6">
-        <OAuthButtons />
-      </div>
     </AuthCard>
   );
 }

@@ -16,6 +16,10 @@ export type UserConnectionState = {
   state: ConnectionState;
 };
 
+export function canMessageConnection(state: ConnectionState): boolean {
+  return state === "connected";
+}
+
 export function resolveConnectionState(
   viewerId: string,
   rows: ConnectionStateRow[]

@@ -128,6 +128,20 @@ export async function startConversation(otherUserId: string): Promise<ActionResu
 
   if (otherUserId === profile.id) return { error: "Invalid user" };
 
+  const { data: acceptedConnection } = await supabase
+    .from("connections")
+    .select("id")
+    .eq("status", "accepted")
+    .or(
+      `and(requester_id.eq.${profile.id},recipient_id.eq.${otherUserId}),and(requester_id.eq.${otherUserId},recipient_id.eq.${profile.id})`
+    )
+    .limit(1)
+    .maybeSingle();
+
+  if (!acceptedConnection) {
+    return { error: "Connect with this builder before messaging" };
+  }
+
   const { data: myConversations } = await supabase
     .from("conversation_participants")
     .select("conversation_id")

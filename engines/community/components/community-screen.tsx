@@ -38,7 +38,10 @@ import type { CommunityMemberRole } from "@/types/database.types";
 import { MessageSquare, Plus, UserPlus, Users, DollarSign } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
-import type { UserConnectionState } from "@/lib/core/connection-state";
+import {
+  canMessageConnection,
+  type UserConnectionState,
+} from "@/lib/core/connection-state";
 
 type CommunityScreenProps = {
   joined: UserCommunity[];
@@ -309,6 +312,10 @@ export function CommunityScreen({
                   connectionOverrides.get(person.id) ?? person.connection;
                 const receivedConnectionId =
                   connection.state === "pending-received" ? connection.id : null;
+                const canMessage = canMessageConnection(connection.state);
+                const messageLabel = canMessage
+                  ? `Message ${person.full_name ?? "builder"}`
+                  : `Connect with ${person.full_name ?? "this builder"} before messaging`;
                 return (
                   <StaggerItem key={person.id}>
                     <Card>
@@ -384,9 +391,10 @@ export function CommunityScreen({
                         <Button
                           size="sm"
                           variant="ghost"
-                          disabled={isPending}
+                          disabled={isPending || !canMessage}
                           onClick={() => handleMessage(person.id)}
-                          aria-label={`Message ${person.full_name ?? "builder"}`}
+                          aria-label={messageLabel}
+                          title={messageLabel}
                         >
                           <MessageSquare className="h-3.5 w-3.5" aria-hidden />
                         </Button>

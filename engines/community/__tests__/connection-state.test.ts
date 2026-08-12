@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { resolveConnectionState } from "@/lib/core/connection-state";
+import {
+  canMessageConnection,
+  resolveConnectionState,
+} from "@/lib/core/connection-state";
 
 const viewerId = "mateo";
 const otherId = "mauricio";
@@ -42,5 +45,25 @@ describe("resolveConnectionState", () => {
         { id: "request-1", requester_id: otherId, recipient_id: viewerId, status: "declined" },
       ])
     ).toEqual({ id: null, state: "none" });
+  });
+
+  it.each(["none", "pending-sent", "pending-received"] as const)(
+    "does not expose messaging while the connection is %s",
+    (state) => {
+      expect(canMessageConnection(state)).toBe(false);
+    }
+  );
+
+  it("exposes messaging once the connection is accepted", () => {
+    const connection = resolveConnectionState(viewerId, [
+      {
+        id: "connection-1",
+        requester_id: otherId,
+        recipient_id: viewerId,
+        status: "accepted",
+      },
+    ]);
+
+    expect(canMessageConnection(connection.state)).toBe(true);
   });
 });

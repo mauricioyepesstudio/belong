@@ -78,15 +78,22 @@ export function ProjectPostFeed({
         </Card>
       )}
       {posts.map((post) => (
-        <ProjectPostCard
+        <div
           key={post.id}
-          post={post}
-          isMember={isMember}
-          currentUserId={currentUserId}
-          canModerate={isOwner}
-          onPostUpdate={(updated) => onPostUpdate(post.id, updated)}
-          onPostDelete={onPostDelete}
-        />
+          id={`post-${post.id}`}
+          tabIndex={-1}
+          className="scroll-mt-24 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base"
+          aria-label={`Project update by ${post.author.fullName ?? "Builder"}`}
+        >
+          <ProjectPostCard
+            post={post}
+            isMember={isMember}
+            currentUserId={currentUserId}
+            canModerate={isOwner}
+            onPostUpdate={(updated) => onPostUpdate(post.id, updated)}
+            onPostDelete={onPostDelete}
+          />
+        </div>
       ))}
     </div>
   );

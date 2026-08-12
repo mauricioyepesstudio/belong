@@ -44,6 +44,7 @@ export function getNotificationHref(type: NotificationType, metadata?: Json): st
   const communitySlug = metaString(metadata, "slug");
   const communityId = metaString(metadata, "community_id");
   const projectId = metaString(metadata, "project_id");
+  const postId = metaString(metadata, "post_id");
   const listingId = metaString(metadata, "listing_id");
   const missionId = metaString(metadata, "mission_id");
   const kind = metaString(metadata, "kind");
@@ -56,6 +57,9 @@ export function getNotificationHref(type: NotificationType, metadata?: Json): st
     return "/messages";
   }
   if (type === "payment") return "/creator";
+  if (projectId && postId) {
+    return `/projects/${projectId}?tab=activity&post=${encodeURIComponent(postId)}#post-${encodeURIComponent(postId)}`;
+  }
   if (projectId) return `/projects/${projectId}`;
   if (communitySlug) return `/community/${communitySlug}`;
   if (communityId) return "/community";

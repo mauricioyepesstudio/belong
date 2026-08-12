@@ -67,7 +67,20 @@ type ProjectDetailScreenProps = {
   data: ProjectDetail;
   copilot: CopilotPanelData;
   currentUser: CurrentUser;
+  initialTab?: string;
+  focusPostId?: string;
 };
+
+const projectTabs = new Set([
+  "overview",
+  "activity",
+  "tasks",
+  "members",
+  "files",
+  "discussions",
+  "goals",
+  "analytics",
+]);
 
 const statusVariant: Record<ProjectStatus, "success" | "warning" | "outline" | "default"> = {
   planning: "warning",
@@ -83,10 +96,18 @@ const statusOptions: { value: ProjectStatus; label: string }[] = [
   { value: "archived", label: "Archived" },
 ];
 
-export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetailScreenProps) {
+export function ProjectDetailScreen({
+  data,
+  copilot,
+  currentUser,
+  initialTab,
+  focusPostId,
+}: ProjectDetailScreenProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState(
+    initialTab && projectTabs.has(initialTab) ? initialTab : "overview"
+  );
   const [postBody, setPostBody] = useState("");
   const [postImageUrl, setPostImageUrl] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -109,6 +130,25 @@ export function ProjectDetailScreen({ data, copilot, currentUser }: ProjectDetai
   const [fundingEnabled, setFundingEnabled] = useState(project.funding_enabled);
 
   const openedProjectRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (tab !== "activity" || !focusPostId) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const target = document.getElementById(`post-${focusPostId}`);
+      if (!target) return;
+
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      target.scrollIntoView({
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "center",
+      });
+      target.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [focusPostId, posts.length, tab]);
+
   useEffect(() => {
     if (openedProjectRef.current === project.id) return;
     openedProjectRef.current = project.id;

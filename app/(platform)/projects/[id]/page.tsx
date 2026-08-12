@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 
 type PageProps = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string; post?: string }>;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -15,8 +16,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return { title: data?.project.name ?? "Project" };
 }
 
-export default async function ProjectDetailPage({ params }: PageProps) {
+export default async function ProjectDetailPage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const query = await searchParams;
   const data = await getProjectDetail(id);
   const profile = await requireProfile();
 
@@ -34,6 +36,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         fullName: profile.full_name,
         avatarUrl: profile.avatar_url,
       }}
+      initialTab={query.tab}
+      focusPostId={query.post}
     />
   );
 }

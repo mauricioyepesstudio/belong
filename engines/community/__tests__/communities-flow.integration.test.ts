@@ -14,12 +14,19 @@ import {
   fetchDiscoverCommunities,
   joinMembershipsWithCommunities,
 } from "@/lib/core/communities";
+import { ensureDefaultOrganization } from "@/lib/core/organizations";
 
 config({ path: ".env.local" });
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-const configured = Boolean(url && anonKey);
+const configured = Boolean(
+  url &&
+    anonKey &&
+    process.env.E2E_TEST_EMAIL &&
+    process.env.E2E_TEST_EMAIL_2 &&
+    process.env.E2E_TEST_PASSWORD
+);
 
 const describeIf = configured ? describe : describe.skip;
 
@@ -32,6 +39,7 @@ describeIf("Community creation flow (Supabase)", () => {
 
   let user1Id: string;
   let user2Id: string;
+  let organizationId: string;
   let communityId: string;
   let communitySlug: string;
   let postId: string;
@@ -85,6 +93,11 @@ describeIf("Community creation flow (Supabase)", () => {
   beforeAll(async () => {
     const u1 = await ensureUser(user1Email, "E2E Owner");
     user1Id = u1.userId;
+    organizationId = await ensureDefaultOrganization(
+      u1.client,
+      user1Id,
+      "E2E Owner"
+    );
 
     if (!process.env.E2E_TEST_EMAIL_2 && !process.env.E2E_TEST_EMAIL) {
       const u2 = await ensureUser(user2Email, "E2E Member");
@@ -122,6 +135,7 @@ describeIf("Community creation flow (Supabase)", () => {
         description: "End-to-end validation community",
         tag: "Testing",
         owner_id: user1Id,
+        organization_id: organizationId,
       })
       .select("id, slug")
       .single();

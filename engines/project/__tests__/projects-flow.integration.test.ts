@@ -14,12 +14,19 @@ import {
   fetchProjectDetail,
   getAllProjectsForUser,
 } from "@/lib/core/projects";
+import { ensureDefaultOrganization } from "@/lib/core/organizations";
 
 config({ path: ".env.local" });
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-const configured = Boolean(url && anonKey);
+const configured = Boolean(
+  url &&
+    anonKey &&
+    process.env.E2E_TEST_EMAIL &&
+    process.env.E2E_TEST_EMAIL_2 &&
+    process.env.E2E_TEST_PASSWORD
+);
 
 const describeIf = configured ? describe : describe.skip;
 
@@ -33,6 +40,7 @@ describeIf("Project workspace flow (Supabase)", () => {
 
   let ownerId: string;
   let memberId: string;
+  let organizationId: string;
   let communityId: string;
   let projectId: string;
   let postId: string;
@@ -85,6 +93,11 @@ describeIf("Project workspace flow (Supabase)", () => {
   beforeAll(async () => {
     const owner = await ensureUser(ownerEmail, "E2E Project Owner");
     ownerId = owner.userId;
+    organizationId = await ensureDefaultOrganization(
+      owner.client,
+      ownerId,
+      "E2E Project Owner"
+    );
 
     const { data: community, error: communityError } = await owner.client
       .from("communities")
@@ -93,6 +106,7 @@ describeIf("Project workspace flow (Supabase)", () => {
         slug: slugify(communityName),
         description: "E2E project test community",
         owner_id: ownerId,
+        organization_id: organizationId,
       })
       .select("id")
       .single();
@@ -112,6 +126,7 @@ describeIf("Project workspace flow (Supabase)", () => {
         description: "E2E test project",
         owner_id: ownerId,
         community_id: communityId,
+        organization_id: organizationId,
         status: "planning",
         progress: 0,
       })

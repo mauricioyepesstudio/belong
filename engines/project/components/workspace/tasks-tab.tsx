@@ -13,7 +13,7 @@ import {
   useToast,
 } from "@/systems/design-system";
 import { CheckCircle2, FolderKanban, Plus, UserCheck } from "lucide-react";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 const COLUMNS: { id: ProjectTaskStatus; label: string }[] = [
   { id: "todo", label: "Todo" },
@@ -28,6 +28,12 @@ const priorityVariant: Record<string, "outline" | "warning" | "default" | "brand
   high: "warning",
   urgent: "brand",
 };
+
+function uniqueTasks(tasks: ProjectTask[]): ProjectTask[] {
+  const tasksById = new Map<string, ProjectTask>();
+  for (const task of tasks) tasksById.set(task.id, task);
+  return [...tasksById.values()];
+}
 
 export function ProjectTasksTab({
   projectId,
@@ -47,13 +53,14 @@ export function ProjectTasksTab({
   onActivityCommitted?: () => void;
 }) {
   const { toast } = useToast();
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState(() => uniqueTasks(initialTasks));
   const [title, setTitle] = useState("");
   const [isPending, startTransition] = useTransition();
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const creatingTaskRef = useRef(false);
 
   useEffect(() => {
-    const syncId = window.setTimeout(() => setTasks(initialTasks), 0);
+    const syncId = window.setTimeout(() => setTasks(uniqueTasks(initialTasks)), 0);
     return () => window.clearTimeout(syncId);
   }, [initialTasks]);
 
@@ -61,32 +68,41 @@ export function ProjectTasksTab({
     tasks.filter((t) => t.status === status).sort((a, b) => a.sortOrder - b.sortOrder);
 
   const handleCreate = () => {
-    if (!title.trim()) return;
+    const taskTitle = title.trim();
+    if (!taskTitle || creatingTaskRef.current) return;
+    creatingTaskRef.current = true;
     startTransition(async () => {
-      const result = await createProjectTask(projectId, { title: title.trim() });
-      if (result.error) toast(result.error, "error");
-      else {
-        toast("Task created", "success");
-        setTitle("");
-        setTasks((prev) => [
-          ...prev,
-          {
-            id: result.taskId!,
-            projectId,
-            creatorId: "",
-            assigneeId: null,
-            title: title.trim(),
-            description: null,
-            status: "todo",
-            priority: "medium",
-            deadline: null,
-            sortOrder: prev.filter((t) => t.status === "todo").length,
-            completedAt: null,
-            createdAt: new Date().toISOString(),
-            assigneeName: null,
-            assigneeAvatar: null,
-          },
-        ]);
+      try {
+        const result = await createProjectTask(projectId, { title: taskTitle });
+        if (result.error) toast(result.error, "error");
+        else {
+          toast("Task created", "success");
+          setTitle("");
+          setTasks((prev) => {
+            if (prev.some((task) => task.id === result.taskId)) return prev;
+            return [
+              ...prev,
+              {
+                id: result.taskId!,
+                projectId,
+                creatorId: "",
+                assigneeId: null,
+                title: taskTitle,
+                description: null,
+                status: "todo",
+                priority: "medium",
+                deadline: null,
+                sortOrder: prev.filter((t) => t.status === "todo").length,
+                completedAt: null,
+                createdAt: new Date().toISOString(),
+                assigneeName: null,
+                assigneeAvatar: null,
+              },
+            ];
+          });
+        }
+      } finally {
+        creatingTaskRef.current = false;
       }
     });
   };

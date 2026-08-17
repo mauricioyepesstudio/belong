@@ -25,6 +25,8 @@ export function Sidebar({ profile, unreadNotifications = 0, unreadMessages = 0 }
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
 
+  if (pathname === "/dashboard") return null;
+
   const initials = profile?.full_name
     ?.split(" ")
     .map((n) => n[0])

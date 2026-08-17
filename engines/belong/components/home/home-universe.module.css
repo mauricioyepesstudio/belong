@@ -21,25 +21,6 @@
   animation: drift 18s ease-in-out infinite alternate;
 }
 
-.worldNav {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  width: fit-content;
-  max-width: 100%;
-  margin: 0 auto 1.25rem;
-  overflow-x: auto;
-  border: 1px solid rgba(255,255,255,.075);
-  border-radius: 999px;
-  padding: .25rem;
-  background: rgba(255,255,255,.025);
-  scrollbar-width: none;
-}
-.worldNav::-webkit-scrollbar { display: none; }
-.worldNav a { flex: none; border-radius: 999px; padding: .45rem .85rem; font-size: 10px; font-weight: 650; letter-spacing: .04em; color: rgba(255,255,255,.38); transition: color .2s ease, background .2s ease; }
-.worldNav a:hover { color: rgba(255,255,255,.82); }
-.worldNav a[aria-current="page"] { color: #ddd6fe; background: rgba(139,92,246,.14); box-shadow: inset 0 0 0 1px rgba(167,139,250,.12); }
-
 .panel {
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 1.2rem;
@@ -60,38 +41,93 @@
 
 .worldStage {
   position: relative;
-  min-height: 510px;
+  min-height: 580px;
   overflow: hidden;
   border: 1px solid rgba(167,139,250,.12);
   border-radius: 1.6rem;
   background: radial-gradient(circle at center, rgba(76,29,149,.16), transparent 47%), rgba(2,3,14,.48);
   perspective: 900px;
 }
-.stars { position: absolute; inset: 0; opacity: .5; background-image: radial-gradient(circle, rgba(255,255,255,.75) 0 1px, transparent 1.5px); background-size: 47px 47px; mask-image: radial-gradient(circle, black, transparent 76%); }
-.connections { position:absolute; inset:0; width:100%; height:100%; opacity:.36; filter:drop-shadow(0 0 7px rgba(139,92,246,.38)); }
-.connections path { fill:none; stroke:url(#world-line-violet); stroke-width:1; stroke-dasharray:5 8; vector-effect:non-scaling-stroke; animation:signal 7s linear infinite; }
-.connections path:nth-child(2n) { animation-direction:reverse; animation-duration:9s; }
-.orbitOuter, .orbitInner { position: absolute; left: 50%; top: 50%; border: 1px solid rgba(167,139,250,.16); border-radius: 50%; transform: translate(-50%,-50%) rotateX(65deg); }
+
+/* Layer 1 — world artwork (public/images/home-world.webp, approved composition).
+   Solid fallback color (matched to the artwork's dark starfield corners) shows
+   only for the brief moment before the image decodes — the img is opaque and
+   fully covers it once loaded, so it never competes with the real artwork. */
+.worldArt { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #05060f; }
+.worldArt img { object-fit: cover; object-position: center; }
+
+/* Layer 2 — atmospheric overlay (cool-to-warm mood wash). Kept subtle now that
+   the real photographic artwork carries most of the color/mood itself — these
+   layers only need to nudge legibility for the nodes/lines above, not repaint
+   the scene. */
+.nebulaAmber { position: absolute; left: 8%; bottom: 6%; z-index: 1; width: 46%; height: 40%; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(245,158,11,.1), transparent 68%); filter: blur(18px); animation: drift 22s ease-in-out infinite alternate; }
+.nebulaViolet { position: absolute; right: 4%; top: 4%; z-index: 1; width: 50%; height: 44%; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(139,92,246,.12), transparent 70%); filter: blur(20px); animation: drift 26s ease-in-out infinite alternate-reverse; }
+.horizon { position: absolute; left: 50%; top: 52%; width: 92%; height: 46%; z-index: 1; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(ellipse at center, rgba(245,158,11,.08), rgba(34,211,238,.07) 42%, rgba(139,92,246,.05) 66%, transparent 80%); filter: blur(6px); }
+.vignette { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(circle at 50% 45%, transparent 38%, rgba(2,3,14,.72) 100%); }
+
+/* Layer 3 — stars / particles */
+.stars { position: absolute; inset: 0; z-index: 2; opacity: .5; background-image: radial-gradient(circle, rgba(255,255,255,.75) 0 1px, transparent 1.5px); background-size: 47px 47px; mask-image: radial-gradient(circle, black, transparent 76%); }
+
+/* Layer 4 — glow / fog */
+.orbitOuter, .orbitInner { position: absolute; left: 50%; top: 50%; z-index: 3; border: 1px solid rgba(167,139,250,.16); border-radius: 50%; transform: translate(-50%,-50%) rotateX(65deg); }
 .orbitOuter { width: 78%; height: 78%; animation: orbit 20s linear infinite; }
 .orbitInner { width: 52%; height: 52%; border-color: rgba(34,211,238,.13); animation: orbitReverse 14s linear infinite; }
 .orbitOuter::before, .orbitInner::before { content:""; position:absolute; width:6px; height:6px; left:10%; top:16%; border-radius:50%; background:#a78bfa; box-shadow:0 0 16px #8b5cf6; }
-.coreGlow { position:absolute; left:50%; top:50%; width:220px; height:220px; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(circle, rgba(139,92,246,.25), rgba(59,130,246,.08) 40%, transparent 70%); animation:pulse 4.5s ease-in-out infinite; }
-.identityCore { position:absolute; left:50%; top:50%; z-index:3; display:flex; width:180px; transform:translate(-50%,-50%); flex-direction:column; align-items:center; text-align:center; }
-.avatarRing { position:relative; padding:5px; border:1px solid rgba(196,181,253,.45); border-radius:50%; background:rgba(10,8,30,.85); box-shadow:0 0 32px rgba(139,92,246,.32); }
-.avatarRing::after { content:""; position:absolute; inset:-9px; border:1px dashed rgba(34,211,238,.25); border-radius:50%; animation:spin 14s linear infinite; }
+.coreGlow { position:absolute; left:50%; top:50%; z-index:3; width:280px; height:280px; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(circle, rgba(139,92,246,.3), rgba(59,130,246,.1) 40%, transparent 70%); animation:pulse 4.5s ease-in-out infinite; }
 
-.node { position:absolute; z-index:4; display:flex; align-items:center; gap:.55rem; min-width:112px; padding:.55rem .65rem; border:1px solid rgba(255,255,255,.11); border-radius:.85rem; background:rgba(8,7,25,.78); box-shadow:0 10px 24px rgba(0,0,0,.26); backdrop-filter:blur(14px); transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease; animation:float 5s ease-in-out infinite; }
-.node:hover, .node:focus-visible { z-index:6; transform:translateY(-4px) scale(1.04); border-color:rgba(196,181,253,.45); box-shadow:0 14px 36px rgba(76,29,149,.34); outline:none; }
-.nodeIcon { display:grid; place-items:center; width:1.8rem; height:1.8rem; flex:none; border-radius:.6rem; color:#c4b5fd; background:rgba(139,92,246,.14); }
-.node[data-tone="cyan"] .nodeIcon { color:#67e8f9; background:rgba(34,211,238,.11); }
-.node[data-tone="amber"] .nodeIcon { color:#fcd34d; background:rgba(245,158,11,.1); }
-.nodePeople { left:7%; top:18%; }
-.nodeCommunities { right:5%; top:16%; animation-delay:-1.4s; }
-.nodeProjects { left:4%; top:58%; animation-delay:-2.2s; }
-.nodeEvents { right:4%; top:57%; animation-delay:-.8s; }
-.nodeOpportunities { left:17%; bottom:9%; animation-delay:-3.1s; }
-.nodeResources { right:16%; bottom:8%; animation-delay:-1.8s; }
-.stageCaption { position:absolute; left:50%; top:6%; display:flex; transform:translateX(-50%); align-items:center; gap:.4rem; white-space:nowrap; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.35); }
+/* Layer 5 — dynamic orbit connection lines */
+.connections { position:absolute; inset:0; z-index:4; width:100%; height:100%; opacity:.36; filter:drop-shadow(0 0 7px rgba(139,92,246,.38)); }
+.connections path { fill:none; stroke:url(#world-line-violet); stroke-width:1; stroke-dasharray:5 8; vector-effect:non-scaling-stroke; animation:signal 7s linear infinite; }
+.connections path:nth-child(2n) { animation-direction:reverse; animation-duration:9s; }
+
+/* Layer 6 — central avatar + progress ring.
+   .identityCore spans the full stage so its two children — the ring and the
+   caption text — can each be positioned independently against the stage's
+   true 50%/50% center, instead of being centered as one taller flex block
+   (which pushed the ring below true-center to make room for the text under
+   it). The ring's own center now always sits at 50%/50%, matching the node
+   ring and connection-line origin. */
+.identityCore { position:absolute; inset:0; z-index:5; pointer-events:none; }
+.avatarRingWrap { position:absolute; left:50%; top:50%; z-index:2; display:grid; transform:translate(-50%,-50%); place-items:center; }
+.identityCaption { position:absolute; left:50%; top:50%; width:200px; transform:translate(-50%, 65px); text-align:center; }
+.avatarRing { position:relative; z-index:2; padding:7px; border:2px solid rgba(255,255,255,.6); border-radius:50%; background:rgba(10,8,30,.85); box-shadow:0 0 4px rgba(0,0,0,.5), 0 0 64px rgba(139,92,246,.6), 0 18px 30px -8px rgba(0,0,0,.65); }
+.avatarRing::after { content:""; position:absolute; inset:-12px; border:1px dashed rgba(34,211,238,.28); border-radius:50%; animation:spin 14s linear infinite; }
+.progressRing { position:absolute; inset:-20px; z-index:1; width:calc(100% + 40px); height:calc(100% + 40px); transform:rotate(-90deg); }
+.progressRingTrack { fill:none; stroke:rgba(255,255,255,.09); stroke-width:2.5; }
+.progressRingFill { fill:none; stroke:url(#core-progress-gradient); stroke-width:2.5; stroke-linecap:round; filter:drop-shadow(0 0 8px rgba(139,92,246,.65)); transition:stroke-dashoffset 1s ease; }
+.pulseRing, .pulseRingOuter { position:absolute; inset:-13px; z-index:0; border-radius:50%; border:1px solid rgba(167,139,250,.38); animation:ringPulse 3.2s ease-out infinite; }
+.pulseRingOuter { inset:-30px; border-color:rgba(34,211,238,.24); animation-duration:3.6s; animation-delay:1.1s; }
+.youBadge { display:inline-flex; padding:.2rem .65rem; border-radius:999px; border:1px solid rgba(196,181,253,.35); background:rgba(139,92,246,.16); font-size:10px; font-weight:700; letter-spacing:.16em; color:#ddd6fe; box-shadow:0 0 16px rgba(139,92,246,.25); }
+
+.nodesLayer { position:absolute; inset:0; z-index:6; }
+.node { display:flex; width:6rem; flex-direction:column; align-items:center; gap:.4rem; text-align:center; transition:transform .25s ease; animation:float 5s ease-in-out infinite; }
+.node:hover, .node:focus-visible { z-index:2; transform:translateY(-4px) scale(1.06); outline:none; }
+.node:hover .nodeIcon, .node:focus-visible .nodeIcon { box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 0 0 1px rgba(196,181,253,.5), 0 0 32px rgba(139,92,246,.6); }
+.nodeIcon { display:grid; place-items:center; width:3.75rem; height:3.75rem; flex:none; border-radius:50%; color:#c4b5fd; background:linear-gradient(160deg, rgba(139,92,246,.28), rgba(139,92,246,.1)); border:1.5px solid rgba(167,139,250,.45); box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 0 24px rgba(139,92,246,.35); transition:box-shadow .25s ease; }
+.node[data-tone="cyan"] .nodeIcon { color:#67e8f9; background:linear-gradient(160deg, rgba(34,211,238,.26), rgba(34,211,238,.08)); border-color:rgba(34,211,238,.45); box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 0 24px rgba(34,211,238,.35); }
+.node[data-tone="amber"] .nodeIcon { color:#fcd34d; background:linear-gradient(160deg, rgba(245,158,11,.26), rgba(245,158,11,.08)); border-color:rgba(245,158,11,.45); box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 0 24px rgba(245,158,11,.32); }
+.node[data-tone="cyan"]:hover .nodeIcon, .node[data-tone="cyan"]:focus-visible .nodeIcon { box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 0 0 1px rgba(103,232,249,.5), 0 0 34px rgba(34,211,238,.6); }
+.node[data-tone="amber"]:hover .nodeIcon, .node[data-tone="amber"]:focus-visible .nodeIcon { box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 0 0 1px rgba(252,211,77,.5), 0 0 34px rgba(245,158,11,.55); }
+.nodeLabel { font-size:9px; font-weight:750; letter-spacing:.09em; text-transform:uppercase; color:rgba(255,255,255,.85); text-shadow:0 1px 6px rgba(0,0,0,.6); }
+.nodeValue { margin-top:-.25rem; font-size:11px; font-weight:700; color:rgba(255,255,255,.5); }
+
+/* Tight, consistent-radius orbit — 7 nodes evenly spaced around the avatar,
+   matching the approved reference composition. */
+.nodePeople, .nodeCommunities, .nodeEvents, .nodeOpportunities, .nodeResources, .nodeCompanion, .nodePlatform { position:absolute; transform:translate(-50%,-50%); }
+.nodePlatform { left:50%; top:20%; }
+.nodeCommunities { left:79.5%; top:32.8%; }
+.nodeEvents { left:84.8%; top:57.8%; }
+.nodeCompanion { left:56.3%; top:79.5%; }
+.nodeResources { left:29.4%; top:74.6%; }
+.nodeOpportunities { left:15.2%; top:57.8%; }
+.nodePeople { left:20.5%; top:32.8%; }
+.nodePeople .node { animation-delay:-2.2s; }
+.nodeCommunities .node, .nodeEvents .node { animation-delay:-.8s; }
+.nodeOpportunities .node { animation-delay:-3.1s; }
+.nodeResources .node { animation-delay:-1.8s; }
+.nodeCompanion .node { animation-delay:-2.6s; }
+.nodePlatform .node { animation-delay:-3.6s; }
+.stageCaption { position:absolute; left:50%; bottom:2%; z-index:7; display:flex; transform:translateX(-50%); align-items:center; gap:.4rem; white-space:nowrap; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.35); }
 
 .primaryButton, .secondaryButton { display:inline-flex; min-height:40px; align-items:center; justify-content:center; gap:.45rem; border-radius:.8rem; padding:.6rem .9rem; font-size:12px; font-weight:650; transition:transform .2s ease, background .2s ease, border-color .2s ease; }
 .primaryButton { color:white; background:linear-gradient(135deg,#7c3aed,#4f46e5); box-shadow:0 8px 22px rgba(79,70,229,.22); }
@@ -107,18 +143,54 @@
 @keyframes orbitReverse { to { transform:translate(-50%,-50%) rotateX(65deg) rotateZ(-360deg); } }
 @keyframes drift { from { transform:translate3d(-3%,-2%,0) rotate(-4deg); } to { transform:translate3d(4%,3%,0) rotate(5deg); } }
 @keyframes signal { to { stroke-dashoffset:-130; } }
+@keyframes ringPulse { 0% { transform:scale(.92); opacity:.75; } 100% { transform:scale(1.3); opacity:0; } }
 
 @media (max-width: 640px) {
   .universe { min-height: auto; border-radius: 1.35rem; }
   .worldStage { min-height: 460px; }
-  .node { min-width:0; padding:.5rem; }
-  .node > span:last-child { display:none; }
-  .nodePeople, .nodeProjects { left:7%; }
-  .nodeCommunities, .nodeEvents { right:7%; }
-  .nodeOpportunities { left:20%; }
-  .nodeResources { right:20%; }
+  .node { width:3.6rem; }
+  .nodeIcon { width:2.4rem; height:2.4rem; }
+  .nodeValue { display:none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora, .orbitOuter, .orbitInner, .coreGlow, .avatarRing::after, .node, .connections path { animation:none; }
+  .aurora, .orbitOuter, .orbitInner, .coreGlow, .avatarRing::after, .node, .connections path, .pulseRing, .pulseRingOuter, .twinkle, .nebulaAmber, .nebulaViolet { animation:none; }
+  .progressRingFill { transition:none; }
 }
+
+/* ---- star twinkle particles (world stage density) ---- */
+.twinkle { position:absolute; z-index:2; border-radius:50%; background:#fff; box-shadow:0 0 6px 1px rgba(196,181,253,.8); animation:twinkle 3.4s ease-in-out infinite; }
+@keyframes twinkle { 0%,100% { opacity:.15; transform:scale(.7); } 50% { opacity:1; transform:scale(1); } }
+
+/* ---- left/right intelligence panels ---- */
+.energyRingWrap { position:relative; display:grid; width:96px; height:96px; place-items:center; margin:.25rem auto 0; }
+.energyRingSvg { position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg); }
+.energyRingTrack { fill:none; stroke:rgba(255,255,255,.08); stroke-width:7; }
+.energyRingFill { fill:none; stroke:url(#energy-ring-gradient); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 8px rgba(34,211,238,.45)); transition:stroke-dashoffset 1s ease; }
+.energyValue { font-size:1.35rem; font-weight:700; color:#fff; }
+
+.pulseList { display:flex; flex-direction:column; gap:.65rem; }
+.pulseRow { display:flex; align-items:center; gap:.65rem; }
+.pulseIcon { display:grid; place-items:center; width:1.9rem; height:1.9rem; flex:none; border-radius:.65rem; background:rgba(139,92,246,.12); color:#c4b5fd; }
+.pulseValue { font-size:.95rem; font-weight:700; color:#fff; line-height:1.1; }
+.pulseLabel { font-size:10px; color:rgba(255,255,255,.45); }
+
+.checklist { display:flex; flex-direction:column; gap:.55rem; }
+.checkRow { display:flex; align-items:center; gap:.55rem; font-size:12px; color:rgba(255,255,255,.6); }
+.checkRow[data-done="true"] { color:rgba(255,255,255,.35); text-decoration:line-through; text-decoration-color:rgba(255,255,255,.2); }
+.checkDot { display:grid; place-items:center; width:1.1rem; height:1.1rem; flex:none; border-radius:50%; border:1.5px solid rgba(167,139,250,.4); color:#22d3ee; }
+.checkRow[data-done="true"] .checkDot { background:rgba(34,211,238,.16); border-color:rgba(34,211,238,.5); }
+
+.storyLine { width:100%; height:56px; overflow:visible; }
+.storyPath { fill:none; stroke:url(#story-line-gradient); stroke-width:2; stroke-linecap:round; stroke-dasharray:320; stroke-dashoffset:320; animation:draw 1.6s ease forwards; }
+.storyDot { fill:#22d3ee; filter:drop-shadow(0 0 4px rgba(34,211,238,.8)); }
+@keyframes draw { to { stroke-dashoffset:0; } }
+@media (prefers-reduced-motion: reduce) { .storyPath { animation:none; stroke-dashoffset:0; } }
+
+.aiList { display:flex; flex-direction:column; gap:.5rem; }
+.aiRow { display:flex; width:100%; align-items:center; gap:.6rem; border-radius:.7rem; border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.02); padding:.5rem .6rem; text-align:left; transition:border-color .2s ease, background .2s ease; }
+.aiRow:hover, .aiRow:focus-visible { border-color:rgba(167,139,250,.3); background:rgba(139,92,246,.06); outline:none; }
+.aiIcon { display:grid; place-items:center; width:1.6rem; height:1.6rem; flex:none; border-radius:.55rem; background:rgba(34,211,238,.12); color:#67e8f9; }
+.askInput { width:100%; border-radius:.8rem; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); padding:.55rem .75rem; font-size:12px; color:#fff; }
+.askInput::placeholder { color:rgba(255,255,255,.35); }
+.askInput:focus-visible { outline:2px solid #a78bfa; outline-offset:1px; }

@@ -4,6 +4,8 @@ export {
 } from "./app-links";
 export {
   authRoutes,
+  homeMobileNav,
+  homeTopNav,
   isNavActive,
   mainNav,
   mobileNav,

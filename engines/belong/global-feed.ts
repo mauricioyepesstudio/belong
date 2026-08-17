@@ -58,6 +58,7 @@ export type UserActivityItem = {
   points?: number;
   href: string;
   createdAt: string;
+  imageUrl?: string | null;
 };
 
 const DUPLICATE_ACTIVITY_WINDOW_MS = 5 * 60 * 1000;
@@ -181,7 +182,7 @@ export async function fetchUserRecentActivity(
     joinedCommunityIds.length
       ? supabase
           .from("community_posts")
-          .select("id, content, community_id, author_id, created_at")
+          .select("id, content, community_id, author_id, created_at, image_url")
           .in("community_id", joinedCommunityIds)
           .order("created_at", { ascending: false })
           .limit(perSource)
@@ -192,12 +193,13 @@ export async function fetchUserRecentActivity(
             community_id: string;
             author_id: string;
             created_at: string;
+            image_url: string | null;
           }[],
         }),
     joinedProjectIds.length
       ? supabase
           .from("project_posts")
-          .select("id, content, project_id, author_id, created_at")
+          .select("id, content, project_id, author_id, created_at, image_url")
           .in("project_id", joinedProjectIds)
           .order("created_at", { ascending: false })
           .limit(perSource)
@@ -208,6 +210,7 @@ export async function fetchUserRecentActivity(
             project_id: string;
             author_id: string;
             created_at: string;
+            image_url: string | null;
           }[],
         }),
     joinedCommunityIds.length
@@ -362,6 +365,7 @@ export async function fetchUserRecentActivity(
         ? `/community/${communityMap.get(p.community_id)!.slug}`
         : "/community",
       createdAt: p.created_at,
+      imageUrl: p.image_url,
     })),
     ...(projectPosts ?? []).map((p) => ({
       id: `ppost-${p.id}`,
@@ -370,6 +374,7 @@ export async function fetchUserRecentActivity(
       subtitle: `${userMap.get(p.author_id) ?? "Someone"} in ${projectMap.get(p.project_id) ?? "project"}`,
       href: `/projects/${p.project_id}`,
       createdAt: p.created_at,
+      imageUrl: p.image_url,
     })),
     ...(communityComments ?? []).map((c) => ({
       id: `ccomment-${c.id}`,

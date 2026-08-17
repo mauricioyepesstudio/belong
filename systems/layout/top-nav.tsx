@@ -2,7 +2,7 @@
 
 import { Avatar, Logo } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
-import { mainNav, isNavActive } from "@/systems/navigation";
+import { mainNav, homeTopNav, isNavActive } from "@/systems/navigation";
 import type { UserProfile } from "@/types/database.types";
 import { Bell, MessageSquare, Search } from "lucide-react";
 import Link from "next/link";
@@ -33,16 +33,42 @@ export function AppTopNav({
   unreadMessages = 0,
 }: AppTopNavProps) {
   const pathname = usePathname();
+  const isDashboard = pathname === "/dashboard";
   const title = getPageTitle(pathname);
 
   return (
     <header className="sticky top-0 z-30 border-b border-border-subtle bg-bg-base/80 backdrop-blur-2xl">
       <div className="flex h-[var(--header-height)] items-center justify-between gap-4 px-4 md:px-6 lg:px-8">
-        <div className="flex min-w-0 items-center gap-4">
-          <Logo href="/dashboard" size="sm" className="lg:hidden" />
-          <div className="hidden min-w-0 lg:block">
-            <p className="truncate text-sm font-semibold text-fg-primary">{title}</p>
-          </div>
+        <div className="flex min-w-0 flex-1 items-center gap-5">
+          <Logo href="/dashboard" size="sm" className={isDashboard ? "shrink-0" : "lg:hidden"} />
+          {isDashboard ? (
+            <nav
+              className="hide-scrollbar hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto lg:flex"
+              aria-label="Primary destinations"
+            >
+              {homeTopNav.map((item) => {
+                const active = item.label === "Today";
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                      active
+                        ? "bg-brand/15 text-brand"
+                        : "text-fg-muted hover:bg-bg-hover hover:text-fg-primary"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          ) : (
+            <div className="hidden min-w-0 lg:block">
+              <p className="truncate text-sm font-semibold text-fg-primary">{title}</p>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-1">

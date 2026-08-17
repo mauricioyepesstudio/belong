@@ -1,0 +1,257 @@
+.stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 440px;
+  isolation: isolate;
+}
+
+/* tri-tone ambient wash — cyan (network), violet (build), green (growth) */
+.ambient {
+  position: absolute;
+  inset: -6%;
+  z-index: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse 46% 34% at 50% 50%, rgba(16, 185, 129, 0.16), transparent 70%),
+    radial-gradient(ellipse 62% 46% at 50% 50%, rgba(34, 211, 238, 0.16), transparent 68%),
+    radial-gradient(ellipse 78% 60% at 50% 50%, rgba(139, 92, 246, 0.2), transparent 72%);
+  filter: blur(18px);
+  animation: ambientPulse 6s ease-in-out infinite;
+}
+
+/* glowing connection lines from the core avatar to each impact node */
+.connections {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.3));
+}
+.connections path {
+  fill: none;
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 4 7;
+  animation: signal 6s linear infinite;
+}
+.connections path:nth-child(2n) {
+  animation-direction: reverse;
+  animation-duration: 8s;
+}
+
+/* elliptical, slightly-tilted orbit rings — echoes the hero world stage's
+   orbit treatment without reusing/modifying its module. */
+.orbit {
+  position: absolute;
+  z-index: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(167, 139, 250, 0.22);
+}
+.orbitA {
+  width: 56%;
+  height: 40%;
+  transform: rotate(-6deg);
+  border-color: rgba(196, 181, 253, 0.32);
+  box-shadow: 0 0 26px rgba(139, 92, 246, 0.12) inset;
+  animation: spin 24s linear infinite;
+}
+.orbitB {
+  width: 82%;
+  height: 60%;
+  transform: rotate(5deg);
+  border-color: rgba(34, 211, 238, 0.22);
+  box-shadow: 0 0 34px rgba(34, 211, 238, 0.1) inset;
+  animation: spinReverse 32s linear infinite;
+}
+.orbitC {
+  width: 100%;
+  height: 74%;
+  transform: rotate(-3deg);
+  border-color: rgba(16, 185, 129, 0.16);
+  animation: spin 44s linear infinite;
+}
+
+/* expanding ripple pulses — flattened to an ellipse to match the orbit rings */
+.wave {
+  position: absolute;
+  z-index: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(139, 92, 246, 0.34);
+  transform: scaleY(0.66);
+  animation: expand 5s ease-out infinite;
+}
+.wave2 {
+  animation-delay: 1.6s;
+  border-color: rgba(34, 211, 238, 0.28);
+}
+.wave3 {
+  animation-delay: 3.2s;
+  border-color: rgba(16, 185, 129, 0.24);
+}
+
+.core {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 168px;
+  height: 168px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  background: rgba(8, 7, 26, 0.92);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 0 46px rgba(139, 92, 246, 0.55),
+    0 0 90px rgba(34, 211, 238, 0.22),
+    0 0 120px rgba(16, 185, 129, 0.12);
+}
+.core::after {
+  content: "";
+  position: absolute;
+  inset: -11px;
+  border-radius: 50%;
+  border: 1px dashed rgba(34, 211, 238, 0.3);
+  animation: spin 16s linear infinite;
+}
+
+.ripplePoint {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.32rem;
+  transform: translate(-50%, -50%);
+  animation: bob 4.5s ease-in-out infinite;
+}
+
+.rippleDot {
+  display: grid;
+  place-items: center;
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 50%;
+  background: rgba(8, 7, 26, 0.75);
+  border: 1.5px solid currentColor;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 0 22px currentColor;
+}
+
+.rippleValue {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.cardIcon {
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: none;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(167, 139, 250, 0.16);
+  background: rgba(139, 92, 246, 0.1);
+  color: rgb(196, 181, 253);
+}
+
+@keyframes expand {
+  0% {
+    width: 168px;
+    height: 168px;
+    opacity: 0.75;
+  }
+  100% {
+    width: 440px;
+    height: 440px;
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(354deg);
+  }
+}
+@keyframes spinReverse {
+  to {
+    transform: rotate(-355deg);
+  }
+}
+
+@keyframes signal {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+
+@keyframes ambientPulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    margin-top: 0;
+  }
+  50% {
+    margin-top: -5px;
+  }
+}
+
+@media (max-width: 640px) {
+  .stage {
+    height: 340px;
+  }
+  .core {
+    width: 120px;
+    height: 120px;
+  }
+  .rippleDot {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  @keyframes expand {
+    0% {
+      width: 120px;
+      height: 120px;
+      opacity: 0.75;
+    }
+    100% {
+      width: 340px;
+      height: 340px;
+      opacity: 0;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient,
+  .orbitA,
+  .orbitB,
+  .orbitC,
+  .wave,
+  .core::after,
+  .ripplePoint,
+  .connections path {
+    animation: none;
+  }
+  .wave {
+    opacity: 0.25;
+  }
+}

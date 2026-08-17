@@ -1,0 +1,130 @@
+/* Your Missions — image-dominant card with the title overlaid on the
+   artwork stage (top ~58%) and a glass information panel underneath
+   (progress bar, completion %, next step). Matches the composition of
+   reference/belong-dashboard-reference.png: title sits directly on the
+   tinted/illustrated background rather than in its own boxed header, and
+   the artwork fades smoothly into the panel below instead of stopping at a
+   hard-edged inset frame.
+
+   MISSION_ART_SRC points at future per-mission illustrations that don't
+   exist in the repo yet; until then every card renders a restrained,
+   clearly-placeholder gradient + grain + soft glow texture — never a giant
+   centered icon or a fake photo standing in for finished illustration. Once
+   a real image is dropped in at those paths it inherits the same fade mask,
+   so it blends into the info panel with no extra work. */
+
+.card {
+  position: relative;
+  display: flex;
+  height: 100%;
+  min-height: 16.5rem;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.artStage {
+  position: relative;
+  flex: 0 0 58%;
+  overflow: hidden;
+}
+
+.title {
+  position: relative;
+  z-index: 3;
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  padding: 0.85rem 0.9rem 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.artImage {
+  z-index: 1;
+  object-fit: cover;
+  object-position: center;
+  mask-image: linear-gradient(to bottom, #000 68%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 68%, transparent 100%);
+}
+
+/* Placeholder texture — richer dual-tone glow plus a soft dot grain, tone
+   varied per keyword bucket. Deliberately faded out toward the bottom (same
+   mask used by .artImage) so it reads as an atmosphere behind the title,
+   not a finished illustration standing in for real art. */
+.artFallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(85% 70% at 28% 22%, var(--tone-a, rgba(139, 92, 246, 0.45)), transparent 62%),
+    radial-gradient(70% 60% at 85% 78%, var(--tone-b, rgba(34, 211, 238, 0.24)), transparent 65%),
+    linear-gradient(165deg, rgba(11, 11, 28, 0.92), rgba(3, 4, 16, 0.98));
+  mask-image: linear-gradient(to bottom, #000 68%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 68%, transparent 100%);
+}
+
+.artFallback::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 0 1px, transparent 1.5px);
+  background-size: 16px 16px;
+  mask-image: radial-gradient(circle at 30% 30%, black, transparent 75%);
+}
+
+.artFallback[data-bucket="startup"] { --tone-a: rgba(167, 139, 250, 0.5); --tone-b: rgba(217, 70, 239, 0.24); }
+.artFallback[data-bucket="community"] { --tone-a: rgba(34, 211, 238, 0.46); --tone-b: rgba(59, 130, 246, 0.24); }
+.artFallback[data-bucket="growth"] { --tone-a: rgba(52, 211, 153, 0.46); --tone-b: rgba(45, 212, 191, 0.24); }
+.artFallback[data-bucket="portfolio"] { --tone-a: rgba(245, 158, 11, 0.46); --tone-b: rgba(251, 146, 60, 0.24); }
+.artFallback[data-bucket="default"] { --tone-a: rgba(139, 92, 246, 0.42); --tone-b: rgba(99, 102, 241, 0.22); }
+
+.body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(4, 5, 18, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 0.7rem 0.9rem 0.85rem;
+}
+
+.progressText {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.66rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.progressTrack {
+  margin-top: 0.4rem;
+  height: 0.35rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7c3aed, #22d3ee);
+}
+
+.nextStep {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 0.55rem;
+  font-size: 0.66rem;
+  color: rgba(255, 255, 255, 0.5);
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}

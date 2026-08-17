@@ -1,0 +1,249 @@
+/* Builder Spotlight — image/editorial-dominant composition matching
+   reference/belong-dashboard-reference.png: a large photo-dominant featured
+   contributor card (text block + full-bleed portrait fading into the card
+   background) plus three compact editorial tiles (label/title/description
+   above an inset media frame, CTA pill below). Real photos are used when the
+   data layer provides them (contributor avatar, impact activity image/author
+   avatar); everything else falls back to the same restrained branded
+   gradient + grain texture used elsewhere this session — never a giant
+   centered icon standing in for real art. */
+
+.featureCard {
+  display: flex;
+  height: 100%;
+  min-height: 12rem;
+  flex-direction: column-reverse;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .featureCard {
+    flex-direction: row;
+  }
+}
+
+.featureText {
+  display: flex;
+  flex: 0.8 1 0%;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.25rem 1.35rem;
+}
+
+.featureName {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.featureMeta {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.featureCta {
+  margin-top: 0.5rem;
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: rgba(124, 58, 237, 0.18);
+  padding: 0.5rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #fff;
+  transition: background 0.2s ease;
+}
+
+.featureCta:hover {
+  background: rgba(124, 58, 237, 0.3);
+}
+
+.featureMedia {
+  position: relative;
+  flex: 1.2 1 0%;
+  min-height: 9rem;
+  overflow: hidden;
+}
+
+.featureImg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* Branded gradient fallback — used only when the contributor has no real
+   avatar photo on file. */
+.featureFallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(120% 100% at 30% 15%, rgba(139, 92, 246, 0.32), transparent 58%),
+    radial-gradient(120% 100% at 85% 90%, rgba(34, 211, 238, 0.18), transparent 62%),
+    linear-gradient(160deg, rgba(10, 10, 26, 0.92), rgba(3, 4, 16, 0.97));
+}
+
+.featureFallbackIcon {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 0;
+  height: 1.4rem;
+  width: 1.4rem;
+  color: rgba(255, 255, 255, 0.28);
+}
+
+/* Fades the photo's leading edge into the card background so the portrait
+   reads as full-bleed editorial art rather than a hard-edged thumbnail. */
+.featureFade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to right,
+    rgba(6, 7, 20, 0.85) 0%,
+    rgba(6, 7, 20, 0.15) 30%,
+    transparent 55%
+  );
+}
+
+@media (max-width: 639px) {
+  .featureFade {
+    background: linear-gradient(
+      to top,
+      rgba(6, 7, 20, 0.9) 0%,
+      rgba(6, 7, 20, 0.1) 35%,
+      transparent 60%
+    );
+  }
+}
+
+/* --- Project / Community / Impact editorial tiles --- */
+
+.tileCard {
+  display: flex;
+  height: 100%;
+  min-height: 12rem;
+  flex-direction: column;
+  padding: 0.9rem;
+}
+
+.tileHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.tileLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a78bfa;
+}
+
+.tileTitle {
+  margin-top: 0.2rem;
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #fff;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.tileDesc {
+  margin-top: 0.15rem;
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.6);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.tileMedia {
+  position: relative;
+  margin-top: 0.65rem;
+  height: 4.75rem;
+  overflow: hidden;
+  border-radius: 0.85rem;
+}
+
+.tileImg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.tileFallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(120% 100% at 22% 20%, var(--tone-a, rgba(139, 92, 246, 0.34)), transparent 60%),
+    radial-gradient(120% 100% at 85% 88%, var(--tone-b, rgba(34, 211, 238, 0.2)), transparent 65%),
+    linear-gradient(160deg, rgba(10, 10, 26, 0.9), rgba(3, 4, 16, 0.96));
+}
+
+.tileFallback::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 0 1px, transparent 1.5px);
+  background-size: 12px 12px;
+  mask-image: radial-gradient(circle at 50% 50%, black, transparent 78%);
+}
+
+.tileFallback[data-tone="violet"] { --tone-a: rgba(167, 139, 250, 0.4); --tone-b: rgba(217, 70, 239, 0.2); }
+.tileFallback[data-tone="cyan"] { --tone-a: rgba(34, 211, 238, 0.36); --tone-b: rgba(59, 130, 246, 0.2); }
+.tileFallback[data-tone="pink"] { --tone-a: rgba(236, 72, 153, 0.36); --tone-b: rgba(244, 114, 182, 0.18); }
+
+.tileFallbackIcon {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  z-index: 1;
+  height: 1.05rem;
+  width: 1.05rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.tileCta {
+  margin-top: 0.65rem;
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 0.6rem;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.35rem 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  transition: background 0.2s ease;
+}
+
+.tileCta:hover {
+  background: rgba(255, 255, 255, 0.16);
+}

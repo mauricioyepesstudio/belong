@@ -1,0 +1,5 @@
+- [Home universe world art status](project_home_universe_world_art.md) — hero artwork delivered at `public/images/home-world.webp` and integrated, layer complete
+- [No stock-art placeholders](feedback_no_stock_art_placeholder.md) — human-confirmed rule: never fake missing artwork with stock/generic/CSS-drawn substitutes
+- [Live Builders / Missions structure slice](project_home_live_builders_missions_structure.md) — composition/fallback architecture + real-photo wiring polish; missions art paths still missing
+- [Impact Ripple visual rebuild](project_home_impact_ripple_visual.md) — dominant central avatar, elliptical orbit rings, SVG glow lines; no photo-avatar data exists for impact nodes
+- [Builder Spotlight structure slice](project_home_builder_spotlight_structure.md) — rebuilt editorial-dominant row; project/community tiles structurally lack any image column

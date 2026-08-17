@@ -57,6 +57,7 @@ function mapLegacyActivity(item: UserActivityItem, index: number): HomeActivity 
     href: item.href,
     createdAt: item.createdAt,
     contextLabel: parts[1] ?? item.subtitle,
+    imageUrl: item.imageUrl ?? undefined,
     reactions: {},
     commentCount: 0,
     impactPoints: item.points,

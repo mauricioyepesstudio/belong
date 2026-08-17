@@ -1,7 +1,9 @@
 import {
   Bell,
+  BookOpen,
   Building2,
   Calendar,
+  Compass,
   Crown,
   FolderKanban,
   LayoutDashboard,
@@ -39,6 +41,28 @@ export const mobileNav: NavItem[] = [
   { label: "Projects", href: "/projects", icon: FolderKanban },
   { label: "Messages", href: "/messages", icon: MessageSquare },
   { label: "More", href: "#more", icon: Menu },
+];
+
+/** Reference-style bottom dock shown only on the Home/dashboard route. */
+export const homeMobileNav: NavItem[] = [
+  { label: "Explore", href: "/search", icon: Compass },
+  { label: "Connect", href: "/community", icon: Users },
+  { label: "Build", href: "/dashboard?build=open", icon: Sparkles },
+  { label: "Learn", href: "/marketplace", icon: BookOpen },
+  { label: "Messages", href: "/messages", icon: MessageSquare },
+  { label: "Profile", href: "/profile", icon: User },
+];
+
+/** Compact primary-destination nav shown in the top bar on the Home/dashboard route. */
+export const homeTopNav: NavItem[] = [
+  { label: "Today", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Journey", href: "/profile?tab=missions", icon: User },
+  { label: "Builders", href: "/community?tab=people", icon: Users },
+  { label: "Projects", href: "/projects", icon: FolderKanban },
+  { label: "Communities", href: "/community", icon: Building2 },
+  { label: "Opportunities", href: "/opportunities", icon: Sparkles },
+  { label: "Events", href: "/events", icon: Calendar },
+  { label: "Resources", href: "/marketplace", icon: ShoppingBag },
 ];
 
 /** Routes surfaced in the mobile More menu (not in the bottom bar). */

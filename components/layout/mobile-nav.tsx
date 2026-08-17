@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   mobileNav,
+  homeMobileNav,
   mobileMoreNav,
   isNavActive,
   withNotificationBadge,
@@ -12,7 +13,7 @@ import {
 import { useState } from "react";
 
 function isActive(pathname: string, href: string) {
-  return isNavActive(pathname, href);
+  return isNavActive(pathname, href.split("?")[0]);
 }
 
 export function MobileNav({
@@ -23,16 +24,17 @@ export function MobileNav({
   unreadMessages?: number;
 }) {
   const pathname = usePathname();
+  const isDashboard = pathname === "/dashboard";
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const nav = withNotificationBadge(mobileNav, "/messages", unreadMessages);
+  const baseNav = isDashboard ? homeMobileNav : mobileNav;
+  const nav = withNotificationBadge(baseNav, "/messages", unreadMessages);
   const moreItems = withNotificationBadge(mobileMoreNav, "/notifications", unreadNotifications);
-
-  const moreActive = mobileMoreNav.some((item) => isActive(pathname, item.href));
+  const moreActive = !isDashboard && mobileMoreNav.some((item) => isActive(pathname, item.href));
 
   return (
     <>
-      {moreOpen && (
+      {!isDashboard && moreOpen && (
         <button
           type="button"
           className="fixed inset-0 z-40 bg-black/40 lg:hidden"
@@ -41,7 +43,7 @@ export function MobileNav({
         />
       )}
 
-      {moreOpen && (
+      {!isDashboard && moreOpen && (
         <div className="fixed inset-x-0 bottom-[var(--mobile-nav-height)] z-50 border-t border-border-subtle bg-bg-elevated p-4 lg:hidden">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-fg-muted">More</p>
           <ul className="grid grid-cols-2 gap-2">
@@ -77,11 +79,26 @@ export function MobileNav({
         className="fixed inset-x-0 bottom-0 z-50 border-t border-border-subtle bg-bg-elevated/90 backdrop-blur-2xl lg:hidden"
         aria-label="Mobile navigation"
       >
-        <div className="flex h-[var(--mobile-nav-height)] items-stretch justify-around px-1">
+        <div className="relative flex h-[var(--mobile-nav-height)] items-stretch justify-around px-1">
           {nav.map((item) => {
             const isMore = item.href === "#more";
-            const active = isMore ? moreActive || moreOpen : isActive(pathname, item.href);
             const Icon = item.icon;
+
+            if (item.label === "Build") {
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-label="Build"
+                  className="relative flex flex-1 flex-col items-center justify-center"
+                >
+                  <span className="absolute -top-6 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-gradient-to-br from-violet-500 to-cyan-400 shadow-[0_0_28px_rgba(139,92,246,.55)] transition-transform active:scale-95">
+                    <Icon className="h-6 w-6 text-white" aria-hidden strokeWidth={2.25} />
+                  </span>
+                  <span className="mt-8 text-[10px] font-semibold text-fg-primary">Build</span>
+                </Link>
+              );
+            }
 
             if (isMore) {
               return (
@@ -93,17 +110,19 @@ export function MobileNav({
                   onClick={() => setMoreOpen((open) => !open)}
                   className={cn(
                     "relative flex flex-1 flex-col items-center justify-center gap-1 transition-colors",
-                    active ? "text-brand" : "text-fg-faint"
+                    moreActive || moreOpen ? "text-brand" : "text-fg-faint"
                   )}
                 >
-                  {active && (
+                  {(moreActive || moreOpen) && (
                     <span className="absolute top-0 h-0.5 w-8 rounded-full bg-brand" aria-hidden />
                   )}
-                  <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.25 : 1.75} aria-hidden />
+                  <Icon className="h-[22px] w-[22px]" strokeWidth={moreActive || moreOpen ? 2.25 : 1.75} aria-hidden />
                   <span className="text-[10px] font-medium">{item.label}</span>
                 </button>
               );
             }
+
+            const active = isActive(pathname, item.href);
 
             return (
               <Link

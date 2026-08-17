@@ -1,0 +1,211 @@
+/* Live Builders — photo-dominant card with bottom scrim overlay.
+   Structure/fallback-architecture slice: matches the composition of
+   reference/belong-dashboard-reference.png (badge top-left over the photo,
+   identity/description/progress/CTA stacked on a bottom gradient scrim).
+   Real photos come from activity.imageUrl or author.avatarUrl when the data
+   layer provides them; everything else falls back to a restrained branded
+   gradient — never a giant centered icon standing in for a photo. */
+
+.mediaFrame {
+  position: relative;
+  height: 23.5rem;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .mediaFrame {
+    height: 20.5rem;
+  }
+}
+
+.mediaImg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* Branded gradient fallback — used only when neither a real activity image
+   nor a real author photo exists (true for most activity types today).
+   Layered as: tone glow (radial pair) + soft diagonal sheen + fine dot-grain
+   texture, so it reads as an intentional atmosphere rather than a flat
+   placeholder block — never a photo stand-in, never a giant centered icon. */
+.fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(120% 90% at 20% 12%, var(--tone-a, rgba(139, 92, 246, 0.28)), transparent 55%),
+    radial-gradient(120% 90% at 88% 92%, var(--tone-b, rgba(34, 211, 238, 0.18)), transparent 60%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.05) 0%, transparent 40%),
+    linear-gradient(160deg, rgba(8, 9, 26, 0.92), rgba(3, 4, 16, 0.98));
+}
+
+.fallback::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 15px 15px;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+}
+
+.fallback[data-tone="emerald"] { --tone-a: rgba(16, 185, 129, 0.3); --tone-b: rgba(52, 211, 153, 0.16); }
+.fallback[data-tone="amber"] { --tone-a: rgba(245, 158, 11, 0.3); --tone-b: rgba(251, 191, 36, 0.16); }
+.fallback[data-tone="violet"] { --tone-a: rgba(139, 92, 246, 0.32); --tone-b: rgba(167, 139, 250, 0.16); }
+.fallback[data-tone="pink"] { --tone-a: rgba(236, 72, 153, 0.3); --tone-b: rgba(244, 114, 182, 0.16); }
+.fallback[data-tone="cyan"] { --tone-a: rgba(34, 211, 238, 0.3); --tone-b: rgba(103, 232, 249, 0.16); }
+
+/* Small corner watermark icon — proportioned like the status badge, never a
+   large centered placeholder glyph pretending to be a photo. */
+.fallbackIcon {
+  position: absolute;
+  right: 0.85rem;
+  bottom: 0.85rem;
+  z-index: 0;
+  height: 1.15rem;
+  width: 1.15rem;
+  color: rgba(255, 255, 255, 0.26);
+}
+
+.badge {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 2;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to top,
+    rgba(3, 4, 16, 0.98) 0%,
+    rgba(3, 4, 16, 0.92) 38%,
+    rgba(3, 4, 16, 0.5) 66%,
+    transparent 88%
+  );
+}
+
+.overlay {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem 0.9rem 1rem;
+}
+
+.name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.desc {
+  margin-top: 0.05rem;
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.72);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progressTrack {
+  height: 0.3rem;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7c3aed, #22d3ee);
+}
+
+.progressValue {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.tag {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.2rem 0.6rem;
+  font-size: 0.64rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.footerLeft {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.footerMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.62rem;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Full-width glass CTA pill, stacked below the avatar/engagement row —
+   matches reference/belong-dashboard-reference.png's "Ver proyecto" /
+   "Ofrecer ayuda" style buttons (indigo-tinted glass, arrow trailing). */
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(45, 35, 92, 0.45);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.cta:hover {
+  background: rgba(60, 46, 122, 0.6);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.cta:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}

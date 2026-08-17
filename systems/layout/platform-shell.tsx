@@ -1,8 +1,11 @@
+"use client";
+
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { AppTopNav } from "@/systems/layout/top-nav";
 import { PageTransition } from "@/components/layout/page-transition";
 import type { UserProfile } from "@/types/database.types";
+import { usePathname } from "next/navigation";
 
 type PlatformShellProps = {
   children: React.ReactNode;
@@ -17,6 +20,9 @@ export function PlatformShell({
   unreadNotifications = 0,
   unreadMessages = 0,
 }: PlatformShellProps) {
+  const pathname = usePathname();
+  const isDashboard = pathname === "/dashboard";
+
   return (
     <div className="min-h-screen bg-bg-base">
       <a
@@ -30,7 +36,7 @@ export function PlatformShell({
         unreadNotifications={unreadNotifications}
         unreadMessages={unreadMessages}
       />
-      <div className="lg:pl-[var(--sidebar-width)]">
+      <div className={isDashboard ? "" : "lg:pl-[var(--sidebar-width)]"}>
         <AppTopNav
           profile={profile}
           unreadNotifications={unreadNotifications}
@@ -40,7 +46,13 @@ export function PlatformShell({
           id="main-content"
           className="min-h-[calc(100vh-var(--header-height))] pb-[calc(var(--mobile-nav-height)+1rem)] lg:pb-0"
         >
-          <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10">
+          <div
+            className={
+              isDashboard
+                ? "mx-auto max-w-[1680px] px-3 py-4 md:px-5 md:py-5 lg:px-6 lg:py-6"
+                : "mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10"
+            }
+          >
             <PageTransition>{children}</PageTransition>
           </div>
         </main>

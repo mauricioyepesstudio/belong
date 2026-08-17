@@ -5,33 +5,24 @@ import { applyImpactScoreInsert } from "@/engines/impact";
 import { useDashboardRealtime } from "@/engines/core/realtime";
 import { Modal } from "@/components/ui/modal";
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { HomeComposer } from "./home-composer";
-import { HomeRecommendations } from "./home-recommendations";
-import { HomeContinue } from "./home-continue";
-import { HomeQuickActions, type QuickActionId } from "./home-quick-actions";
-import { HomeRecentActivity } from "./home-recent-activity";
-import { HomeTrendingCommunities } from "./home-trending-communities";
 import { DashboardActions } from "../dashboard/dashboard-actions";
 import { HomeUniverse } from "./home-universe";
-import { HomeCommandDeck } from "./home-command-deck";
+import { HomeLiveBuilders } from "./home-live-builders";
+import { HomeMissionsRow } from "./home-missions-row";
+import { HomeImpactRipple } from "./home-impact-ripple";
+import { HomeSpotlight } from "./home-spotlight";
 
 export function HomeScreen(data: HomeEngineData) {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const composerRef = useRef<HTMLDivElement>(null);
-  const {
-    profile,
-    communities,
-    discoverCommunities,
-    recentProjects,
-    recentActivity,
-    upcomingEvents,
-    recentConversations,
-  } = data;
+  const { profile, communities, discoverCommunities, recentProjects } = data;
 
   const [projectOpen, setProjectOpen] = useState(false);
   const [communityOpen, setCommunityOpen] = useState(false);
-  const [composerOpen, setComposerOpen] = useState(false);
+  const [missionOpen, setMissionOpen] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(() => searchParams.get("build") === "open");
   const [impactScore, setImpactScore] = useState(data.impactScore);
 
   useDashboardRealtime({
@@ -41,22 +32,9 @@ export function HomeScreen(data: HomeEngineData) {
     },
   });
 
-  const handleQuickAction = (action: QuickActionId) => {
-    switch (action) {
-      case "create_post":
-        setComposerOpen(true);
-        break;
-      case "create_project":
-        setProjectOpen(true);
-        break;
-      case "join_community":
-        setCommunityOpen(true);
-        break;
-      case "invite":
-        router.push("/community?tab=people");
-        break;
-    }
-  };
+  const achievementActivity = data.homeTimeline.find((item) => item.type === "achievement") ?? null;
+  const latestImpactActivity = achievementActivity ?? data.homeTimeline[0] ?? null;
+  const topContributor = data.homeDiscovery.topContributors[0] ?? null;
 
   return (
     <div className="space-y-8 pb-8">
@@ -66,30 +44,18 @@ export function HomeScreen(data: HomeEngineData) {
         onJoinCommunity={() => setCommunityOpen(true)}
       />
 
-      <HomeCommandDeck
-        quickActions={<HomeQuickActions onAction={handleQuickAction} />}
-        forYou={
-          <div className="space-y-8">
-            <HomeRecommendations
-              recommendations={data.opportunityRecommendations}
-              compact
-              userId={profile.id}
-            />
-            <HomeContinue
-              projects={recentProjects}
-              conversations={recentConversations}
-              events={upcomingEvents}
-              onResumeDraft={() => setComposerOpen(true)}
-            />
-          </div>
-        }
-        activity={<HomeRecentActivity activities={recentActivity} />}
-        discover={
-          <HomeTrendingCommunities
-            communities={discoverCommunities}
-            joinedCount={communities.length}
-          />
-        }
+      <HomeLiveBuilders activities={data.homeTimeline} />
+
+      <HomeMissionsRow goals={data.weeklyGoals} onCreateMission={() => setMissionOpen(true)} />
+
+      <HomeImpactRipple impactEngine={data.impactEngine} latestImpact={latestImpactActivity} profile={profile} />
+
+      <HomeSpotlight
+        topContributor={topContributor}
+        project={recentProjects[0] ?? null}
+        community={discoverCommunities[0] ?? null}
+        impactHighlight={achievementActivity}
+        metrics={data.homeImpactMetrics}
       />
 
       <Modal
@@ -116,8 +82,8 @@ export function HomeScreen(data: HomeEngineData) {
       <DashboardActions
         joinedCommunities={communities}
         discoverCommunities={discoverCommunities}
-        missionOpen={false}
-        onMissionOpenChange={() => {}}
+        missionOpen={missionOpen}
+        onMissionOpenChange={setMissionOpen}
         projectOpen={projectOpen}
         onProjectOpenChange={setProjectOpen}
         communityOpen={communityOpen}

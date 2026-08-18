@@ -38,27 +38,31 @@ export function HomeScreen(data: HomeEngineData) {
   const topContributor = data.homeDiscovery.topContributors[0] ?? null;
 
   return (
-    <div className="space-y-8 pb-8">
-      <HomeUniverse
-        data={{ ...data, impactScore }}
-        onJoinCommunity={() => setCommunityOpen(true)}
-        onStartMission={() => setMissionOpen(true)}
-        suggestions={<HomeSuggestionsCarousel people={data.suggestedPeople} />}
-      />
+    <div className="pb-8">
+      <div className="space-y-5">
+        <HomeUniverse
+          data={{ ...data, impactScore }}
+          onJoinCommunity={() => setCommunityOpen(true)}
+          onStartMission={() => setMissionOpen(true)}
+          suggestions={<HomeSuggestionsCarousel people={data.suggestedPeople} />}
+        />
 
-      <HomeLiveBuilders activities={data.homeTimeline} />
+        <HomeLiveBuilders activities={data.homeTimeline} />
+      </div>
 
-      <HomeMissionsRow goals={data.weeklyGoals} onCreateMission={() => setMissionOpen(true)} />
+      <div className="mt-8 space-y-8">
+        <HomeMissionsRow goals={data.weeklyGoals} onCreateMission={() => setMissionOpen(true)} />
 
-      <HomeImpactRipple impactEngine={data.impactEngine} latestImpact={latestImpactActivity} profile={profile} />
+        <HomeImpactRipple impactEngine={data.impactEngine} latestImpact={latestImpactActivity} profile={profile} />
 
-      <HomeSpotlight
-        topContributor={topContributor}
-        project={recentProjects[0] ?? null}
-        community={discoverCommunities[0] ?? null}
-        impactHighlight={achievementActivity}
-        metrics={data.homeImpactMetrics}
-      />
+        <HomeSpotlight
+          topContributor={topContributor}
+          project={recentProjects[0] ?? null}
+          community={discoverCommunities[0] ?? null}
+          impactHighlight={achievementActivity}
+          metrics={data.homeImpactMetrics}
+        />
+      </div>
 
       <Modal
         open={composerOpen}

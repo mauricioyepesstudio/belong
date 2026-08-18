@@ -45,7 +45,7 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
             Suggestions for You
           </h2>
           <p className="mt-1 hidden truncate text-[11px] text-fg-muted sm:block">
-            People aligned with your goals, interests and communities.
+            People aligned with your purpose and energy.
           </p>
         </div>
         <Link
@@ -65,9 +65,9 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
             <GlassCard
               key={person.id}
               hover
-              className="min-w-[42%] shrink-0 snap-start p-3 sm:min-w-[210px] lg:min-w-[calc((100%_-_2.5rem)/5)]"
+              className="flex min-h-[190px] min-w-[42%] shrink-0 snap-start flex-col p-3 sm:min-w-[210px] lg:min-w-[calc((100%_-_2.5rem)/5)]"
             >
-              <Link href={person.profileSearchHref} className="block min-w-0">
+              <Link href={person.profileSearchHref} className="block min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <Avatar
                     src={person.avatarUrl ?? undefined}
@@ -98,7 +98,7 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
                 </p>
               </Link>
 
-              <div className="mt-3 border-t border-white/10 pt-2.5">
+              <div className="mt-3 shrink-0 border-t border-white/10 pt-2.5">
                 <ConnectAction
                   state={connection.state}
                   disabled={isPending}

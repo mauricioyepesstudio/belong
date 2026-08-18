@@ -45,7 +45,7 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
           </h2>
           <p className="mt-1 text-[11px] leading-4 text-fg-muted">
             <span className="hidden sm:inline">People aligned with your purpose and energy.</span>
-            <span className="sm:hidden">Encuentra personas alineadas con tus metas e intereses.</span>
+            <span className="sm:hidden">Personas alineadas con tus metas e intereses.</span>
           </p>
         </div>
         {people.length > 0 && (

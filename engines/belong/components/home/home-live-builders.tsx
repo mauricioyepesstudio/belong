@@ -121,10 +121,10 @@ export function HomeLiveBuilders({ activities }: { activities: HomeActivity[] })
       <div className="mb-3 flex items-end justify-between gap-3 sm:hidden">
         <div className="min-w-0">
           <p className="text-sm font-semibold uppercase tracking-[0.08em] text-fg-primary">
-            Live Builders
+            Constructores en vivo
           </p>
           <p className="mt-1 text-[11px] leading-4 text-fg-muted">
-            Personas construyendo ahora — participa y colabora.
+            Personas construyendo ahora.
           </p>
         </div>
         <Link href="/community" className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand">

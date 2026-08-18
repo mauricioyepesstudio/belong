@@ -47,6 +47,7 @@ type UniverseProps = {
 
 type UniverseNode = {
   label: string;
+  mobileLabel: string;
   href: string;
   value: string | number;
   icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
@@ -188,13 +189,13 @@ export function HomeUniverse({
   // this orbit (see reference) — its data still surfaces via the "Right now"
   // panel and the stage caption below.
   const nodes: UniverseNode[] = [
-    { label: "BELONG Platform", href: "/profile?tab=missions", value: `${missionProgress}%`, icon: Box, position: styles.nodePlatform, tone: "violet" },
-    { label: "People", href: "/community?tab=people", value: data.stats.connections, icon: UserRound, position: styles.nodePeople, tone: "cyan" },
-    { label: "Communities", href: "/community", value: data.communities.length, icon: UsersRound, position: styles.nodeCommunities, tone: "violet" },
-    { label: "Opportunities", href: "/opportunities", value: data.opportunityRecommendations.projects.length + data.opportunityRecommendations.people.length + data.opportunityRecommendations.communities.length + data.opportunityRecommendations.missions.length, icon: Sparkles, position: styles.nodeOpportunities, tone: "amber" },
-    { label: "Events", href: "/events", value: data.upcomingEvents.length, icon: CalendarDays, position: styles.nodeEvents, tone: "cyan" },
-    { label: "Resources", href: "/marketplace", value: "Explore", icon: BookOpen, position: styles.nodeResources, tone: "violet" },
-    { label: "AI Companion", href: "#ai-companion", value: "Insights", icon: Bot, position: styles.nodeCompanion, tone: "cyan" },
+    { label: "BELONG Platform", mobileLabel: "BELONG Platform", href: "/profile?tab=missions", value: `${missionProgress}%`, icon: Box, position: styles.nodePlatform, tone: "violet" },
+    { label: "People", mobileLabel: "Gente", href: "/community?tab=people", value: data.stats.connections, icon: UserRound, position: styles.nodePeople, tone: "cyan" },
+    { label: "Communities", mobileLabel: "Comunidades", href: "/community", value: data.communities.length, icon: UsersRound, position: styles.nodeCommunities, tone: "violet" },
+    { label: "Opportunities", mobileLabel: "Oportunidades", href: "/opportunities", value: data.opportunityRecommendations.projects.length + data.opportunityRecommendations.people.length + data.opportunityRecommendations.communities.length + data.opportunityRecommendations.missions.length, icon: Sparkles, position: styles.nodeOpportunities, tone: "amber" },
+    { label: "Events", mobileLabel: "Eventos", href: "/events", value: data.upcomingEvents.length, icon: CalendarDays, position: styles.nodeEvents, tone: "cyan" },
+    { label: "Resources", mobileLabel: "Recursos", href: "/marketplace", value: "Explore", icon: BookOpen, position: styles.nodeResources, tone: "violet" },
+    { label: "AI Companion", mobileLabel: "IA Compañero", href: "#ai-companion", value: "Insights", icon: Bot, position: styles.nodeCompanion, tone: "cyan" },
   ];
 
   return (
@@ -432,18 +433,27 @@ export function HomeUniverse({
             <span className="sr-only">Platform progress: {missionProgress}% toward {missionTitle}</span>
             <div className={styles.identityCaption}>
               <span className={styles.youBadge}>You</span>
-              <h2 id="belong-world-title" className="mt-2 text-base font-semibold text-white">{firstName}&apos;s world</h2>
-              <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-violet-200/60">Connected by purpose</p>
+              <h2 id="belong-world-title" className="mt-2 text-base font-semibold text-white">
+                <span className={styles.desktopOnly}>{firstName}&apos;s world</span>
+                <span className={styles.mobileOnly}>El mundo de {firstName.toUpperCase()}</span>
+              </h2>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-violet-200/60">
+                <span className={styles.desktopOnly}>Connected by purpose</span>
+                <span className={styles.mobileOnly}>Conectado por propósito</span>
+              </p>
             </div>
           </FadeIn>
 
           {/* Layer 7 — orbit nodes, above the artwork/atmosphere layers */}
           <StaggerList className={styles.nodesLayer} stagger={0.07} reveal={reducedMotion ? false : true}>
-            {nodes.map(({ label, href, value, icon: Icon, position, tone }) => (
+            {nodes.map(({ label, mobileLabel, href, value, icon: Icon, position, tone }) => (
               <StaggerItem key={label} className={position}>
                 <Link href={href} className={styles.node} data-tone={tone}>
                   <span className={styles.nodeIcon}><Icon className="h-5 w-5" aria-hidden /></span>
-                  <span className={styles.nodeLabel}>{label}</span>
+                  <span className={styles.nodeLabel}>
+                    <span className={styles.desktopOnly}>{label}</span>
+                    <span className={styles.mobileOnly}>{mobileLabel}</span>
+                  </span>
                   <span className={styles.nodeValue}>{value}</span>
                 </Link>
               </StaggerItem>
@@ -452,15 +462,35 @@ export function HomeUniverse({
 
         </section>
 
+        <div className={styles.mobileHeroActions} aria-label="Construye tu mundo">
+          <button type="button" onClick={onJoinCommunity} className={styles.primaryButton}>
+            <UsersRound className="h-4 w-4" aria-hidden />
+            Únete a BELONG
+          </button>
+          <button
+            type="button"
+            onClick={onStartMission}
+            className={`${styles.secondaryButton} ${styles.missionButton}`}
+          >
+            <Rocket className="h-4 w-4" aria-hidden />
+            Iniciar misión
+          </button>
+          <Link href="/people/discover" className={`${styles.secondaryButton} ${styles.peopleButton}`}>
+            <UserPlus className="h-4 w-4" aria-hidden />
+            Encuentra personas
+          </Link>
+        </div>
+
         <section className={styles.mobileJourneySummary} aria-label="Resumen de tu viaje">
+          <p className={styles.mobileJourneyEyebrow}>Tu jornada hoy</p>
           <div className={styles.mobileJourneyHeader}>
             <div>
               <p className={styles.mobileJourneyGreeting}>{mobileGreeting}, {firstName}</p>
-              <p className={styles.mobileJourneyChapter}>{journeyChapter}</p>
+              <p className={styles.mobileJourneyChapter}>Estás en la etapa de {journeyChapter}</p>
             </div>
-            <span className={styles.mobileJourneyMomentum}>Momentum {energyScore}%</span>
           </div>
           <div className={styles.mobileJourneyStats}>
+            <span><strong>{energyScore}%</strong> Momentum</span>
             <span>{activeProjectsCount} proyectos activos</span>
             <span>{data.recentNotifications.length} notificaciones</span>
           </div>

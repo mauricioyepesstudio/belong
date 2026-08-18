@@ -580,7 +580,7 @@
   .desktopOnly { display: none; }
   .mobileOnly { display: inline; }
   .worldStage {
-    min-height: 590px;
+    min-height: clamp(520px, 138vw, 580px);
     margin: 0 -.5rem;
     border-radius: 0;
     background: transparent;
@@ -638,13 +638,22 @@
   .identityCaption { width: 190px; transform: translate(-50%, 48px); }
   .identityCaption h2 { font-size: 11px; line-height:1.2; }
   .identityCaption p { font-size: 8px; line-height:1.25; }
-  .nodePlatform { left: 50%; top: 23%; }
-  .nodePeople { left: 16%; top: 38%; }
-  .nodeCommunities { left: 84%; top: 38%; }
-  .nodeOpportunities { left: 16%; top: 69%; }
-  .nodeEvents { left: 84%; top: 69%; }
-  .nodeResources { left: 18%; top: 84%; }
-  .nodeCompanion { left: 82%; top: 84%; }
+  .node {
+    width: 110px;
+    max-width: 28vw;
+  }
+  .nodeLabel {
+    width: 100%;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+  .nodePlatform { left: 50%; top: 22%; }
+  .nodePeople { left: 23%; top: 37%; }
+  .nodeCommunities { left: 77%; top: 37%; }
+  .nodeOpportunities { left: 23%; top: 68%; }
+  .nodeEvents { left: 77%; top: 68%; }
+  .nodeResources { left: 28%; top: 84%; }
+  .nodeCompanion { left: 72%; top: 84%; }
   .mobileJourneySummary {
     display: block;
     min-height: 180px;

@@ -1,6 +1,5 @@
 import {
   Bell,
-  BookOpen,
   Building2,
   Calendar,
   Compass,
@@ -46,9 +45,8 @@ export const mobileNav: NavItem[] = [
 /** Reference-style bottom dock shown only on the Home/dashboard route. */
 export const homeMobileNav: NavItem[] = [
   { label: "Explore", href: "/search", icon: Compass },
-  { label: "Connect", href: "/community", icon: Users },
+  { label: "Connect", href: "/people/discover", icon: Users },
   { label: "Build", href: "/dashboard?build=open", icon: Sparkles },
-  { label: "Learn", href: "/marketplace", icon: BookOpen },
   { label: "Messages", href: "/messages", icon: MessageSquare },
   { label: "Profile", href: "/profile", icon: User },
 ];

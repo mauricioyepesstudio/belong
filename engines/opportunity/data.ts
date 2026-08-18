@@ -42,10 +42,28 @@ export async function fetchOpportunityCandidates(
   };
 }
 
-async function fetchPeopleCandidates(
+export type FetchPeopleCandidatesOptions = {
+  /** Page size. Defaults to 40 to preserve existing opportunity-engine behavior. */
+  limit?: number;
+  /** Row offset for pagination. Defaults to 0. */
+  offset?: number;
+};
+
+/**
+ * Fetches candidate people for matching, excluding the viewer and anyone with an
+ * existing accepted/pending connection. Exported (in addition to being used
+ * internally by fetchOpportunityCandidates) so engines/opportunity/discovery.ts
+ * can page through a larger pool for the People Discovery feature without
+ * duplicating this query/exclusion logic.
+ */
+export async function fetchPeopleCandidates(
   supabase: SupabaseServerClient,
-  userId: string
+  userId: string,
+  options: FetchPeopleCandidatesOptions = {}
 ): Promise<PersonCandidate[]> {
+  const limit = options.limit && options.limit > 0 ? options.limit : 40;
+  const offset = options.offset && options.offset > 0 ? options.offset : 0;
+
   const [{ data: users }, { data: connections }, { data: identityRows }, { data: skillRows }, { data: memberRows }, { data: projectMemberRows }] =
     await Promise.all([
       supabase
@@ -53,7 +71,8 @@ async function fetchPeopleCandidates(
         .select("id, full_name, avatar_url, role, location, bio, build_goal")
         .neq("id", userId)
         .eq("onboarding_completed", true)
-        .limit(40),
+        .order("id", { ascending: true })
+        .range(offset, offset + limit - 1),
       supabase
         .from("connections")
         .select("requester_id, recipient_id, status")

@@ -370,7 +370,11 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
           <div className={styles.coreGlow} aria-hidden />
 
           {/* Layer 5 — dynamic orbit connection lines, one per node, matching
-              the tight consistent-radius layout below */}
+              the tight consistent-radius layout below. Coordinates are
+              node left/top percentages * 10 / * 6.2 (viewBox is 1000x620,
+              i.e. 100% = 620 on the y axis) — the 4th path targets
+              .nodeCompanion (left:56.3%, top:78.5% -> 563, 487); keep this
+              in sync if that node's CSS position ever changes again. */}
           <svg className={styles.connections} viewBox="0 0 1000 620" preserveAspectRatio="none" aria-hidden>
             <defs>
               <linearGradient id="world-line-violet" x1="0" x2="1">
@@ -382,7 +386,7 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
             <path d="M500 310 L500 124" />
             <path d="M500 310 L795 203" />
             <path d="M500 310 L848 358" />
-            <path d="M500 310 L563 493" />
+            <path d="M500 310 L563 487" />
             <path d="M500 310 L294 463" />
             <path d="M500 310 L152 358" />
             <path d="M500 310 L205 203" />
@@ -443,6 +447,20 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
               </StaggerItem>
             ))}
           </StaggerList>
+
+          {/* Layer 8 — "find people" CTA. Independently positioned (not
+              nested in .identityCore, so it isn't affected by that layer's
+              pointer-events:none) in the gap between the lower orbit nodes
+              and the stage caption — see clearance math in the module CSS
+              comment above .stageCta. */}
+          <div className={styles.stageCta}>
+            <Link href="/people/discover" className={styles.stageCtaButton}>
+              <UserPlus className="h-3.5 w-3.5" aria-hidden />
+              <span className="sm:hidden">Encuentra amigos</span>
+              <span className="hidden sm:inline">Find people</span>
+            </Link>
+            <span className={styles.stageCtaSubtitle}>Conecta · Colabora · Impacta</span>
+          </div>
 
           <div className={styles.stageCaption}>
             <Globe2 className="h-3.5 w-3.5" aria-hidden />

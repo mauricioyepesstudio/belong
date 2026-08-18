@@ -41,7 +41,11 @@
 
 .worldStage {
   position: relative;
-  min-height: 580px;
+  /* Grown from 580px to 640px to widen the gap between the lower orbit
+     nodes and .stageCaption for .stageCta — see the clearance math above
+     .stageCta below. Purely additive vertical room: .avatarRingWrap stays
+     pinned at true 50%/50% of this box, so it is not moved off-center. */
+  min-height: 640px;
   overflow: hidden;
   border: 1px solid rgba(167,139,250,.12);
   border-radius: 1.6rem;
@@ -117,7 +121,7 @@
 .nodePlatform { left:50%; top:20%; }
 .nodeCommunities { left:79.5%; top:32.8%; }
 .nodeEvents { left:84.8%; top:57.8%; }
-.nodeCompanion { left:56.3%; top:79.5%; }
+.nodeCompanion { left:56.3%; top:78.5%; }
 .nodeResources { left:29.4%; top:74.6%; }
 .nodeOpportunities { left:15.2%; top:57.8%; }
 .nodePeople { left:20.5%; top:32.8%; }
@@ -127,7 +131,35 @@
 .nodeResources .node { animation-delay:-1.8s; }
 .nodeCompanion .node { animation-delay:-2.6s; }
 .nodePlatform .node { animation-delay:-3.6s; }
-.stageCaption { position:absolute; left:50%; bottom:2%; z-index:7; display:flex; transform:translateX(-50%); align-items:center; gap:.4rem; white-space:nowrap; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.35); }
+.stageCaption { position:absolute; left:50%; bottom:1.5%; z-index:7; display:flex; transform:translateX(-50%); align-items:center; gap:.4rem; white-space:nowrap; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.35); }
+
+/* "Find people" stage CTA — sits in the gap between the lowest orbit node
+   (.nodeCompanion, the deeper of the two bottom nodes) and .stageCaption.
+   Clearance math at the 640px desktop min-height (border-box, Tailwind
+   preflight line-heights):
+     .nodeCompanion top:78.5% -> center 502.4px; node box (icon 60 + gap
+       6.4 + 1-line label 10.8 - nodeValue's -4px margin + value line 13.2
+       = 86.4px tall) bottom edge = 502.4 + 43.2 = 545.6px.
+     .stageCaption bottom:1.5% -> bottom edge 630.4px; box (9px font,
+       ~1.2 line-height, single line, nowrap) = 10.8px tall -> top edge
+       619.6px.
+     Gap = 619.6 - 545.6 = 74.0px.
+     .stageCtaButton (padding .5rem 1.1rem + 11px text line ~13.2px +
+       1px border each side) = 31.2px; + gap .35rem (5.6px) +
+       .stageCtaSubtitle (9px font, ~1.2 line-height) = 10.8px
+       -> CTA total height = 47.6px.
+     Centered at top:91% (582.4px) -> CTA spans 558.6-606.2px, leaving
+     ~13.0px clearance above (to .nodeCompanion) and ~13.4px below (to
+     .stageCaption) — both comfortably over the ~12px minimum.
+   Reuses the same violet primaryButton gradient + coreGlow-style violet
+   glow already used elsewhere in this hero, so it reads as part of the
+   same visual system. See the mobile override below for the 360-430px
+   viewport math (the primary target of this clearance fix). */
+.stageCta { position:absolute; left:50%; top:91%; z-index:7; display:flex; flex-direction:column; align-items:center; gap:.35rem; transform:translate(-50%,-50%); }
+.stageCtaButton { display:inline-flex; align-items:center; gap:.4rem; padding:.5rem 1.1rem; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#fff; background:linear-gradient(135deg,#7c3aed,#4f46e5); border:1px solid rgba(196,181,253,.4); box-shadow:0 0 4px rgba(0,0,0,.35), 0 0 22px rgba(139,92,246,.45); transition:transform .2s ease, box-shadow .2s ease; white-space:nowrap; }
+.stageCtaButton:hover { transform:translateY(-1px); box-shadow:0 0 4px rgba(0,0,0,.4), 0 0 30px rgba(34,211,238,.5); }
+.stageCtaButton:focus-visible { outline:2px solid #a78bfa; outline-offset:2px; }
+.stageCtaSubtitle { font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:rgba(196,181,253,.55); white-space:nowrap; }
 
 .primaryButton, .secondaryButton { display:inline-flex; min-height:40px; align-items:center; justify-content:center; gap:.45rem; border-radius:.8rem; padding:.6rem .9rem; font-size:12px; font-weight:650; transition:transform .2s ease, background .2s ease, border-color .2s ease; }
 .primaryButton { color:white; background:linear-gradient(135deg,#7c3aed,#4f46e5); box-shadow:0 8px 22px rgba(79,70,229,.22); }
@@ -170,7 +202,14 @@
 
   .worldStage {
     order: 1;
-    min-height: 420px;
+    /* Grown 420px -> 480px -> 530px. The 480px step only left a ~47px gap
+       between the lower orbit nodes and .stageCaption (~4.6px clearance on
+       each side of the CTA that sits in it — too tight). 530px, combined
+       with nudging .nodeResources/.nodeCompanion up to top:78% (was 79%)
+       and .stageCaption's shared bottom:1.5% (was bottom:2%, see the base
+       rule above), widens that gap to ~64.7px — see the exact math in the
+       comment above the mobile .stageCta override below. */
+    min-height: 530px;
     margin-left: -0.5rem;
     margin-right: -0.5rem;
     border: none;
@@ -209,16 +248,46 @@
      (not edited) compresses into overlapping node/label clusters on a
      narrow portrait stage. This is an independent compact two-column
      layout, hand-verified against the 336-406px stage widths produced by
-     360-430px viewports (min-height 420px above), so no node or label
+     360-430px viewports (min-height 530px above), so no node or label
      collides with another, the avatar/caption keep-out zone stays clear,
-     and nothing leaves the stage bounds. */
+     and nothing leaves the stage bounds. .nodeResources/.nodeCompanion's
+     top:78% (was 79%) still leaves a large gap below the 54%-row nodes
+     (~59px at 530px height) — see the .stageCta comment further down for
+     the collision math against the CTA itself. */
   .nodePlatform { left: 50%; top: 8%; }
   .nodePeople { left: 15%; top: 29%; }
   .nodeCommunities { left: 85%; top: 29%; }
   .nodeOpportunities { left: 15%; top: 54%; }
   .nodeEvents { left: 85%; top: 54%; }
-  .nodeResources { left: 15%; top: 79%; }
-  .nodeCompanion { left: 85%; top: 79%; }
+  .nodeResources { left: 15%; top: 78%; }
+  .nodeCompanion { left: 85%; top: 78%; }
+
+  /* Mobile "find people" CTA. Clearance math at the 530px .worldStage
+     min-height above (identical at both 360px and 430px viewports — every
+     child in .worldStage is absolutely positioned with no in-flow content,
+     so its rendered height is exactly the 530px min-height regardless of
+     viewport width; these are all height-based percentages, so viewport
+     width doesn't change the pixel math):
+       .nodeResources/.nodeCompanion top:78% -> center 0.78*530 = 413.4px;
+         node box (icon 2.4rem/38.4px + gap .4rem/6.4px + a possible
+         2-line 9px label at 1.15 line-height/20.7px = 65.5px tall) ->
+         bottom edge = 413.4 + 32.75 = 446.15px.
+       .stageCaption bottom:1.5% (shared base rule) -> bottom edge
+         530*0.985 = 522.05px; box (8px font, 1.4 line-height, single line
+         at this width) = 11.2px tall -> top edge = 510.85px.
+       Gap = 510.85 - 446.15 = 64.7px.
+       .stageCtaButton (padding .4rem .85rem + 9.5px text line ~11.4px +
+         1px border each side) = 26.2px; + gap .25rem (4px) +
+         .stageCtaSubtitle (7.5px font, ~1.2 line-height) = 9px
+         -> CTA total height = 39.2px.
+       Centered at top:90.3% (478.6px) -> CTA spans 459.0-498.2px, leaving
+       ~12.8px clearance above (to the nodes) and ~12.7px below (to
+       .stageCaption) — both over the 12px minimum. Both nodes sit at
+       left:15%/85%, far from this CTA's left:50%, so there is no
+       horizontal collision risk on mobile either. */
+  .stageCta { top: 90.3%; gap: .25rem; }
+  .stageCtaButton { padding: .4rem .85rem; gap: .35rem; font-size: 9.5px; }
+  .stageCtaSubtitle { font-size: 7.5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

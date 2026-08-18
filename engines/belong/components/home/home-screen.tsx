@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation";
 import { HomeComposer } from "./home-composer";
 import { DashboardActions } from "../dashboard/dashboard-actions";
 import { HomeUniverse } from "./home-universe";
+import { HomeSuggestionsCarousel } from "./home-suggestions-carousel";
 import { HomeLiveBuilders } from "./home-live-builders";
 import { HomeMissionsRow } from "./home-missions-row";
 import { HomeImpactRipple } from "./home-impact-ripple";
@@ -43,6 +44,8 @@ export function HomeScreen(data: HomeEngineData) {
         onCreateProject={() => setProjectOpen(true)}
         onJoinCommunity={() => setCommunityOpen(true)}
       />
+
+      <HomeSuggestionsCarousel people={data.suggestedPeople} />
 
       <HomeLiveBuilders activities={data.homeTimeline} />
 

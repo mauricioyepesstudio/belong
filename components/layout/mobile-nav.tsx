@@ -83,7 +83,7 @@ export function MobileNav({
         style={{ paddingBottom: "var(--mobile-nav-safe-bottom)" }}
         aria-label="Mobile navigation"
       >
-        <div className="relative flex h-[var(--mobile-nav-height)] items-stretch justify-around px-1">
+        <div className="relative grid h-[var(--mobile-nav-height)] grid-cols-5 items-stretch px-1">
           {nav.map((item) => {
             const isMore = item.href === "#more";
             const Icon = item.icon;
@@ -94,7 +94,7 @@ export function MobileNav({
                   key={item.href}
                   href={item.href}
                   aria-label="Build"
-                  className="relative flex flex-1 flex-col items-center justify-center"
+                  className="relative flex flex-col items-center justify-center"
                 >
                   <span className="absolute -top-6 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-gradient-to-br from-violet-500 to-cyan-400 shadow-[0_0_28px_rgba(139,92,246,.55)] transition-transform active:scale-95">
                     <Icon className="h-6 w-6 text-white" aria-hidden strokeWidth={2.25} />
@@ -113,7 +113,7 @@ export function MobileNav({
                   aria-label="More navigation"
                   onClick={() => setMoreOpen((open) => !open)}
                   className={cn(
-                    "relative flex flex-1 flex-col items-center justify-center gap-1 transition-colors",
+                    "relative flex flex-col items-center justify-center gap-1 transition-colors",
                     moreActive || moreOpen ? "text-brand" : "text-fg-faint"
                   )}
                 >
@@ -134,7 +134,7 @@ export function MobileNav({
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex flex-1 flex-col items-center justify-center gap-1 transition-colors",
+                  "relative flex flex-col items-center justify-center gap-1 transition-colors",
                   active ? "text-brand" : "text-fg-faint"
                 )}
               >

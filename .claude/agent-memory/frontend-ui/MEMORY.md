@@ -1,5 +1,7 @@
-- [Home universe world art status](project_home_universe_world_art.md) — hero artwork delivered at `public/images/home-world.webp` and integrated, layer complete
+- [Home universe world art status](project_home_universe_world_art.md) — hero art integrated; CTA clearance fixed (≥12px); mobile rework uncommitted, pending visual approval
 - [No stock-art placeholders](feedback_no_stock_art_placeholder.md) — human-confirmed rule: never fake missing artwork with stock/generic/CSS-drawn substitutes
 - [Live Builders / Missions structure slice](project_home_live_builders_missions_structure.md) — composition/fallback architecture + real-photo wiring polish; missions art paths still missing
 - [Impact Ripple visual rebuild](project_home_impact_ripple_visual.md) — dominant central avatar, elliptical orbit rings, SVG glow lines; no photo-avatar data exists for impact nodes
 - [Builder Spotlight structure slice](project_home_builder_spotlight_structure.md) — rebuilt editorial-dominant row; project/community tiles structurally lack any image column
+- [People discover route](project_people_discover_route.md) — new /people/discover screen; GlassCard lives in dashboard/primitives.tsx, category filter uses URL params not client filtering
+- [Suggestions carousel + card-density math](project_home_suggestions_carousel.md) — "Sugerencias para ti" people carousel; reusable min-w%/gap math for dense horizontal carousels

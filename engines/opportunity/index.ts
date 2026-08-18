@@ -46,9 +46,14 @@ export {
   resolveSharedCommunityNames,
   resolveSharedProjectNames,
 } from "./profile-vector";
-export { fetchOpportunityCandidates } from "./data";
+export { fetchOpportunityCandidates, fetchPeopleCandidates } from "./data";
 export { getOpportunityRecommendations, getCompatibilityProfile } from "./service";
 export { OpportunityScreen } from "./components/opportunity-screen";
+export {
+  discoverPeople,
+  discoverPeopleForHome,
+  DISCOVERY_CATEGORIES,
+} from "./discovery";
 
 export type {
   CompatibilityProfile,
@@ -66,3 +71,11 @@ export type {
   ScoreFactor,
   OpportunityCandidatePool,
 } from "./types";
+
+export type {
+  DiscoveryCategory,
+  DiscoveryPerson,
+  DiscoverPeopleOptions,
+  DiscoverPeopleResult,
+} from "./discovery";
+export type { FetchPeopleCandidatesOptions } from "./data";

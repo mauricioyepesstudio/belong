@@ -1,0 +1,1 @@
+- [People Discovery backend](project_people_discovery.md) — discoverPeople/discoverPeopleForHome in engines/opportunity/discovery.ts, reuse pattern, known gaps (no blocking mechanism, heuristic categories, unverified live data volume)

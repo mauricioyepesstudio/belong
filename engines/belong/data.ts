@@ -35,7 +35,7 @@ import {
 } from "@/engines/belong/home/discovery";
 import { buildHomeImpactMetrics } from "@/engines/belong/home/metrics";
 import { buildTodaySummary } from "@/engines/belong/home/summary";
-import { getOpportunityRecommendations } from "@/engines/opportunity";
+import { discoverPeopleForHome, getOpportunityRecommendations, type DiscoveryPerson } from "@/engines/opportunity";
 import { fetchImpactScoreProfile, type ImpactScoreProfile } from "@/engines/impact";
 import type { HomeActivity, HomeDiscoveryData, HomeImpactMetrics } from "@/engines/belong/home/types";
 import type { OpportunityRecommendations } from "@/engines/opportunity";
@@ -69,6 +69,9 @@ export type HomeEngineData = {
   recentConversations: ConversationPreview[];
   todaySummary: string;
   impactScore: ImpactScoreProfile;
+  /** "Sugerencias para ti" home carousel — same discoverPeopleForHome
+   * pipeline that backs /people/discover, just a small top-N slice. */
+  suggestedPeople: DiscoveryPerson[];
 };
 
 export async function getHomeEngineData(): Promise<HomeEngineData> {
@@ -151,13 +154,14 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
     result.mission.lifeMissionProgress?.completionPercent ?? 0
   );
 
-  const [trendingConversations, topContributors, opportunityResult, recentConversations, impactScore] =
+  const [trendingConversations, topContributors, opportunityResult, recentConversations, impactScore, suggestedPeople] =
     await Promise.all([
     fetchTrendingConversations(supabase, 5),
     fetchTopContributors(supabase, 5),
     getOpportunityRecommendations(supabase, profile),
     fetchConversationPreviews(supabase, profile.id, 4),
     fetchImpactScoreProfile(supabase, profile.id, 5),
+    discoverPeopleForHome(supabase, profile, 8),
   ]);
 
   const engineData: Omit<
@@ -171,6 +175,7 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
     | "recentConversations"
     | "todaySummary"
     | "impactScore"
+    | "suggestedPeople"
   > & {
     upcomingEvents: EventWithMeta[];
     opportunities: Opportunity[];
@@ -235,5 +240,6 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
       recentProjects: engineData.recentProjects,
     }),
     impactScore,
+    suggestedPeople,
   };
 }

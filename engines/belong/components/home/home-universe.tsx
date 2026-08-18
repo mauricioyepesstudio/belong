@@ -31,12 +31,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type ComponentType, type FormEvent } from "react";
+import { useState, type ComponentType, type FormEvent, type ReactNode } from "react";
 import styles from "./home-universe.module.css";
-import {
-  resolveHomeHeroActions,
-  type HomeHeroAction,
-} from "@/engines/belong/home/activation";
 
 const RING_RADIUS = 44;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -45,8 +41,9 @@ const ENERGY_CIRCUMFERENCE = 2 * Math.PI * ENERGY_RADIUS;
 
 type UniverseProps = {
   data: HomeEngineData;
-  onCreateProject: () => void;
   onJoinCommunity: () => void;
+  onStartMission: () => void;
+  suggestions: ReactNode;
 };
 
 type UniverseNode = {
@@ -115,7 +112,12 @@ function Panel({
   );
 }
 
-export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: UniverseProps) {
+export function HomeUniverse({
+  data,
+  onJoinCommunity,
+  onStartMission,
+  suggestions,
+}: UniverseProps) {
   const router = useRouter();
   const reducedMotion = useReducedMotion();
   const [askQuery, setAskQuery] = useState("");
@@ -126,7 +128,6 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
   const missionProgress = clampPercent(
     data.missionEngine.lifeMissionProgress?.completionPercent ?? data.weeklyProgress
   );
-  const heroActions = resolveHomeHeroActions(data.stats, data.primaryRecommendation);
   const buildGoal = getBuildGoalOption(data.profile.build_goal);
   const journeyChapter = buildGoal?.label ?? "Discovery";
 
@@ -181,36 +182,6 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
     router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 
-  const renderHeroAction = (action: HomeHeroAction, primary: boolean) => {
-    const className = primary ? styles.primaryButton : styles.secondaryButton;
-    const content = (
-      <>
-        {primary && <Sparkles className="h-4 w-4" aria-hidden />}
-        {action.label}
-      </>
-    );
-
-    if (action.kind === "href" && action.href) {
-      return (
-        <Link href={action.href} className={className}>
-          {content}
-        </Link>
-      );
-    }
-
-    return (
-      <button
-        type="button"
-        onClick={
-          action.kind === "join-community" ? onJoinCommunity : onCreateProject
-        }
-        className={className}
-      >
-        {content}
-      </button>
-    );
-  };
-
   // Matches the approved reference composition: 7 nodes at a consistent orbit
   // radius around the central avatar. "Projects" is intentionally not part of
   // this orbit (see reference) — its data still surfaces via the "Right now"
@@ -228,26 +199,7 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
   return (
     <div className={styles.universe}>
       <div className={styles.aurora} aria-hidden />
-      <header className="relative z-10 flex flex-col gap-4 px-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-white sm:text-3xl">
-            This is your world.
-            <br />
-            <span className="bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
-              Build it. Together.
-            </span>
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
-            People, projects and opportunities connected to your purpose.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {renderHeroAction(heroActions.secondary, false)}
-          {renderHeroAction(heroActions.primary, true)}
-        </div>
-      </header>
-
-      <div className="relative z-10 mt-4 grid gap-4 sm:mt-6 xl:grid-cols-[minmax(210px,0.75fr)_minmax(480px,1.7fr)_minmax(210px,0.75fr)]">
+      <div className={styles.dashboardGrid}>
         <aside className={`grid content-start gap-4 md:grid-cols-3 xl:grid-cols-1 ${styles.asideContext}`} aria-label="Your day and momentum">
           <Panel eyebrow={formatGreeting()} title={`${firstName} 👋`} icon={Orbit}>
             <p className="text-xs leading-5 text-white/55">
@@ -326,6 +278,40 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
         </aside>
 
         <section className={styles.worldStage} aria-labelledby="belong-world-title">
+          <header className={styles.heroCopy}>
+            <h1 className={styles.heroTitle}>
+              This is your world.
+              <br />
+              <span>Build it. Together.</span>
+            </h1>
+            <p className={styles.heroSubtitle}>
+              People, projects and opportunities
+              <br className="hidden sm:block" /> connected to your purpose.
+            </p>
+          </header>
+
+          <div className={styles.heroActions} aria-label="Build your world">
+            <button type="button" onClick={onJoinCommunity} className={styles.primaryButton}>
+              <UsersRound className="h-4 w-4" aria-hidden />
+              Join BELONG
+            </button>
+            <button
+              type="button"
+              onClick={onStartMission}
+              className={`${styles.secondaryButton} ${styles.missionButton}`}
+            >
+              <Rocket className="h-4 w-4" aria-hidden />
+              Start Mission
+            </button>
+            <Link
+              href="/people/discover"
+              className={`${styles.secondaryButton} ${styles.peopleButton}`}
+            >
+              <UserPlus className="h-4 w-4" aria-hidden />
+              Find People
+            </Link>
+          </div>
+
           {/* Layer 1 — world artwork. onError keeps a broken-image icon from
               ever showing if the asset is ever removed/renamed. */}
           <div className={styles.worldArt} aria-hidden>
@@ -448,24 +434,6 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
             ))}
           </StaggerList>
 
-          {/* Layer 8 — "find people" CTA. Independently positioned (not
-              nested in .identityCore, so it isn't affected by that layer's
-              pointer-events:none) in the gap between the lower orbit nodes
-              and the stage caption — see clearance math in the module CSS
-              comment above .stageCta. */}
-          <div className={styles.stageCta}>
-            <Link href="/people/discover" className={styles.stageCtaButton}>
-              <UserPlus className="h-3.5 w-3.5" aria-hidden />
-              <span className="sm:hidden">Encuentra amigos</span>
-              <span className="hidden sm:inline">Find people</span>
-            </Link>
-            <span className={styles.stageCtaSubtitle}>Conecta · Colabora · Impacta</span>
-          </div>
-
-          <div className={styles.stageCaption}>
-            <Globe2 className="h-3.5 w-3.5" aria-hidden />
-            Live ecosystem · {data.stats.connections + data.communities.length + data.stats.projects} active connections
-          </div>
         </section>
 
         <aside className={`grid content-start gap-4 md:grid-cols-3 xl:grid-cols-1 ${styles.asideCompanion}`} aria-label="Focus, story and AI companion">
@@ -552,6 +520,13 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
             </form>
           </Panel>
         </aside>
+
+        <div className={styles.suggestions}>{suggestions}</div>
+        <div className={styles.ecosystemStatus}>
+          <span className={styles.liveDot} aria-hidden />
+          <Globe2 className="h-3.5 w-3.5" aria-hidden />
+          Live ecosystem · {data.stats.connections + data.communities.length + data.stats.projects} active connections
+        </div>
       </div>
     </div>
   );

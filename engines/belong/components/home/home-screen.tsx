@@ -41,11 +41,10 @@ export function HomeScreen(data: HomeEngineData) {
     <div className="space-y-8 pb-8">
       <HomeUniverse
         data={{ ...data, impactScore }}
-        onCreateProject={() => setProjectOpen(true)}
         onJoinCommunity={() => setCommunityOpen(true)}
+        onStartMission={() => setMissionOpen(true)}
+        suggestions={<HomeSuggestionsCarousel people={data.suggestedPeople} />}
       />
-
-      <HomeSuggestionsCarousel people={data.suggestedPeople} />
 
       <HomeLiveBuilders activities={data.homeTimeline} />
 

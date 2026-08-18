@@ -331,3 +331,288 @@
 .askInput { width:100%; border-radius:.8rem; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); padding:.55rem .75rem; font-size:12px; color:#fff; }
 .askInput::placeholder { color:rgba(255,255,255,.35); }
 .askInput:focus-visible { outline:2px solid #a78bfa; outline-offset:1px; }
+
+/* Final dashboard composition: the universe is the page, not a card. */
+.dashboardGrid {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  min-width: 0;
+  gap: 1rem;
+  grid-template-areas:
+    "world"
+    "left"
+    "right"
+    "suggestions"
+    "ecosystem";
+}
+
+.asideContext { grid-area: left; min-width: 0; }
+.asideCompanion { grid-area: right; min-width: 0; }
+.worldStage { grid-area: world; min-width: 0; }
+.suggestions { grid-area: suggestions; min-width: 0; }
+.ecosystemStatus {
+  grid-area: ecosystem;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  padding: .15rem 0 .35rem;
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-align: center;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.42);
+}
+.liveDot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 10px rgba(34,197,94,.8);
+}
+
+.heroCopy {
+  position: absolute;
+  left: 3.5%;
+  top: 4%;
+  z-index: 8;
+  max-width: 58%;
+  pointer-events: none;
+}
+.heroTitle {
+  font-size: clamp(1.8rem, 3.1vw, 3.3rem);
+  font-weight: 650;
+  line-height: 1.05;
+  letter-spacing: -.045em;
+  color: #fff;
+  text-shadow: 0 2px 24px rgba(0,0,0,.55);
+}
+.heroTitle span {
+  background: linear-gradient(90deg, #22d3ee 0%, #60a5fa 43%, #a78bfa 100%);
+  background-clip: text;
+  color: transparent;
+}
+.heroSubtitle {
+  margin-top: .8rem;
+  font-size: clamp(.72rem, 1vw, .95rem);
+  line-height: 1.55;
+  color: rgba(255,255,255,.64);
+  text-shadow: 0 1px 12px rgba(0,0,0,.75);
+}
+.heroActions {
+  position: absolute;
+  right: 3.5%;
+  top: 4%;
+  z-index: 9;
+  display: grid;
+  width: clamp(150px, 20%, 214px);
+  gap: .65rem;
+}
+.heroActions .primaryButton,
+.heroActions .secondaryButton {
+  width: 100%;
+  min-height: 54px;
+  border-radius: .75rem;
+  font-size: .92rem;
+}
+.heroActions .primaryButton {
+  border: 1px solid rgba(196,181,253,.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 10px 30px rgba(91,33,182,.34),
+    0 0 18px rgba(139,92,246,.2);
+}
+.heroActions .missionButton {
+  border: 1px solid rgba(96,165,250,.28);
+  color: #fff;
+  background:
+    linear-gradient(135deg, rgba(8,20,48,.96), rgba(12,54,91,.92) 58%, rgba(8,87,111,.82));
+  box-shadow:
+    inset 0 1px 0 rgba(147,197,253,.12),
+    0 8px 24px rgba(2,32,71,.28),
+    0 0 16px rgba(34,211,238,.1);
+}
+.heroActions .missionButton:hover {
+  border-color: rgba(103,232,249,.42);
+  background:
+    linear-gradient(135deg, rgba(10,27,62,.98), rgba(14,70,114,.94) 58%, rgba(9,104,130,.88));
+  box-shadow:
+    inset 0 1px 0 rgba(186,230,253,.16),
+    0 10px 28px rgba(2,42,86,.34),
+    0 0 22px rgba(34,211,238,.15);
+}
+.heroActions .peopleButton {
+  border: 1px solid rgba(167,139,250,.27);
+  color: #fff;
+  background:
+    linear-gradient(135deg, rgba(25,18,64,.96), rgba(54,35,104,.9) 58%, rgba(13,78,83,.78));
+  box-shadow:
+    inset 0 1px 0 rgba(196,181,253,.11),
+    0 8px 24px rgba(35,20,82,.28),
+    0 0 16px rgba(45,212,191,.08);
+}
+.heroActions .peopleButton:hover {
+  border-color: rgba(94,234,212,.38);
+  background:
+    linear-gradient(135deg, rgba(31,22,78,.98), rgba(67,43,125,.94) 58%, rgba(14,94,98,.84));
+  box-shadow:
+    inset 0 1px 0 rgba(221,214,254,.15),
+    0 10px 28px rgba(45,27,101,.34),
+    0 0 22px rgba(45,212,191,.13);
+}
+
+@media (min-width: 1024px) {
+  .universe {
+    min-height: 0;
+    overflow: clip;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .aurora { inset: -8%; opacity: .5; }
+  .dashboardGrid {
+    grid-template-columns: minmax(185px, 15.5%) minmax(0, 1fr) minmax(210px, 18.5%);
+    grid-template-areas:
+      "left world right"
+      "left suggestions right"
+      "left ecosystem right";
+    column-gap: clamp(.75rem, 1.25vw, 1.35rem);
+    row-gap: .55rem;
+    align-items: start;
+  }
+  .asideContext,
+  .asideCompanion {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .8rem;
+  }
+  .panel {
+    border-radius: 1rem;
+    padding: clamp(.8rem, 1vw, 1rem);
+    background: linear-gradient(145deg, rgba(10,15,31,.82), rgba(4,9,22,.72));
+  }
+  .worldStage {
+    min-height: clamp(560px, 46vw, 700px);
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .worldArt {
+    inset: 0 -2%;
+    background: transparent;
+    mask-image: radial-gradient(ellipse 78% 76% at 50% 51%, #000 56%, rgba(0,0,0,.9) 70%, transparent 100%);
+  }
+  .worldArt img { object-position: center 54%; }
+  .vignette {
+    background:
+      linear-gradient(to bottom, rgba(2,3,14,.08), transparent 25%, transparent 74%, rgba(2,3,14,.78)),
+      radial-gradient(ellipse 76% 72% at 50% 49%, transparent 52%, rgba(2,3,14,.62) 100%);
+  }
+  .heroCopy { max-width: 55%; }
+  .heroActions { width: clamp(150px, 22%, 214px); }
+  .nodePlatform { top: 25%; }
+  .nodePeople { left: 27%; top: 40%; }
+  .nodeCommunities { left: 73%; top: 40%; }
+  .nodeOpportunities { left: 20%; top: 63%; }
+  .nodeEvents { left: 80%; top: 63%; }
+  .nodeResources { left: 34%; top: 80%; }
+  .nodeCompanion { left: 66%; top: 80%; }
+  .suggestions { margin-top: -.2rem; }
+}
+
+@media (min-width: 1440px) {
+  .dashboardGrid {
+    grid-template-columns: 248px minmax(0, 1fr) 292px;
+  }
+  .worldStage { min-height: 690px; }
+  .heroCopy { left: 3%; top: 3.5%; }
+  .heroActions { right: 3%; top: 3.5%; }
+}
+
+@media (max-width: 1023px) {
+  .universe {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .dashboardGrid { gap: 1rem; }
+  .worldStage {
+    min-height: 650px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .heroCopy { left: 1rem; top: 1rem; }
+  .heroActions { right: 1rem; top: 1rem; }
+}
+
+@media (max-width: 640px) {
+  .universe {
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .dashboardGrid { gap: .9rem; }
+  .worldStage {
+    min-height: 700px;
+    margin: 0 -.5rem;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .heroCopy {
+    left: .75rem;
+    right: .75rem;
+    top: .35rem;
+    max-width: none;
+  }
+  .heroTitle { font-size: 1.55rem; line-height: 1.08; }
+  .heroSubtitle { margin-top: .55rem; font-size: .7rem; line-height: 1.45; }
+  .heroActions {
+    left: .75rem;
+    right: .75rem;
+    top: 7.2rem;
+    width: auto;
+    gap: .45rem;
+  }
+  .heroActions .primaryButton,
+  .heroActions .secondaryButton {
+    min-height: 40px;
+    border-radius: .6rem;
+    font-size: .68rem;
+  }
+  .worldArt,
+  .vignette,
+  .stars,
+  .nodesLayer,
+  .identityCore {
+    top: 17rem;
+  }
+  .orbitOuter,
+  .orbitInner,
+  .coreGlow {
+    top: 69.4%;
+  }
+  .worldArt img { object-position: center top; }
+  .nodePlatform { left: 50%; top: 8%; }
+  .nodePeople { left: 15%; top: 29%; }
+  .nodeCommunities { left: 85%; top: 29%; }
+  .nodeOpportunities { left: 15%; top: 54%; }
+  .nodeEvents { left: 85%; top: 54%; }
+  .nodeResources { left: 15%; top: 78%; }
+  .nodeCompanion { left: 85%; top: 78%; }
+  .suggestions { overflow: hidden; }
+  .ecosystemStatus {
+    padding-bottom: .5rem;
+    font-size: 8px;
+    letter-spacing: .12em;
+  }
+}

@@ -7,7 +7,7 @@ import { formatInitials } from "@/lib/format";
 import { ArrowRight, Check, Clock, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { GlassCard, SectionHeader } from "../dashboard/primitives";
+import { GlassCard } from "../dashboard/primitives";
 import type { UserConnectionState } from "@/lib/core/connection-state";
 
 /**
@@ -36,20 +36,27 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
 
   return (
     <section aria-labelledby="suggestions-heading">
-      <SectionHeader
-        label="Suggestions for you"
-        title="People aligned with your goals, interests and communities."
-        action={
-          <Link
-            href="/people/discover"
-            className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
+      <div className="mb-3 flex items-end justify-between gap-4 px-0.5">
+        <div className="min-w-0">
+          <h2
+            id="suggestions-heading"
+            className="text-sm font-semibold uppercase tracking-[0.08em] text-fg-primary sm:text-base"
           >
-            View all <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-          </Link>
-        }
-      />
+            Suggestions for You
+          </h2>
+          <p className="mt-1 hidden truncate text-[11px] text-fg-muted sm:block">
+            People aligned with your goals, interests and communities.
+          </p>
+        </div>
+        <Link
+          href="/people/discover"
+          className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand hover:underline"
+        >
+          View all <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+        </Link>
+      </div>
 
-      <div className="-mx-1 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+      <div className="-mx-1 flex gap-2.5 overflow-x-auto px-1 pb-2 snap-x snap-mandatory">
         {people.map((person) => {
           const connection = overrides.get(person.id) ?? person.connectionState;
           const tags = person.tags.slice(0, 2);
@@ -58,7 +65,7 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
             <GlassCard
               key={person.id}
               hover
-              className="min-w-[38%] shrink-0 snap-start p-3.5 sm:min-w-[220px]"
+              className="min-w-[42%] shrink-0 snap-start p-3 sm:min-w-[210px] lg:min-w-[calc((100%_-_2.5rem)/5)]"
             >
               <Link href={person.profileSearchHref} className="block min-w-0">
                 <div className="flex items-start justify-between gap-2">
@@ -67,9 +74,6 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
                     fallback={formatInitials(person.fullName)}
                     size="lg"
                   />
-                  <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-emerald-300/25 bg-emerald-600/15 px-2 py-0.5 text-micro font-semibold text-emerald-300">
-                    {person.affinityScore}% afinidad
-                  </span>
                 </div>
 
                 <div className="mt-2.5 min-w-0">
@@ -89,6 +93,9 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
                     ))}
                   </div>
                 )}
+                <p className="mt-2 text-xs font-semibold text-fg-primary">
+                  {person.affinityScore}% affinity
+                </p>
               </Link>
 
               <div className="mt-3 border-t border-white/10 pt-2.5">

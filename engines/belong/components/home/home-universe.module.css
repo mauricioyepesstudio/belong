@@ -343,14 +343,12 @@
     "world"
     "left"
     "right"
-    "suggestions"
     "ecosystem";
 }
 
 .asideContext { grid-area: left; min-width: 0; }
 .asideCompanion { grid-area: right; min-width: 0; }
 .worldStage { grid-area: world; min-width: 0; }
-.suggestions { grid-area: suggestions; min-width: 0; }
 .ecosystemStatus {
   grid-area: ecosystem;
   display: flex;
@@ -479,7 +477,6 @@
     grid-template-columns: minmax(185px, 15.5%) minmax(0, 1fr) minmax(210px, 18.5%);
     grid-template-areas:
       "left world right"
-      ". suggestions ."
       ". ecosystem .";
     column-gap: clamp(.75rem, 1.25vw, 1.35rem);
     row-gap: .55rem;
@@ -523,7 +520,6 @@
   .nodeEvents { left: 80%; top: 63%; }
   .nodeResources { left: 34%; top: 80%; }
   .nodeCompanion { left: 66%; top: 80%; }
-  .suggestions { margin-top: -.2rem; }
 }
 
 @media (min-width: 1440px) {
@@ -609,7 +605,6 @@
   .nodeEvents { left: 85%; top: 54%; }
   .nodeResources { left: 15%; top: 78%; }
   .nodeCompanion { left: 85%; top: 78%; }
-  .suggestions { overflow: hidden; }
   .ecosystemStatus {
     padding-bottom: .5rem;
     font-size: 8px;

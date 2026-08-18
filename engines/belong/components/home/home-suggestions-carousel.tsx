@@ -20,8 +20,6 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
   const [isPending, startTransition] = useTransition();
   const [overrides, setOverrides] = useState<Map<string, UserConnectionState>>(new Map());
 
-  if (people.length === 0) return null;
-
   const handleConnect = (personId: string) => {
     startTransition(async () => {
       const result = await sendConnectionRequest(personId);
@@ -48,68 +46,81 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
             People aligned with your purpose and energy.
           </p>
         </div>
-        <Link
-          href="/people/discover"
-          className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand hover:underline"
-        >
-          View all <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-        </Link>
+        {people.length > 0 && (
+          <Link
+            href="/people/discover"
+            className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand hover:underline"
+          >
+            View all <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+          </Link>
+        )}
       </div>
 
-      <div className="-mx-1 flex gap-2.5 overflow-x-auto px-1 pb-2 snap-x snap-mandatory">
-        {people.map((person) => {
-          const connection = overrides.get(person.id) ?? person.connectionState;
-          const tags = person.tags.slice(0, 2);
+      {people.length === 0 ? (
+        <GlassCard className="flex min-h-28 items-center justify-center px-6 py-5 text-center">
+          <Link
+            href="/people/discover"
+            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-violet-300/25 bg-violet-500/15 px-5 text-sm font-semibold text-violet-100 transition-colors hover:border-violet-300/40 hover:bg-violet-500/25 focus-ring"
+          >
+            Explore People
+          </Link>
+        </GlassCard>
+      ) : (
+        <div className="-mx-1 flex gap-2.5 overflow-x-auto px-1 pb-2 snap-x snap-mandatory">
+          {people.map((person) => {
+            const connection = overrides.get(person.id) ?? person.connectionState;
+            const tags = person.tags.slice(0, 2);
 
-          return (
-            <GlassCard
-              key={person.id}
-              hover
-              className="flex min-h-[190px] min-w-[42%] shrink-0 snap-start flex-col p-3 sm:min-w-[210px] lg:min-w-[calc((100%_-_2.5rem)/5)]"
-            >
-              <Link href={person.profileSearchHref} className="block min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <Avatar
-                    src={person.avatarUrl ?? undefined}
-                    fallback={formatInitials(person.fullName)}
-                    size="lg"
+            return (
+              <GlassCard
+                key={person.id}
+                hover
+                className="flex min-h-[190px] min-w-[42%] shrink-0 snap-start flex-col p-3 sm:min-w-[210px] lg:min-w-[calc((100%_-_3.125rem)/6)]"
+              >
+                <Link href={person.profileSearchHref} className="block min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <Avatar
+                      src={person.avatarUrl ?? undefined}
+                      fallback={formatInitials(person.fullName)}
+                      size="lg"
+                    />
+                  </div>
+
+                  <div className="mt-2.5 min-w-0">
+                    <p className="truncate text-sm font-semibold text-fg-primary">{person.fullName}</p>
+                    <p className="truncate text-micro text-fg-muted">{person.role ?? "Builder"}</p>
+                  </div>
+
+                  {tags.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="truncate rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-micro text-fg-secondary"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <p className="mt-2 text-xs font-semibold text-fg-primary">
+                    {person.affinityScore}% affinity
+                  </p>
+                </Link>
+
+                <div className="mt-3 shrink-0 border-t border-white/10 pt-2.5">
+                  <ConnectAction
+                    state={connection.state}
+                    disabled={isPending}
+                    onConnect={() => handleConnect(person.id)}
+                    fullName={person.fullName}
                   />
                 </div>
-
-                <div className="mt-2.5 min-w-0">
-                  <p className="truncate text-sm font-semibold text-fg-primary">{person.fullName}</p>
-                  <p className="truncate text-micro text-fg-muted">{person.role ?? "Builder"}</p>
-                </div>
-
-                {tags.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="truncate rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-micro text-fg-secondary"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <p className="mt-2 text-xs font-semibold text-fg-primary">
-                  {person.affinityScore}% affinity
-                </p>
-              </Link>
-
-              <div className="mt-3 shrink-0 border-t border-white/10 pt-2.5">
-                <ConnectAction
-                  state={connection.state}
-                  disabled={isPending}
-                  onConnect={() => handleConnect(person.id)}
-                  fullName={person.fullName}
-                />
-              </div>
-            </GlassCard>
-          );
-        })}
-      </div>
+              </GlassCard>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

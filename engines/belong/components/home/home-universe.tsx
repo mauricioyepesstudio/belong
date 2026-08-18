@@ -31,7 +31,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type ComponentType, type FormEvent, type ReactNode } from "react";
+import { useState, type ComponentType, type FormEvent } from "react";
 import styles from "./home-universe.module.css";
 
 const RING_RADIUS = 44;
@@ -43,7 +43,6 @@ type UniverseProps = {
   data: HomeEngineData;
   onJoinCommunity: () => void;
   onStartMission: () => void;
-  suggestions: ReactNode;
 };
 
 type UniverseNode = {
@@ -116,7 +115,6 @@ export function HomeUniverse({
   data,
   onJoinCommunity,
   onStartMission,
-  suggestions,
 }: UniverseProps) {
   const router = useRouter();
   const reducedMotion = useReducedMotion();
@@ -521,7 +519,6 @@ export function HomeUniverse({
           </Panel>
         </aside>
 
-        <div className={styles.suggestions}>{suggestions}</div>
         <div className={styles.ecosystemStatus}>
           <span className={styles.liveDot} aria-hidden />
           <Globe2 className="h-3.5 w-3.5" aria-hidden />

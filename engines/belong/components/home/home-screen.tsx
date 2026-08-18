@@ -44,8 +44,9 @@ export function HomeScreen(data: HomeEngineData) {
           data={{ ...data, impactScore }}
           onJoinCommunity={() => setCommunityOpen(true)}
           onStartMission={() => setMissionOpen(true)}
-          suggestions={<HomeSuggestionsCarousel people={data.suggestedPeople} />}
         />
+
+        <HomeSuggestionsCarousel people={data.suggestedPeople} />
 
         <HomeLiveBuilders activities={data.homeTimeline} />
       </div>

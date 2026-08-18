@@ -40,6 +40,11 @@ import type {
 const MIN_SCORE = 12;
 const LIMIT = 4;
 
+type PersonMatchOptions = {
+  minimumScore?: number;
+  requireExplanation?: boolean;
+};
+
 function toRecommendation(
   category: ScoredRecommendation["category"],
   id: string,
@@ -48,13 +53,15 @@ function toRecommendation(
   href: string,
   factors: ScoreFactorInput[],
   signals: MatchSignals,
-  meta?: Record<string, string | null>
+  meta?: Record<string, string | null>,
+  options: PersonMatchOptions = {}
 ): ScoredRecommendation | null {
   const result = computeCompatibilityScore(factors);
-  if (result.score < MIN_SCORE) return null;
+  const minimumScore = options.minimumScore ?? MIN_SCORE;
+  if (result.score < minimumScore) return null;
 
   const explanation = buildRecommendationExplanation(factors, signals);
-  if (explanation.bullets.length === 0) return null;
+  if ((options.requireExplanation ?? true) && explanation.bullets.length === 0) return null;
 
   return {
     id,
@@ -88,7 +95,8 @@ function sharedCommunityFactor(
 export function scorePersonMatch(
   profile: CompatibilityProfile,
   candidate: PersonCandidate,
-  context: OpportunityGraphContext
+  context: OpportunityGraphContext,
+  options: PersonMatchOptions = {}
 ): ScoredRecommendation | null {
   const factors: ScoreFactorInput[] = [];
   const sharedSkills = overlapMatches(profile.skills, candidate.skills);
@@ -212,7 +220,8 @@ export function scorePersonMatch(
     `/community?tab=people&q=${encodeURIComponent(candidate.fullName ?? "")}`,
     factors,
     signals,
-    { avatarUrl: candidate.avatarUrl }
+    { avatarUrl: candidate.avatarUrl },
+    options
   );
 }
 

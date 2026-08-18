@@ -23,6 +23,7 @@ import {
 import { fetchPeopleCandidates } from "./data";
 import { scorePersonMatch } from "./matchers";
 import { buildCompatibilityProfile, buildOpportunityGraphContext } from "./profile-vector";
+import { overlapMatches } from "./scoring";
 import type { PersonCandidate } from "./types";
 
 /**
@@ -114,6 +115,7 @@ export type DiscoverPeopleResult = {
 
 const DEFAULT_PAGE_SIZE = 24;
 const DEFAULT_HOME_LIMIT = 8;
+const HOME_FALLBACK_TARGET = 5;
 /** Over-fetch multiplier used by discoverPeopleForHome so a small "top N" slice
  * still has a reasonable chance of surviving category-less scoring/thresholding. */
 const HOME_OVER_FETCH_MULTIPLIER = 3;
@@ -282,10 +284,82 @@ export async function discoverPeopleForHome(
   viewerProfile: UserProfile,
   limit: number = DEFAULT_HOME_LIMIT
 ): Promise<DiscoveryPerson[]> {
-  const result = await discoverPeople(supabase, viewerProfile, {
-    category: "Todos",
-    limit: Math.max(limit * HOME_OVER_FETCH_MULTIPLIER, DEFAULT_PAGE_SIZE),
-    offset: 0,
-  });
-  return result.people.slice(0, limit);
+  const targetLimit = Math.min(Math.max(1, limit), HOME_FALLBACK_TARGET);
+  const candidateLimit = Math.max(targetLimit * HOME_OVER_FETCH_MULTIPLIER, DEFAULT_PAGE_SIZE);
+  const compatibilityProfile = await buildCompatibilityProfile(supabase, viewerProfile);
+  const [candidates, context] = await Promise.all([
+    fetchPeopleCandidates(supabase, viewerProfile.id, { limit: candidateLimit, offset: 0 }),
+    buildOpportunityGraphContext(supabase, compatibilityProfile),
+  ]);
+
+  const strongMatches = candidates
+    .map((candidate) => {
+      const recommendation = scorePersonMatch(compatibilityProfile, candidate, context);
+      if (!recommendation) return null;
+      return {
+        candidate,
+        person: toHomeDiscoveryPerson(candidate, recommendation, viewerProfile.id),
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null)
+    .sort((a, b) => b.person.affinityScore - a.person.affinityScore);
+
+  if (strongMatches.length >= targetLimit) {
+    return strongMatches.slice(0, targetLimit).map((item) => item.person);
+  }
+
+  const strongIds = new Set(strongMatches.map((item) => item.candidate.id));
+  const fallbackMatches = candidates
+    .filter((candidate) => !strongIds.has(candidate.id))
+    .map((candidate) => {
+      const recommendation = scorePersonMatch(compatibilityProfile, candidate, context, {
+        minimumScore: 0,
+        requireExplanation: false,
+      });
+      if (!recommendation) return null;
+
+      const sharedCommunityCount = candidate.communityIds.filter((id) =>
+        compatibilityProfile.communityIds.includes(id)
+      ).length;
+      const sharedProfileSignalCount =
+        overlapMatches(compatibilityProfile.skills, candidate.skills).length +
+        overlapMatches(compatibilityProfile.interests, candidate.interests).length;
+
+      return {
+        candidate,
+        person: toHomeDiscoveryPerson(candidate, recommendation, viewerProfile.id),
+        sharedCommunityCount,
+        sharedProfileSignalCount,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null)
+    .sort((a, b) =>
+      b.person.affinityScore - a.person.affinityScore ||
+      b.sharedCommunityCount - a.sharedCommunityCount ||
+      b.sharedProfileSignalCount - a.sharedProfileSignalCount ||
+      a.candidate.id.localeCompare(b.candidate.id)
+    );
+
+  return [
+    ...strongMatches.map((item) => item.person),
+    ...fallbackMatches.map((item) => item.person),
+  ].slice(0, targetLimit);
+}
+
+function toHomeDiscoveryPerson(
+  candidate: PersonCandidate,
+  recommendation: NonNullable<ReturnType<typeof scorePersonMatch>>,
+  viewerId: string
+): DiscoveryPerson {
+  return {
+    id: candidate.id,
+    fullName: candidate.fullName ?? "Builder",
+    avatarUrl: candidate.avatarUrl,
+    role: candidate.role,
+    tags: [...new Set([...candidate.skills, ...candidate.interests])].slice(0, 3),
+    affinityScore: recommendation.score,
+    matchReasons: recommendation.reasons,
+    connectionState: resolveConnectionState(viewerId, []),
+    profileSearchHref: recommendation.href,
+  };
 }

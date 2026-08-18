@@ -161,7 +161,7 @@ export async function getHomeEngineData(): Promise<HomeEngineData> {
     getOpportunityRecommendations(supabase, profile),
     fetchConversationPreviews(supabase, profile.id, 4),
     fetchImpactScoreProfile(supabase, profile.id, 5),
-    discoverPeopleForHome(supabase, profile, 8),
+    discoverPeopleForHome(supabase, profile, 5),
   ]);
 
   const engineData: Omit<

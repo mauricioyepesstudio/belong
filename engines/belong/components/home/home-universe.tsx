@@ -128,6 +128,9 @@ export function HomeUniverse({
   );
   const buildGoal = getBuildGoalOption(data.profile.build_goal);
   const journeyChapter = buildGoal?.label ?? "Discovery";
+  const greeting = formatGreeting();
+  const mobileGreeting =
+    greeting === "Good morning" ? "Buenos días" : greeting === "Good afternoon" ? "Buenas tardes" : "Buenas noches";
 
   const streakPercent = clampPercent((data.momentum.current_streak / 7) * 100);
   const energyScore = clampPercent(
@@ -278,20 +281,33 @@ export function HomeUniverse({
         <section className={styles.worldStage} aria-labelledby="belong-world-title">
           <header className={styles.heroCopy}>
             <h1 className={styles.heroTitle}>
-              This is your world.
-              <br />
-              <span>Build it. Together.</span>
+              <span className={styles.desktopOnly}>
+                This is your world.
+                <br />
+                <span>Build it. Together.</span>
+              </span>
+              <span className={styles.mobileOnly}>
+                Este es tu mundo.
+                <br />
+                <span>Constrúyelo. Juntos.</span>
+              </span>
             </h1>
             <p className={styles.heroSubtitle}>
-              People, projects and opportunities
-              <br className="hidden sm:block" /> connected to your purpose.
+              <span className={styles.desktopOnly}>
+                People, projects and opportunities
+                <br className="hidden sm:block" /> connected to your purpose.
+              </span>
+              <span className={styles.mobileOnly}>
+                Personas, proyectos y oportunidades relacionados con tu propósito.
+              </span>
             </p>
           </header>
 
           <div className={styles.heroActions} aria-label="Build your world">
             <button type="button" onClick={onJoinCommunity} className={styles.primaryButton}>
               <UsersRound className="h-4 w-4" aria-hidden />
-              Join BELONG
+              <span className={styles.desktopOnly}>Join BELONG</span>
+              <span className={styles.mobileOnly}>Únete a BELONG</span>
             </button>
             <button
               type="button"
@@ -299,14 +315,16 @@ export function HomeUniverse({
               className={`${styles.secondaryButton} ${styles.missionButton}`}
             >
               <Rocket className="h-4 w-4" aria-hidden />
-              Start Mission
+              <span className={styles.desktopOnly}>Start Mission</span>
+              <span className={styles.mobileOnly}>Iniciar misión</span>
             </button>
             <Link
               href="/people/discover"
               className={`${styles.secondaryButton} ${styles.peopleButton}`}
             >
               <UserPlus className="h-4 w-4" aria-hidden />
-              Find People
+              <span className={styles.desktopOnly}>Find People</span>
+              <span className={styles.mobileOnly}>Encuentra personas</span>
             </Link>
           </div>
 
@@ -434,6 +452,27 @@ export function HomeUniverse({
 
         </section>
 
+        <section className={styles.mobileJourneySummary} aria-label="Resumen de tu viaje">
+          <div className={styles.mobileJourneyHeader}>
+            <div>
+              <p className={styles.mobileJourneyGreeting}>{mobileGreeting}, {firstName}</p>
+              <p className={styles.mobileJourneyChapter}>{journeyChapter}</p>
+            </div>
+            <span className={styles.mobileJourneyMomentum}>Momentum {energyScore}%</span>
+          </div>
+          <div className={styles.mobileJourneyStats}>
+            <span>{activeProjectsCount} proyectos activos</span>
+            <span>{data.recentNotifications.length} notificaciones</span>
+          </div>
+          <div className={styles.mobileJourneyNext}>
+            <span>Próximo paso</span>
+            <strong>{data.primaryRecommendation.actionLabel}</strong>
+          </div>
+          <Link href="/profile?tab=missions" className={styles.mobileJourneyLink}>
+            Ver mi viaje <span aria-hidden>→</span>
+          </Link>
+        </section>
+
         <aside className={`grid content-start gap-4 md:grid-cols-3 xl:grid-cols-1 ${styles.asideCompanion}`} aria-label="Focus, story and AI companion">
           <Panel eyebrow="Today's focus" title={missionTitle} icon={Target}>
             {checklist.length > 0 ? (
@@ -526,5 +565,122 @@ export function HomeUniverse({
         </div>
       </div>
     </div>
+  );
+}
+
+export function HomeMobileCompanionPanels({ data }: { data: HomeEngineData }) {
+  const router = useRouter();
+  const [askQuery, setAskQuery] = useState("");
+  const firstName = data.profile.full_name?.split(" ")[0] ?? "Builder";
+  const missionTitle =
+    data.missionEngine.lifeMission?.title ?? data.primaryMission?.title ?? "Define your north star";
+  const checklist = data.missionEngine.dailyMissions.slice(0, 4);
+  const nextPendingMission = checklist.find((item) => item.status === "pending");
+  const companionRecommendations = selectCompactRecommendations(data.opportunityRecommendations, 3);
+  const history = data.impactEngine.history.slice(-8);
+  const storyPoints = (() => {
+    if (history.length < 2) return null;
+    const scores = history.map((item) => item.score);
+    const min = Math.min(...scores);
+    const max = Math.max(...scores);
+    const span = Math.max(1, max - min);
+    return history.map((item, index) => ({
+      x: (index / (history.length - 1)) * 300,
+      y: 48 - ((item.score - min) / span) * 40,
+    }));
+  })();
+  const storyPath = storyPoints
+    ? storyPoints.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ")
+    : "";
+
+  const handleAsk = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = askQuery.trim();
+    if (query) router.push(`/search?q=${encodeURIComponent(query)}`);
+  };
+
+  return (
+    <aside className={styles.mobileCompanionPanels} aria-label="Focus, story and AI companion">
+      <Panel eyebrow="Today's focus" title={missionTitle} icon={Target}>
+        {checklist.length > 0 ? (
+          <ul className={styles.checklist}>
+            {checklist.map((item) => (
+              <li key={item.id} className={styles.checkRow} data-done={item.status === "completed"}>
+                <span className={styles.checkDot} aria-hidden>
+                  {item.status === "completed" ? <CheckCircle2 className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
+                </span>
+                <span className="line-clamp-1">{item.title}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs leading-5 text-white/45">No missions queued yet — start one to see your checklist here.</p>
+        )}
+        <Link href={nextPendingMission?.action_href ?? "/profile?tab=missions"} className={styles.panelLink}>
+          Continue focus <span aria-hidden>→</span>
+        </Link>
+      </Panel>
+
+      <Panel eyebrow="Daily story" title="Beta" icon={Rocket}>
+        {storyPoints ? (
+          <svg className={styles.storyLine} viewBox="0 0 300 56" preserveAspectRatio="none" aria-hidden>
+            <defs>
+              <linearGradient id="story-line-gradient-mobile" x1="0" x2="1">
+                <stop offset="0" stopColor="#a78bfa" />
+                <stop offset="1" stopColor="#22d3ee" />
+              </linearGradient>
+            </defs>
+            <path className={styles.storyPath} d={storyPath} stroke="url(#story-line-gradient-mobile)" />
+            {storyPoints.map((point, index) => (
+              <circle key={index} className={styles.storyDot} cx={point.x} cy={point.y} r={2.2} />
+            ))}
+          </svg>
+        ) : (
+          <p className="text-xs leading-5 text-white/45">Your impact story will take shape as you build.</p>
+        )}
+        <p className="mt-3 text-xs leading-5 text-white/55">
+          You&apos;ve connected with {data.stats.connections} {data.stats.connections === 1 ? "person" : "people"} and
+          joined {data.communities.length} {data.communities.length === 1 ? "community" : "communities"} on BELONG.
+        </p>
+        <Link href="/profile?tab=impact" className={styles.panelLink}>
+          See my full story <span aria-hidden>→</span>
+        </Link>
+      </Panel>
+
+      <Panel eyebrow="AI companion" title="Next best move" icon={Bot} id="ai-companion-mobile">
+        <p className="text-xs leading-5 text-white/55">Hey {firstName}! Here&apos;s what I found for you:</p>
+        {companionRecommendations.length > 0 ? (
+          <div className={`${styles.aiList} mt-3`}>
+            {companionRecommendations.map((item) => {
+              const Icon = RECOMMENDATION_ICON[item.category] ?? Sparkles;
+              return (
+                <Link key={`${item.category}-${item.id}`} href={item.meta?.actionHref ?? item.href} className={styles.aiRow}>
+                  <span className={styles.aiIcon} aria-hidden><Icon className="h-3.5 w-3.5" /></span>
+                  <span className="min-w-0 flex-1 truncate text-xs text-white/75">{item.title}</span>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="mt-3 text-xs leading-5 text-white/45">{data.primaryRecommendation.description}</p>
+        )}
+        <form onSubmit={handleAsk} className="mt-3">
+          <label htmlFor="ai-ask-input-mobile" className="sr-only">Ask me anything</label>
+          <div className="flex items-center gap-2">
+            <input
+              id="ai-ask-input-mobile"
+              type="text"
+              value={askQuery}
+              onChange={(event) => setAskQuery(event.target.value)}
+              placeholder="Ask me anything…"
+              className={styles.askInput}
+            />
+            <button type="submit" className={styles.panelIcon} aria-label="Send">
+              <Send className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </form>
+      </Panel>
+    </aside>
   );
 }

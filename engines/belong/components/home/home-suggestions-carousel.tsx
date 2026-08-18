@@ -40,10 +40,12 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
             id="suggestions-heading"
             className="text-sm font-semibold uppercase tracking-[0.08em] text-fg-primary sm:text-base"
           >
-            Suggestions for You
+            <span className="hidden sm:inline">Suggestions for You</span>
+            <span className="sm:hidden">Sugerencias para ti</span>
           </h2>
-          <p className="mt-1 hidden truncate text-[11px] text-fg-muted sm:block">
-            People aligned with your purpose and energy.
+          <p className="mt-1 text-[11px] leading-4 text-fg-muted">
+            <span className="hidden sm:inline">People aligned with your purpose and energy.</span>
+            <span className="sm:hidden">Encuentra personas alineadas con tus metas e intereses.</span>
           </p>
         </div>
         {people.length > 0 && (
@@ -57,12 +59,13 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
       </div>
 
       {people.length === 0 ? (
-        <GlassCard className="flex min-h-28 items-center justify-center px-6 py-5 text-center">
+        <GlassCard className="flex min-h-24 items-center justify-center px-5 py-4 text-center sm:min-h-28 sm:px-6 sm:py-5">
           <Link
             href="/people/discover"
-            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-violet-300/25 bg-violet-500/15 px-5 text-sm font-semibold text-violet-100 transition-colors hover:border-violet-300/40 hover:bg-violet-500/25 focus-ring"
+            className="inline-flex min-h-9 items-center justify-center rounded-xl border border-violet-300/25 bg-violet-500/15 px-4 text-xs font-semibold text-violet-100 transition-colors hover:border-violet-300/40 hover:bg-violet-500/25 focus-ring sm:min-h-10 sm:px-5 sm:text-sm"
           >
-            Explore People
+            <span className="hidden sm:inline">Explore People</span>
+            <span className="sm:hidden">Explorar personas →</span>
           </Link>
         </GlassCard>
       ) : (

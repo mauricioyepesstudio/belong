@@ -349,6 +349,9 @@
 .asideContext { grid-area: left; min-width: 0; }
 .asideCompanion { grid-area: right; min-width: 0; }
 .worldStage { grid-area: world; min-width: 0; }
+.mobileJourneySummary { display: none; grid-area: summary; }
+.mobileCompanionPanels { display: none; }
+.mobileOnly { display: none; }
 .ecosystemStatus {
   grid-area: ecosystem;
   display: flex;
@@ -388,7 +391,8 @@
   color: #fff;
   text-shadow: 0 2px 24px rgba(0,0,0,.55);
 }
-.heroTitle span {
+.heroTitle > .desktopOnly > span,
+.heroTitle > .mobileOnly > span {
   background: linear-gradient(90deg, #22d3ee 0%, #60a5fa 43%, #a78bfa 100%);
   background-clip: text;
   color: transparent;
@@ -556,9 +560,21 @@
     border-radius: 0;
     background: transparent;
   }
-  .dashboardGrid { gap: .9rem; }
+  .dashboardGrid {
+    gap: .9rem;
+    grid-template-areas:
+      "world"
+      "summary";
+  }
+  .asideContext,
+  .asideCompanion,
+  .ecosystemStatus {
+    display: none;
+  }
+  .desktopOnly { display: none; }
+  .mobileOnly { display: inline; }
   .worldStage {
-    min-height: 700px;
+    min-height: 650px;
     margin: 0 -.5rem;
     border-radius: 0;
     background: transparent;
@@ -569,33 +585,39 @@
     right: .75rem;
     top: .35rem;
     max-width: none;
+    padding: .4rem .45rem .7rem;
+    border-radius: .85rem;
+    background: linear-gradient(180deg, rgba(2,3,14,.72), rgba(2,3,14,.3) 72%, transparent);
   }
-  .heroTitle { font-size: 1.55rem; line-height: 1.08; }
+  .heroTitle { font-size: 1.48rem; line-height: 1.08; }
   .heroSubtitle { margin-top: .55rem; font-size: .7rem; line-height: 1.45; }
   .heroActions {
     left: .75rem;
     right: .75rem;
-    top: 7.2rem;
+    top: 7.4rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     width: auto;
     gap: .45rem;
   }
+  .heroActions .primaryButton { grid-column: 1 / -1; }
   .heroActions .primaryButton,
   .heroActions .secondaryButton {
-    min-height: 40px;
+    min-height: 38px;
+    padding: .48rem .55rem;
     border-radius: .6rem;
-    font-size: .68rem;
+    font-size: .66rem;
   }
   .worldArt,
   .vignette,
   .stars,
   .nodesLayer,
   .identityCore {
-    top: 17rem;
+    top: 13.5rem;
   }
   .orbitOuter,
   .orbitInner,
   .coreGlow {
-    top: 69.4%;
+    top: 66.6%;
   }
   .worldArt img { object-position: center top; }
   .nodePlatform { left: 50%; top: 8%; }
@@ -605,9 +627,23 @@
   .nodeEvents { left: 85%; top: 54%; }
   .nodeResources { left: 15%; top: 78%; }
   .nodeCompanion { left: 85%; top: 78%; }
-  .ecosystemStatus {
-    padding-bottom: .5rem;
-    font-size: 8px;
-    letter-spacing: .12em;
+  .mobileJourneySummary {
+    display: block;
+    min-height: 180px;
+    padding: 1rem;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 1rem;
+    background: linear-gradient(145deg, rgba(10,15,31,.88), rgba(4,9,22,.8));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
   }
+  .mobileJourneyHeader { display:flex; align-items:flex-start; justify-content:space-between; gap:.75rem; }
+  .mobileJourneyGreeting { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.72); }
+  .mobileJourneyChapter { margin-top:.25rem; font-size:13px; font-weight:650; color:#fff; }
+  .mobileJourneyMomentum { flex:none; border-radius:999px; border:1px solid rgba(34,211,238,.2); background:rgba(34,211,238,.08); padding:.3rem .55rem; font-size:10px; font-weight:650; color:#a5f3fc; }
+  .mobileJourneyStats { display:flex; flex-wrap:wrap; gap:.45rem .8rem; margin-top:.85rem; font-size:11px; color:rgba(255,255,255,.58); }
+  .mobileJourneyNext { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-top:.85rem; padding-top:.75rem; border-top:1px solid rgba(255,255,255,.07); font-size:10px; color:rgba(255,255,255,.42); }
+  .mobileJourneyNext strong { max-width:65%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; font-weight:650; color:rgba(255,255,255,.82); }
+  .mobileJourneyLink { display:flex; align-items:center; justify-content:space-between; margin-top:.75rem; font-size:11px; font-weight:650; color:#c4b5fd; }
+  .mobileCompanionPanels { display:grid; gap:.75rem; }
+  .mobileCompanionPanels .panel { padding:.9rem; }
 }

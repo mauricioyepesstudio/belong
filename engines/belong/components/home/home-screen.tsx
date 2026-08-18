@@ -8,7 +8,7 @@ import { useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { HomeComposer } from "./home-composer";
 import { DashboardActions } from "../dashboard/dashboard-actions";
-import { HomeUniverse } from "./home-universe";
+import { HomeMobileCompanionPanels, HomeUniverse } from "./home-universe";
 import { HomeSuggestionsCarousel } from "./home-suggestions-carousel";
 import { HomeLiveBuilders } from "./home-live-builders";
 import { HomeMissionsRow } from "./home-missions-row";
@@ -49,6 +49,8 @@ export function HomeScreen(data: HomeEngineData) {
         <HomeSuggestionsCarousel people={data.suggestedPeople} />
 
         <HomeLiveBuilders activities={data.homeTimeline} />
+
+        <HomeMobileCompanionPanels data={{ ...data, impactScore }} />
       </div>
 
       <div className="mt-8 space-y-8">

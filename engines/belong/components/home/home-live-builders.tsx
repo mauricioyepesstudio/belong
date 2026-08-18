@@ -106,16 +106,31 @@ export function HomeLiveBuilders({ activities }: { activities: HomeActivity[] })
   const items = activities.slice(0, 8);
 
   return (
-    <section aria-labelledby="live-builders-heading">
-      <SectionHeader
-        label="Live builders"
-        title="People building right now — jump in, support, collaborate."
-        action={
-          <Link href="/community" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">
-            View all <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-          </Link>
-        }
-      />
+    <section aria-label="Live builders">
+      <div className="hidden sm:block">
+        <SectionHeader
+          label="Live builders"
+          title="People building right now — jump in, support, collaborate."
+          action={
+            <Link href="/community" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">
+              View all <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+            </Link>
+          }
+        />
+      </div>
+      <div className="mb-3 flex items-end justify-between gap-3 sm:hidden">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold uppercase tracking-[0.08em] text-fg-primary">
+            Live Builders
+          </p>
+          <p className="mt-1 text-[11px] leading-4 text-fg-muted">
+            Personas construyendo ahora — participa y colabora.
+          </p>
+        </div>
+        <Link href="/community" className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand">
+          Ver todo <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+        </Link>
+      </div>
 
       {items.length === 0 ? (
         <GlassCard className="px-6 py-10 text-center">

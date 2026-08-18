@@ -126,6 +126,20 @@
       transparent 60%
     );
   }
+
+  /* Portrait bug fix: at mobile widths .featureCard stacks column-reverse
+     with only min-height:9rem (144px) distributed to .featureMedia. A
+     portrait photo in a short/wide box with the desktop "top center"
+     object-position crops to mostly hairline/forehead. Give the media
+     block more vertical room and shift the focal point down from the
+     absolute top so an upper-body/face composition shows instead. */
+  .featureMedia {
+    min-height: 12rem;
+  }
+
+  .featureImg {
+    object-position: 50% 20%;
+  }
 }
 
 /* --- Project / Community / Impact editorial tiles --- */

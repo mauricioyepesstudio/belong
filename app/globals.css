@@ -64,6 +64,9 @@
   --sidebar-width: 272px;
   --header-height: 60px;
   --mobile-nav-height: 68px;
+  /* iOS home-indicator / Android gesture-bar clearance for the fixed bottom
+     nav — falls back to 0px on devices/browsers without safe-area support. */
+  --mobile-nav-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @theme inline {

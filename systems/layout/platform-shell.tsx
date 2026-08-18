@@ -44,7 +44,7 @@ export function PlatformShell({
         />
         <main
           id="main-content"
-          className="min-h-[calc(100vh-var(--header-height))] pb-[calc(var(--mobile-nav-height)+1rem)] lg:pb-0"
+          className="min-h-[calc(100vh-var(--header-height))] pb-[calc(var(--mobile-nav-height)+var(--mobile-nav-safe-bottom)+1rem)] lg:pb-0"
         >
           <div
             className={

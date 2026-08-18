@@ -51,7 +51,7 @@ export function HomeImpactRipple({
       />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(220px,0.75fr)_minmax(380px,2fr)_minmax(220px,0.75fr)] lg:items-stretch">
-        <GlassCard className="p-5 lg:p-6" glow>
+        <GlassCard className="order-2 p-5 lg:order-none lg:p-6" glow>
           <div className="flex items-center justify-between gap-3">
             <p className="text-label">This week</p>
             <span className={styles.cardIcon} aria-hidden>
@@ -70,7 +70,7 @@ export function HomeImpactRipple({
           </Link>
         </GlassCard>
 
-        <GlassCard className="flex items-center justify-center p-4 lg:p-6" glow>
+        <GlassCard className="order-1 flex items-center justify-center p-4 lg:order-none lg:p-6" glow>
           <div className={styles.stage}>
             {/* ambient tri-tone glow (cyan / violet / green — impact & growth) */}
             <div className={styles.ambient} aria-hidden />
@@ -132,7 +132,7 @@ export function HomeImpactRipple({
           </div>
         </GlassCard>
 
-        <GlassCard className="p-5 lg:p-6" glow>
+        <GlassCard className="order-3 p-5 lg:order-none lg:p-6" glow>
           <div className="flex items-center justify-between gap-3">
             <p className="text-label">Latest impact</p>
             <span className={styles.cardIcon} aria-hidden>

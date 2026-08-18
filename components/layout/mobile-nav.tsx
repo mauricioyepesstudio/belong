@@ -44,7 +44,10 @@ export function MobileNav({
       )}
 
       {!isDashboard && moreOpen && (
-        <div className="fixed inset-x-0 bottom-[var(--mobile-nav-height)] z-50 border-t border-border-subtle bg-bg-elevated p-4 lg:hidden">
+        <div
+          className="fixed inset-x-0 z-50 border-t border-border-subtle bg-bg-elevated p-4 lg:hidden"
+          style={{ bottom: "calc(var(--mobile-nav-height) + var(--mobile-nav-safe-bottom))" }}
+        >
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-fg-muted">More</p>
           <ul className="grid grid-cols-2 gap-2">
             {moreItems.map((item) => {
@@ -77,6 +80,7 @@ export function MobileNav({
 
       <nav
         className="fixed inset-x-0 bottom-0 z-50 border-t border-border-subtle bg-bg-elevated/90 backdrop-blur-2xl lg:hidden"
+        style={{ paddingBottom: "var(--mobile-nav-safe-bottom)" }}
         aria-label="Mobile navigation"
       >
         <div className="relative flex h-[var(--mobile-nav-height)] items-stretch justify-around px-1">

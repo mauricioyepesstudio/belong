@@ -146,11 +146,79 @@
 @keyframes ringPulse { 0% { transform:scale(.92); opacity:.75; } 100% { transform:scale(1.3); opacity:0; } }
 
 @media (max-width: 640px) {
-  .universe { min-height: auto; border-radius: 1.35rem; }
-  .worldStage { min-height: 460px; }
+  /* De-boxed hero: strip the "card inside a card" framing so the world art
+     bleeds to the page's own mobile gutter instead of sitting inside a
+     second inset rectangle. Desktop .universe/.worldStage border/radius/
+     shadow rules above are untouched — these are new overriding values
+     that only apply below 640px. */
+  .universe {
+    min-height: auto;
+    padding: 0.85rem 0.5rem 1rem;
+    border: none;
+    border-radius: 1.1rem;
+    background:
+      radial-gradient(circle at 50% 34%, rgba(83, 56, 186, 0.16), transparent 42%),
+      linear-gradient(165deg, rgba(9, 8, 26, 0.9), rgba(3, 4, 16, 0.94));
+    box-shadow: none;
+  }
+
+  /* Reorder: world stage paints before both context aside panels. DOM order
+     (and therefore tab/reading order) is unchanged — this only changes
+     visual/paint order via CSS `order` inside the existing grid. */
+  .asideContext { order: 2; }
+  .asideCompanion { order: 3; }
+
+  .worldStage {
+    order: 1;
+    min-height: 420px;
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    border: none;
+    border-radius: 1.25rem;
+    background:
+      radial-gradient(circle at center, rgba(76, 29, 149, 0.22), transparent 55%),
+      rgba(2, 3, 14, 0.55);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+      inset 0 0 46px rgba(0, 0, 0, 0.55);
+  }
+
   .node { width:3.6rem; }
   .nodeIcon { width:2.4rem; height:2.4rem; }
   .nodeValue { display:none; }
+  .nodeLabel { line-height:1.15; }
+
+  /* Decorative orbit connection lines use hardcoded desktop-only SVG
+     coordinates that no longer line up with the repositioned mobile nodes
+     below — hide rather than show mismatched lines pointing at empty space. */
+  .connections { display: none; }
+
+  .coreGlow { width: 180px; height: 180px; }
+
+  .identityCaption { width: 130px; transform: translate(-50%, 46px); }
+
+  .stageCaption {
+    max-width: 88%;
+    white-space: normal;
+    text-align: center;
+    font-size: 8px;
+    line-height: 1.4;
+  }
+
+  /* Mobile-only node layout. Desktop's wide-radius angular placement above
+     (not edited) compresses into overlapping node/label clusters on a
+     narrow portrait stage. This is an independent compact two-column
+     layout, hand-verified against the 336-406px stage widths produced by
+     360-430px viewports (min-height 420px above), so no node or label
+     collides with another, the avatar/caption keep-out zone stays clear,
+     and nothing leaves the stage bounds. */
+  .nodePlatform { left: 50%; top: 8%; }
+  .nodePeople { left: 15%; top: 29%; }
+  .nodeCommunities { left: 85%; top: 29%; }
+  .nodeOpportunities { left: 15%; top: 54%; }
+  .nodeEvents { left: 85%; top: 54%; }
+  .nodeResources { left: 15%; top: 79%; }
+  .nodeCompanion { left: 85%; top: 79%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

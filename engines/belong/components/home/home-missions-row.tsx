@@ -88,7 +88,7 @@ export function HomeMissionsRow({
             <Link
               key={goal.id}
               href={goal.action_href || "/profile?tab=missions"}
-              className="min-w-[78%] shrink-0 snap-start sm:min-w-[240px]"
+              className="min-w-[84%] shrink-0 snap-start sm:min-w-[240px]"
             >
               <GlassCard hover glow className={styles.card} data-bucket={bucket}>
                 <div className={styles.artStage}>
@@ -128,7 +128,7 @@ export function HomeMissionsRow({
         <button
           type="button"
           onClick={onCreateMission}
-          className="min-w-[78%] shrink-0 snap-start sm:min-w-[240px]"
+          className="min-w-[84%] shrink-0 snap-start sm:min-w-[240px]"
         >
           <GlassCard hover className={`${styles.card} flex-col items-center justify-center gap-2 border-dashed p-4 text-center`}>
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand">

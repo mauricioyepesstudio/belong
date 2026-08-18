@@ -247,8 +247,8 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
         </div>
       </header>
 
-      <div className="relative z-10 mt-6 grid gap-4 xl:grid-cols-[minmax(210px,0.75fr)_minmax(480px,1.7fr)_minmax(210px,0.75fr)]">
-        <aside className="grid content-start gap-4 md:grid-cols-3 xl:grid-cols-1" aria-label="Your day and momentum">
+      <div className="relative z-10 mt-4 grid gap-4 sm:mt-6 xl:grid-cols-[minmax(210px,0.75fr)_minmax(480px,1.7fr)_minmax(210px,0.75fr)]">
+        <aside className={`grid content-start gap-4 md:grid-cols-3 xl:grid-cols-1 ${styles.asideContext}`} aria-label="Your day and momentum">
           <Panel eyebrow={formatGreeting()} title={`${firstName} 👋`} icon={Orbit}>
             <p className="text-xs leading-5 text-white/55">
               You&apos;re in the {journeyChapter} chapter of your journey.
@@ -419,7 +419,7 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
                   src={data.profile.avatar_url ?? undefined}
                   fallback={formatInitials(data.profile.full_name)}
                   size="lg"
-                  className="h-24 w-24 rounded-full"
+                  className="h-16 w-16 rounded-full sm:h-24 sm:w-24"
                 />
               </div>
             </div>
@@ -450,7 +450,7 @@ export function HomeUniverse({ data, onCreateProject, onJoinCommunity }: Univers
           </div>
         </section>
 
-        <aside className="grid content-start gap-4 md:grid-cols-3 xl:grid-cols-1" aria-label="Focus, story and AI companion">
+        <aside className={`grid content-start gap-4 md:grid-cols-3 xl:grid-cols-1 ${styles.asideCompanion}`} aria-label="Focus, story and AI companion">
           <Panel eyebrow="Today's focus" title={missionTitle} icon={Target}>
             {checklist.length > 0 ? (
               <ul className={styles.checklist}>

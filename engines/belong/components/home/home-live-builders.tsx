@@ -145,7 +145,7 @@ export function HomeLiveBuilders({ activities }: { activities: HomeActivity[] })
               <GlassCard
                 key={activity.id}
                 hover
-                className="min-w-[82%] shrink-0 snap-start overflow-hidden sm:min-w-[300px]"
+                className="min-w-[84%] shrink-0 snap-start overflow-hidden sm:min-w-[300px]"
               >
                 <div className={styles.mediaFrame}>
                   {mediaSrc ? (

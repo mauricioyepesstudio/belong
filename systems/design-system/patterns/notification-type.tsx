@@ -49,8 +49,19 @@ export function getNotificationHref(type: NotificationType, metadata?: Json): st
   const listingId = metaString(metadata, "listing_id");
   const missionId = metaString(metadata, "mission_id");
   const kind = metaString(metadata, "kind");
+  const targetType = metaString(metadata, "target_type");
+  const connectionActorId =
+    metaString(metadata, "requester_id") ??
+    metaString(metadata, "connected_user_id") ??
+    metaString(metadata, "actor_id");
 
   if (missionId) return `/missions/${missionId}`;
+  if (type === "connection" && connectionActorId) {
+    return `/people/${encodeURIComponent(connectionActorId)}`;
+  }
+  if (targetType === "social_post" && postId) {
+    return `/feed?post=${encodeURIComponent(postId)}#post-${encodeURIComponent(postId)}`;
+  }
   if (kind === "weekly_goal" || kind === "quarterly_goal") return appLinks.weeklyGoals;
   if (type === "message") {
     const conversationId = metaString(metadata, "conversation_id");

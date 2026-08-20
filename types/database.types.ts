@@ -15,6 +15,15 @@ export type AICopilotActionType =
 export type AICopilotActionStatus = "completed" | "failed" | "applied";
 export type ProjectStatus = "planning" | "active" | "completed" | "archived";
 export type NotificationType = "connection" | "project" | "event" | "community" | "message" | "system" | "payment";
+export type SocialPostType =
+  | "text"
+  | "photo"
+  | "video"
+  | "project_update"
+  | "community_update"
+  | "needs_help"
+  | "impact";
+export type SocialMediaType = "image" | "video";
 export type SubscriptionTier = "free" | "pro" | "creator";
 export type SubscriptionStatus = "active" | "canceled" | "past_due" | "trialing" | "incomplete" | "incomplete_expired" | "unpaid";
 export type PaymentType = "platform_subscription" | "community_subscription" | "project_funding" | "donation" | "marketplace_purchase" | "creator_tip";
@@ -1151,6 +1160,108 @@ export interface Database {
         };
         Relationships: [];
       };
+      social_posts: {
+        Row: {
+          id: string;
+          author_id: string;
+          post_type: SocialPostType;
+          body: string;
+          community_id: string | null;
+          project_id: string | null;
+          media_url: string | null;
+          media_path: string | null;
+          media_type: SocialMediaType | null;
+          media_mime_type: string | null;
+          media_size_bytes: number | null;
+          media_metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          author_id: string;
+          post_type?: SocialPostType;
+          body?: string;
+          community_id?: string | null;
+          project_id?: string | null;
+          media_url?: string | null;
+          media_path?: string | null;
+          media_type?: SocialMediaType | null;
+          media_mime_type?: string | null;
+          media_size_bytes?: number | null;
+          media_metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          author_id?: string;
+          post_type?: SocialPostType;
+          body?: string;
+          community_id?: string | null;
+          project_id?: string | null;
+          media_url?: string | null;
+          media_path?: string | null;
+          media_type?: SocialMediaType | null;
+          media_mime_type?: string | null;
+          media_size_bytes?: number | null;
+          media_metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      social_post_comments: {
+        Row: {
+          id: string;
+          post_id: string;
+          author_id: string;
+          content: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          author_id: string;
+          content: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          post_id?: string;
+          author_id?: string;
+          content?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      social_post_reactions: {
+        Row: {
+          id: string;
+          post_id: string;
+          user_id: string;
+          reaction: "support";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          user_id: string;
+          reaction?: "support";
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          post_id?: string;
+          user_id?: string;
+          reaction?: "support";
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       community_post_likes: {
         Row: {
           id: string;
@@ -1654,6 +1765,8 @@ export interface Database {
       community_member_role: CommunityMemberRole;
       project_status: ProjectStatus;
       notification_type: NotificationType;
+      social_post_type: SocialPostType;
+      social_media_type: SocialMediaType;
       build_goal: BuildGoal;
       subscription_tier: SubscriptionTier;
       subscription_status: SubscriptionStatus;
@@ -1679,6 +1792,9 @@ export type Mission = Database["public"]["Tables"]["missions"]["Row"];
 export type Organization = Database["public"]["Tables"]["organizations"]["Row"];
 export type Community = Database["public"]["Tables"]["communities"]["Row"];
 export type CommunityPost = Database["public"]["Tables"]["community_posts"]["Row"];
+export type SocialPostRow = Database["public"]["Tables"]["social_posts"]["Row"];
+export type SocialPostCommentRow = Database["public"]["Tables"]["social_post_comments"]["Row"];
+export type SocialPostReactionRow = Database["public"]["Tables"]["social_post_reactions"]["Row"];
 export type CommunityPostLike = Database["public"]["Tables"]["community_post_likes"]["Row"];
 export type CommunityPostComment = Database["public"]["Tables"]["community_post_comments"]["Row"];
 export type ProjectPost = Database["public"]["Tables"]["project_posts"]["Row"];

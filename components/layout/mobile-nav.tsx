@@ -24,17 +24,23 @@ export function MobileNav({
   unreadMessages?: number;
 }) {
   const pathname = usePathname();
-  const isDashboard = pathname === "/dashboard";
+  const usesPurposeDock =
+    pathname === "/dashboard" ||
+    pathname === "/feed" ||
+    pathname === "/profile" ||
+    pathname.startsWith("/people/");
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const baseNav = isDashboard ? homeMobileNav : mobileNav;
+  const baseNav = usesPurposeDock ? homeMobileNav : mobileNav;
   const nav = withNotificationBadge(baseNav, "/messages", unreadMessages);
   const moreItems = withNotificationBadge(mobileMoreNav, "/notifications", unreadNotifications);
-  const moreActive = !isDashboard && mobileMoreNav.some((item) => isActive(pathname, item.href));
+  const moreActive =
+    !usesPurposeDock &&
+    mobileMoreNav.some((item) => isActive(pathname, item.href));
 
   return (
     <>
-      {!isDashboard && moreOpen && (
+      {!usesPurposeDock && moreOpen && (
         <button
           type="button"
           className="fixed inset-0 z-40 bg-black/40 lg:hidden"
@@ -43,7 +49,7 @@ export function MobileNav({
         />
       )}
 
-      {!isDashboard && moreOpen && (
+      {!usesPurposeDock && moreOpen && (
         <div
           className="fixed inset-x-0 z-50 border-t border-border-subtle bg-bg-elevated p-4 lg:hidden"
           style={{ bottom: "calc(var(--mobile-nav-height) + var(--mobile-nav-safe-bottom))" }}

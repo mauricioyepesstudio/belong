@@ -1,11 +1,15 @@
 "use client";
 
 import type { DiscoveryPerson } from "@/engines/opportunity";
-import { sendConnectionRequest } from "@/lib/actions/connections";
+import {
+  sendConnectionRequest,
+  startConversation,
+} from "@/lib/actions/connections";
 import { Avatar, Button, useToast } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
-import { ArrowRight, Check, Clock, Plus } from "lucide-react";
+import { ArrowRight, Clock, MessageSquare, Plus } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { GlassCard } from "../dashboard/primitives";
 import type { UserConnectionState } from "@/lib/core/connection-state";
@@ -16,6 +20,7 @@ import type { UserConnectionState } from "@/lib/core/connection-state";
  * behind /people/discover) — no separate matching logic lives here.
  */
 export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] }) {
+  const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [overrides, setOverrides] = useState<Map<string, UserConnectionState>>(new Map());
@@ -27,8 +32,23 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
         toast(result.error, "error");
       } else {
         setOverrides((prev) => new Map(prev).set(personId, { id: result.id ?? null, state: "pending-sent" }));
-        toast("Solicitud de conexión enviada", "success");
+        const person = people.find((item) => item.id === personId);
+        toast(
+          `Connection request sent to ${person?.fullName ?? "this builder"}`,
+          "success"
+        );
       }
+    });
+  };
+
+  const handleMessage = (personId: string) => {
+    startTransition(async () => {
+      const result = await startConversation(personId);
+      if (result.error) {
+        toast(result.error, "error");
+        return;
+      }
+      router.push(`/messages?conversation=${result.id}`);
     });
   };
 
@@ -80,7 +100,7 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
                 hover
                 className="flex min-h-[190px] min-w-[42%] shrink-0 snap-start flex-col p-3 sm:min-w-[210px] lg:min-w-[calc((100%_-_3.125rem)/6)]"
               >
-                <Link href={person.profileSearchHref} className="block min-w-0 flex-1">
+                <Link href={`/people/${person.id}`} className="block min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <Avatar
                       src={person.avatarUrl ?? undefined}
@@ -116,6 +136,7 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
                     state={connection.state}
                     disabled={isPending}
                     onConnect={() => handleConnect(person.id)}
+                    onMessage={() => handleMessage(person.id)}
                     fullName={person.fullName}
                   />
                 </div>
@@ -132,18 +153,26 @@ function ConnectAction({
   state,
   disabled,
   onConnect,
+  onMessage,
   fullName,
 }: {
   state: UserConnectionState["state"];
   disabled: boolean;
   onConnect: () => void;
+  onMessage: () => void;
   fullName: string;
 }) {
   if (state === "connected") {
     return (
-      <Button size="sm" variant="ghost" disabled className="w-full justify-center">
-        <Check className="h-3.5 w-3.5" aria-hidden />
-        Connected
+      <Button
+        size="sm"
+        variant="secondary"
+        disabled={disabled}
+        onClick={onMessage}
+        className="w-full justify-center"
+      >
+        <MessageSquare className="h-3.5 w-3.5" aria-hidden />
+        Message
       </Button>
     );
   }

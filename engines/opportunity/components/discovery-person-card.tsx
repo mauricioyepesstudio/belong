@@ -27,7 +27,7 @@ export function DiscoveryPersonCard({
   return (
     <GlassCard hover className="overflow-hidden">
       <Link
-        href={person.profileSearchHref}
+        href={`/people/${person.id}`}
         className="block p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
       >
         <div className="flex items-start gap-3">

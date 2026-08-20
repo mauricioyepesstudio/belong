@@ -53,13 +53,17 @@ export async function sendConnectionRequest(recipientId: string): Promise<Action
 
   if (error) return { error: error.message };
 
-  await createNotification(supabase, {
+  const notification = await createNotification(supabase, {
     userId: recipientId,
     title: "Connection request",
     body: `${profile.full_name ?? "Someone"} wants to connect`,
     type: "connection",
     metadata: { connection_id: connection.id, requester_id: profile.id },
   });
+  if (notification.error) {
+    await supabase.from("connections").delete().eq("id", connection.id);
+    return { error: "Connection request could not be sent. Please try again." };
+  }
 
   revalidatePath("/community");
   revalidatePath("/", "layout");
@@ -93,13 +97,24 @@ export async function respondToConnection(
   if (error) return { error: error.message };
 
   if (accept) {
-    await createNotification(supabase, {
+    const notification = await createNotification(supabase, {
       userId: connection.requester_id,
       title: "Connection accepted",
       body: `${profile.full_name ?? "Someone"} accepted your request`,
       type: "connection",
-      metadata: { connection_id: connectionId },
+      metadata: {
+        connection_id: connectionId,
+        actor_id: profile.id,
+        connected_user_id: profile.id,
+      },
     });
+    if (notification.error) {
+      await supabase
+        .from("connections")
+        .update({ status: "pending" })
+        .eq("id", connectionId);
+      return { error: "Connection acceptance could not be completed. Please try again." };
+    }
     await incrementWeeklyGoalByTitle(supabase, profile.id, "Expand your network");
     await incrementWeeklyGoalByTitle(supabase, connection.requester_id, "Expand your network");
     await recordImpactAction(supabase, {

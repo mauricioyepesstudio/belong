@@ -21,7 +21,9 @@ export async function createNotification(
 
   if (error) {
     console.error("create_notification failed:", error.message);
+    return { error: error.message };
   }
+  return {};
 }
 
 export function slugify(input: string): string {

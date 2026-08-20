@@ -112,7 +112,7 @@ export function HomeLiveBuilders({ activities }: { activities: HomeActivity[] })
           label="Live builders"
           title="People building right now — jump in, support, collaborate."
           action={
-            <Link href="/community" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">
+            <Link href="/feed" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">
               View all <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
           }
@@ -127,7 +127,7 @@ export function HomeLiveBuilders({ activities }: { activities: HomeActivity[] })
             Personas construyendo ahora.
           </p>
         </div>
-        <Link href="/community" className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand">
+        <Link href="/feed" className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand">
           Ver todo <ArrowRight className="h-3.5 w-3.5" aria-hidden />
         </Link>
       </div>

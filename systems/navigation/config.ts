@@ -18,6 +18,7 @@ import type { NavItem } from "@/types";
 
 export const mainNav: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Feed", href: "/feed", icon: Compass },
   { label: "Organizations", href: "/organizations", icon: Building2 },
   { label: "Community", href: "/community", icon: Users },
   { label: "Projects", href: "/projects", icon: FolderKanban },
@@ -78,6 +79,7 @@ export const authRoutes = ["/login", "/register", "/forgot-password"] as const;
 
 export const platformRoutes = [
   "/dashboard",
+  "/feed",
   "/organizations",
   "/missions",
   "/opportunities",

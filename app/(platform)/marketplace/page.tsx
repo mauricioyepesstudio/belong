@@ -4,7 +4,7 @@ import { getCurrentProfile } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Marketplace" };
+export const metadata: Metadata = { title: "Resources" };
 
 export default async function MarketplacePage() {
   const profile = await getCurrentProfile();

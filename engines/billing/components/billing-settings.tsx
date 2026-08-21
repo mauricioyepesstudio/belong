@@ -101,7 +101,7 @@ export function BillingSettings({ summary }: BillingSettingsProps) {
         <CardContent className="space-y-4">
           <p className="text-sm text-fg-muted">
             Connect Stripe to receive donations, community subscriptions, project funding, and
-            marketplace sales. BELONG takes a 10% platform fee.
+            resource sales. BELONG takes a 10% platform fee.
           </p>
 
           {summary.connectEnabled ? (

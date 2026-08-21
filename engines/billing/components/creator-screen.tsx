@@ -78,7 +78,7 @@ export function CreatorScreen({
                 <div>
                   <p className="font-semibold text-fg-primary">Connect Stripe to get paid</p>
                   <p className="mt-1 text-sm text-fg-muted">
-                    Enable donations, paid communities, project funding, and marketplace sales.
+                    Enable donations, paid communities, project funding, and resource sales.
                   </p>
                 </div>
               </div>
@@ -110,7 +110,7 @@ export function CreatorScreen({
             <EmptyState
               icon={DollarSign}
               title="No payments yet"
-              description="Payments will appear here once you start earning from tips, subscriptions, or marketplace sales."
+              description="Payments will appear here once you start earning from tips, subscriptions, or resource sales."
               className="border-none py-4"
             />
           ) : (

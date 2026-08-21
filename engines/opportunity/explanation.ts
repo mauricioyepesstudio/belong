@@ -18,18 +18,14 @@ export function computeConfidenceLevel(score: number, bulletCount: number): Conf
   return "low";
 }
 
-export function buildScoreBreakdown(factors: ScoreFactorInput[]): ScoreBreakdown {
-  const result = computeCompatibilityScore(factors);
+export function buildScoreBreakdown(
+  factors: ScoreFactorInput[],
+  scoreResult = computeCompatibilityScore(factors)
+): ScoreBreakdown {
+  const result = scoreResult;
   const weightedPoints = result.factors.reduce((sum, f) => sum + f.score, 0);
-  const maxPossiblePoints = result.factors.reduce((sum, f) => sum + f.weight, 0);
-  const terms =
-    result.factors.length > 0
-      ? result.factors.map((f) => `${f.score}/${f.weight}`).join(" + ")
-      : "0";
-  const formula =
-    maxPossiblePoints > 0
-      ? `(${terms}) / ${maxPossiblePoints} × 100 = ${result.score}%`
-      : "No compatibility signals matched";
+  const maxPossiblePoints = result.maxPossiblePoints;
+  const formula = result.formula;
 
   return {
     totalScore: result.score,
@@ -170,9 +166,10 @@ export function buildRecommendationDetails(signals: MatchSignals): Recommendatio
 
 export function buildRecommendationExplanation(
   factors: ScoreFactorInput[],
-  signals: MatchSignals
+  signals: MatchSignals,
+  scoreResult?: ReturnType<typeof computeCompatibilityScore>
 ): RecommendationExplanation {
-  const scoreBreakdown = buildScoreBreakdown(factors);
+  const scoreBreakdown = buildScoreBreakdown(factors, scoreResult);
   const bullets = buildExplanationBullets(signals);
 
   return {

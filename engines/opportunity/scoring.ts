@@ -122,6 +122,27 @@ export function computeCompatibilityScore(factors: ScoreFactorInput[]): {
   return { score, factors: weighted, weightedPoints: raw, maxPossiblePoints: maxPossible, formula };
 }
 
+/** Calibrated evidence score for people; a lone signal must not read as 100%. */
+export function computePersonAffinityScore(
+  factors: ScoreFactorInput[]
+): ReturnType<typeof computeCompatibilityScore> {
+  const result = computeCompatibilityScore(factors);
+  if (result.weightedPoints === 0) return result;
+
+  const evidenceKinds = new Set(
+    factors.filter((factor) => factor.strength > 0).map((factor) => factor.key)
+  ).size;
+  const diversityBonus = Math.max(0, evidenceKinds - 1) * 3;
+  const score = Math.min(96, Math.round(30 + result.weightedPoints * 0.6 + diversityBonus));
+
+  return {
+    ...result,
+    score,
+    maxPossiblePoints: 135,
+    formula: `30 baseline + (${result.weightedPoints} evidence x 0.6) + ${diversityBonus} signal diversity = ${score}% (96% cap)`,
+  };
+}
+
 export function pickTopReasons(
   factors: Array<{ score: number; reason: string }>,
   limit = 2

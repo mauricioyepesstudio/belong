@@ -4,6 +4,7 @@ import {
 } from "./explanation";
 import {
   computeCompatibilityScore,
+  computePersonAffinityScore,
   formatBuildGoalLabel,
   jaccardSimilarity,
   locationMatches,
@@ -43,6 +44,7 @@ const LIMIT = 4;
 type PersonMatchOptions = {
   minimumScore?: number;
   requireExplanation?: boolean;
+  calibratePersonAffinity?: boolean;
 };
 
 function toRecommendation(
@@ -56,11 +58,13 @@ function toRecommendation(
   meta?: Record<string, string | null>,
   options: PersonMatchOptions = {}
 ): ScoredRecommendation | null {
-  const result = computeCompatibilityScore(factors);
+  const result = options.calibratePersonAffinity
+    ? computePersonAffinityScore(factors)
+    : computeCompatibilityScore(factors);
   const minimumScore = options.minimumScore ?? MIN_SCORE;
   if (result.score < minimumScore) return null;
 
-  const explanation = buildRecommendationExplanation(factors, signals);
+  const explanation = buildRecommendationExplanation(factors, signals, result);
   if ((options.requireExplanation ?? true) && explanation.bullets.length === 0) return null;
 
   return {
@@ -221,7 +225,7 @@ export function scorePersonMatch(
     factors,
     signals,
     { avatarUrl: candidate.avatarUrl },
-    options
+    { ...options, calibratePersonAffinity: true }
   );
 }
 

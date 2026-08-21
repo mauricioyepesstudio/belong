@@ -176,7 +176,7 @@ export function MarketplaceScreen({
   return (
     <>
       <FeatureScreen
-        label="Marketplace"
+        label="Resources"
         title="Resources"
         description="Discover services, tools, guidance, and support from builders in your network."
         action={
@@ -423,8 +423,14 @@ function ResourceCard({
             </Button>
           </Link>
           {!isOwner && !isFree && (
-            <Button size="sm" variant="brand" disabled={isPending} onClick={onPurchase}>
-              Buy
+            <Button
+              size="sm"
+              variant="brand"
+              disabled={isPending || !listing.seller.connect_charges_enabled}
+              onClick={onPurchase}
+              title={!listing.seller.connect_charges_enabled ? "This provider is not accepting payments yet" : undefined}
+            >
+              {listing.seller.connect_charges_enabled ? "Buy" : "Payments unavailable"}
             </Button>
           )}
         </div>

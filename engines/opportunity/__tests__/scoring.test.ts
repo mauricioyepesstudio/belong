@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   computeCompatibilityScore,
+  computePersonAffinityScore,
   jaccardSimilarity,
   locationMatches,
   overlapMatches,
@@ -73,6 +74,22 @@ describe("opportunity scoring", () => {
       "Because you joined Miami Builders",
       "Because you are interested in AI",
     ]);
+  });
+
+  it("does not present one shared community as perfect affinity", () => {
+    const result = computePersonAffinityScore([
+      { key: "sharedCommunity", weight: 15, strength: 1, reason: "Same community" },
+    ]);
+    expect(result.score).toBeGreaterThanOrEqual(35);
+    expect(result.score).toBeLessThanOrEqual(55);
+  });
+
+  it("keeps unusually strong person affinity below 100", () => {
+    const keys = ["skillOverlap", "interestOverlap", "buildGoalMatch", "sharedCommunity", "locationMatch", "sharedProject", "roleMatch", "textOverlap"];
+    const factors = Object.entries(SCORE_WEIGHTS)
+      .filter(([key]) => keys.includes(key))
+      .map(([key, weight]) => ({ key, weight, strength: 1, reason: key }));
+    expect(computePersonAffinityScore(factors).score).toBe(96);
   });
 });
 

@@ -15,7 +15,7 @@ export default async function PlatformLayout({
   const supabase = await createClient();
 
   const [unreadNotifications, stats] = await Promise.all([
-    getUnreadNotificationCount().catch(() => 0),
+    profile ? getUnreadNotificationCount().catch(() => 0) : Promise.resolve(0),
     profile ? fetchUserStats(supabase, profile.id).catch(() => null) : Promise.resolve(null),
   ]);
 

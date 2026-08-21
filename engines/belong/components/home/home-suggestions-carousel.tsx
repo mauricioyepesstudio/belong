@@ -138,14 +138,16 @@ export function HomeSuggestionsCarousel({ people }: { people: DiscoveryPerson[] 
                 </Link>
 
                 <div className="mt-3 grid shrink-0 grid-cols-[auto_1fr] gap-2 border-t border-white/10 pt-2.5">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setPassedIds((previous) => new Set(previous).add(person.id))}
-                    aria-label={`Pass on ${person.fullName}`}
-                  >
-                    <X className="h-3.5 w-3.5" aria-hidden />
-                  </Button>
+                  {connection.state === "none" ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setPassedIds((previous) => new Set(previous).add(person.id))}
+                      aria-label={`Pass on ${person.fullName}`}
+                    >
+                      <X className="h-3.5 w-3.5" aria-hidden />
+                    </Button>
+                  ) : <span aria-hidden />}
                   <ConnectAction
                     state={connection.state}
                     disabled={isPending}
@@ -195,7 +197,7 @@ function ConnectAction({
     return (
       <Button size="sm" variant="secondary" disabled className="w-full justify-center">
         <Clock className="h-3.5 w-3.5" aria-hidden />
-        Pending
+        Request sent
       </Button>
     );
   }

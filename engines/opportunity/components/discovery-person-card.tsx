@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check, MapPin, Sparkles, UserPlus } from "lucide-react";
+import { Clock3, MapPin, MessageSquare, Sparkles, UserPlus } from "lucide-react";
 import { Avatar, Badge, Button } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ type DiscoveryPersonCardProps = {
   connection: UserConnectionState;
   isConnecting: boolean;
   onConnect: (person: DiscoveryPerson) => void;
+  onMessage: (person: DiscoveryPerson) => void;
 };
 
 export function DiscoveryPersonCard({
@@ -21,6 +22,7 @@ export function DiscoveryPersonCard({
   connection,
   isConnecting,
   onConnect,
+  onMessage,
 }: DiscoveryPersonCardProps) {
   const reasons = person.matchReasons.slice(0, 3);
 
@@ -43,6 +45,9 @@ export function DiscoveryPersonCard({
               <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2 py-0.5 text-micro font-semibold text-emerald-300">
                 {person.affinityScore}% aligned
               </span>
+              <Badge variant="outline">
+                {connection.state === "connected" ? "Connected" : connection.state === "none" ? "Recommended" : "Pending"}
+              </Badge>
             </div>
             {person.role && (
               <p className="mt-0.5 truncate text-sm text-fg-muted">{person.role}</p>
@@ -82,7 +87,7 @@ export function DiscoveryPersonCard({
       </Link>
 
       <div className="flex items-center justify-between gap-3 border-t border-border-subtle px-5 py-3">
-        <span className="text-micro text-fg-faint">Toca la tarjeta para ver el perfil</span>
+        <span className="text-micro text-fg-faint">Open the card to view the profile</span>
         <Button
           type="button"
           size="sm"
@@ -93,8 +98,8 @@ export function DiscoveryPersonCard({
                 ? "ghost"
                 : "secondary"
           }
-          disabled={isConnecting || connection.state !== "none"}
-          onClick={() => onConnect(person)}
+          disabled={isConnecting || connection.state === "pending-sent" || connection.state === "pending-received"}
+          onClick={() => connection.state === "connected" ? onMessage(person) : onConnect(person)}
           aria-label={
             connection.state === "none"
               ? `Connect with ${person.fullName}`
@@ -106,11 +111,11 @@ export function DiscoveryPersonCard({
         >
           {connection.state === "connected" ? (
             <>
-              <Check className="h-3.5 w-3.5" aria-hidden />
-              Connected
+              <MessageSquare className="h-3.5 w-3.5" aria-hidden />
+              Message
             </>
           ) : connection.state === "pending-sent" || connection.state === "pending-received" ? (
-            "Pending"
+            <><Clock3 className="h-3.5 w-3.5" aria-hidden />Request sent</>
           ) : (
             <>
               <UserPlus className="h-3.5 w-3.5" aria-hidden />

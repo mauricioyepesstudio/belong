@@ -424,7 +424,7 @@ export function HomeUniverse({
             <button type="button" onClick={onPostUpdate} className={styles.primaryButton}>
               <PenSquare className="h-4 w-4" aria-hidden />
               <span className={styles.desktopOnly}>Post an update</span>
-              <span className={styles.mobileOnly}>Publicar una actualización</span>
+              <span className={styles.mobileOnly}>Post an update</span>
             </button>
             <button
               type="button"
@@ -433,7 +433,7 @@ export function HomeUniverse({
             >
               <Rocket className="h-4 w-4" aria-hidden />
               <span className={styles.desktopOnly}>Start Mission</span>
-              <span className={styles.mobileOnly}>Iniciar misión</span>
+              <span className={styles.mobileOnly}>Start mission</span>
             </button>
             <Link
               href="/people/discover"
@@ -574,6 +574,7 @@ export function HomeUniverse({
           <StaggerList className={styles.nodesLayer} stagger={0.07} reveal={reducedMotion ? false : true}>
             {memberNodes.map(({ person, leftPct, topPct }) => {
               const firstNameOnly = person.fullName?.split(" ")[0] ?? "Builder";
+              const relationship = connectionOverrides.get(person.id) ?? person.connectionState;
               return (
                 <div
                   key={person.id}
@@ -584,16 +585,16 @@ export function HomeUniverse({
                     <button
                       type="button"
                       className={`${styles.memberNodeButton} ${
-                        person.connectionState.state === "connected"
+                        relationship.state === "connected"
                           ? styles.memberNodeConnected
-                          : person.connectionState.state.startsWith("pending")
+                          : relationship.state.startsWith("pending")
                             ? styles.memberNodePending
                             : styles.memberNodeRecommended
                       }`}
                       onClick={() => setActivePersonId((current) => (current === person.id ? null : person.id))}
                       aria-haspopup="dialog"
                       aria-expanded={activePersonId === person.id}
-                      aria-label={`${person.fullName} — recommended for you`}
+                      aria-label={`${person.fullName} — ${relationship.state === "connected" ? "connected" : relationship.state.startsWith("pending") ? "request pending" : "recommended for you"}`}
                     >
                       <span
                         className={`${styles.memberNodeAvatarWrap} ${pulsingPersonId === person.id ? styles.memberNodePulse : ""}`}
@@ -646,8 +647,16 @@ export function HomeUniverse({
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-white">{activePerson.fullName}</p>
                   <p className="truncate text-xs text-white/55">{activePerson.role ?? "Builder"}</p>
+                  {activePerson.location && <p className="mt-0.5 truncate text-[11px] text-white/45">{activePerson.location}</p>}
                 </div>
               </div>
+              <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-200/70">
+                {(connectionOverrides.get(activePerson.id) ?? activePerson.connectionState).state === "connected"
+                  ? "Connected"
+                  : (connectionOverrides.get(activePerson.id) ?? activePerson.connectionState).state.startsWith("pending")
+                    ? "Pending"
+                    : "Recommended"}
+              </p>
               {activePerson.tags.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1">
                   {activePerson.tags.slice(0, 3).map((tag) => (
@@ -656,9 +665,10 @@ export function HomeUniverse({
                 </div>
               )}
               <p className="mt-2.5 text-xs font-semibold text-violet-200">{activePerson.affinityScore}% affinity</p>
-              {activePerson.matchReasons.length > 0 && (
-                <p className="mt-1 text-[11px] leading-4 text-white/50">{activePerson.matchReasons[0]}</p>
-              )}
+              <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/65">Why this person?</p>
+              <p className="mt-1 text-[11px] leading-4 text-white/50">
+                {activePerson.matchReasons[0] ?? "Recommendation signals will improve as profiles grow."}
+              </p>
               <div className="mt-4 flex items-center gap-2">
                 <Link href={`/people/${activePerson.id}`} className={styles.memberPopoverSecondary}>
                   View Profile
@@ -675,10 +685,10 @@ export function HomeUniverse({
           </>
         )}
 
-        <div className={styles.mobileHeroActions} aria-label="Construye tu mundo">
+        <div className={styles.mobileHeroActions} aria-label="Build your world">
           <button type="button" onClick={onPostUpdate} className={styles.primaryButton}>
             <PenSquare className="h-4 w-4" aria-hidden />
-            Publicar una actualización
+            Post an update
           </button>
           <button
             type="button"
@@ -686,7 +696,7 @@ export function HomeUniverse({
             className={`${styles.secondaryButton} ${styles.missionButton}`}
           >
             <Rocket className="h-4 w-4" aria-hidden />
-            Iniciar misión
+            Start mission
           </button>
           <Link href="/people/discover" className={`${styles.secondaryButton} ${styles.peopleButton}`}>
             <UserPlus className="h-4 w-4" aria-hidden />
@@ -694,21 +704,21 @@ export function HomeUniverse({
           </Link>
         </div>
 
-        <section className={styles.mobileJourneySummary} aria-label="Resumen de tu viaje">
-          <p className={styles.mobileJourneyEyebrow}>Tu jornada hoy</p>
+        <section className={styles.mobileJourneySummary} aria-label="Your journey summary">
+          <p className={styles.mobileJourneyEyebrow}>Your journey today</p>
           <div className={styles.mobileJourneyHeader}>
             <div>
               <p className={styles.mobileJourneyGreeting}>{mobileGreeting}, {firstName}</p>
-              <p className={styles.mobileJourneyChapter}>Estás en la etapa de {journeyChapter}</p>
+              <p className={styles.mobileJourneyChapter}>You are in the {journeyChapter} stage</p>
             </div>
           </div>
           <div className={styles.mobileJourneyStats}>
             <span><strong>{energyScore}%</strong> Momentum</span>
-            <span>{activeProjectsCount} proyectos activos</span>
-            <span>{data.recentNotifications.length} notificaciones</span>
+            <span>{activeProjectsCount} active projects</span>
+            <span>{data.recentNotifications.length} notifications</span>
           </div>
           <div className={styles.mobileJourneyNext}>
-            <span>Próximo paso</span>
+            <span>Next step</span>
             <strong>{data.primaryRecommendation.actionLabel}</strong>
           </div>
           <Link href="/profile?tab=missions" className={styles.mobileJourneyLink}>

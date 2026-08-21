@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { requireProfile } from "@/lib/auth/session";
+import { getCurrentProfile } from "@/lib/auth/session";
+import { redirect } from "next/navigation";
 import {
   discoverPeople,
   DISCOVERY_CATEGORIES,
@@ -26,7 +27,8 @@ export default async function PeopleDiscoverPage({
   const category = resolveCategory(rawCategory);
 
   const supabase = await createClient();
-  const profile = await requireProfile();
+  const profile = await getCurrentProfile();
+  if (!profile) redirect("/login");
   const result = await discoverPeople(supabase, profile, {
     category,
     limit: PAGE_SIZE,

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, LayoutGrid, Loader2, Rows3, Sparkles, Users, X } from "lucide-react";
 import { Button, EmptyState, useToast } from "@/systems/design-system";
 import { StaggerItem, StaggerList } from "@/components/motion/fade-in";
-import { sendConnectionRequest } from "@/lib/actions/connections";
+import { sendConnectionRequest, startConversation } from "@/lib/actions/connections";
 import type { UserConnectionState } from "@/lib/core/connection-state";
 import {
   DISCOVERY_CATEGORIES,
@@ -85,6 +85,17 @@ export function PeopleDiscoveryScreen({
     [toast]
   );
 
+  const handleMessage = useCallback((person: DiscoveryPerson) => {
+    startConnect(async () => {
+      const result = await startConversation(person.id);
+      if (result.error) {
+        toast(result.error, "error");
+        return;
+      }
+      router.push(`/messages?conversation=${result.id}`);
+    });
+  }, [router, toast]);
+
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-3">
@@ -130,6 +141,7 @@ export function PeopleDiscoveryScreen({
           connectionOverrides={connectionOverrides}
           isConnecting={isConnecting}
           onConnect={handleConnect}
+          onMessage={handleMessage}
           viewMode={viewMode}
         />
       </div>
@@ -143,6 +155,7 @@ type DiscoveryPeopleListProps = {
   connectionOverrides: Map<string, UserConnectionState>;
   isConnecting: boolean;
   onConnect: (person: DiscoveryPerson) => void;
+  onMessage: (person: DiscoveryPerson) => void;
   viewMode: "focus" | "grid";
 };
 
@@ -152,6 +165,7 @@ function DiscoveryPeopleList({
   connectionOverrides,
   isConnecting,
   onConnect,
+  onMessage,
   viewMode,
 }: DiscoveryPeopleListProps) {
   const { toast } = useToast();
@@ -201,6 +215,7 @@ function DiscoveryPeopleList({
               connection={connectionOverrides.get(person.id) ?? person.connectionState}
               isConnecting={isConnecting}
               onConnect={onConnect}
+              onMessage={onMessage}
             />
             {viewMode === "focus" && (
               <Button

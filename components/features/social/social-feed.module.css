@@ -31,6 +31,46 @@
   background: rgb(0 0 0 / 24%);
 }
 
+.postHighlighted {
+  border-color: rgb(139 92 246 / 45%);
+  animation: postHighlightPulse 2.4s ease-out 1;
+}
+
+@keyframes postHighlightPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgb(139 92 246 / 55%);
+  }
+
+  70% {
+    box-shadow: 0 0 0 14px rgb(139 92 246 / 0%);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgb(139 92 246 / 0%);
+  }
+}
+
+.loadingRow {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.loadingPulse {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 2px solid rgb(255 255 255 / 12%);
+  border-top-color: rgb(139 92 246 / 70%);
+  animation: loadingSpin 0.8s linear infinite;
+}
+
+@keyframes loadingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .actionRow {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -76,10 +76,10 @@ export async function sendMessage(
   for (const other of others ?? []) {
     await createNotification(supabase, {
       userId: other.user_id,
-      title: "New message",
+      title: `New message from ${profile.full_name ?? "a builder"}`,
       body: trimmed.slice(0, 120),
       type: "message",
-      metadata: { conversation_id: conversationId, message_id: message.id },
+      metadata: { conversation_id: conversationId, message_id: message.id, actor_id: profile.id, actor_name: profile.full_name, actor_avatar_url: profile.avatar_url },
     });
   }
 

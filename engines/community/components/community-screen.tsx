@@ -37,6 +37,7 @@ import { formatInitials } from "@/lib/format";
 import type { CommunityMemberRole } from "@/types/database.types";
 import { MessageSquare, Plus, UserPlus, Users, DollarSign } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { playSound } from "@/lib/sound";
 import { useMemo, useState, useTransition } from "react";
 import {
   canMessageConnection,
@@ -179,6 +180,7 @@ export function CommunityScreen({
             })
           );
         }
+        if (accept) playSound("connection-accepted");
         toast(accept ? "Connection accepted" : "Request declined", "success");
         router.refresh();
       }
@@ -196,6 +198,7 @@ export function CommunityScreen({
             state: "pending-sent",
           })
         );
+        playSound("connection-request-sent");
         toast("Connection request sent", "success");
       }
     });

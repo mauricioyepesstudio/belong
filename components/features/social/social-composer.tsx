@@ -3,9 +3,10 @@
 import {
   createSocialPost,
   deleteSocialPostMedia,
-  uploadSocialPostMedia,
 } from "@/lib/actions/social";
 import type { SocialPostType, SocialPublishingContext } from "@/engines/social";
+import { classifySocialMedia, socialMediaExtension } from "@/engines/social/media";
+import { createClient } from "@/lib/supabase/client";
 import { Avatar, Button, Textarea, useToast } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import {
@@ -29,7 +30,7 @@ const choices: Array<{
 }> = [
   { type: "PHOTO", label: "Photo", icon: ImageIcon, accept: "image/jpeg,image/png,image/webp,image/gif" },
   { type: "VIDEO", label: "Video", icon: Video, accept: "video/mp4,video/webm,video/quicktime" },
-  { type: "TEXT", label: "Opinion", icon: Lightbulb },
+  { type: "TEXT", label: "Thought", icon: Lightbulb },
   { type: "PROJECT_UPDATE", label: "Project update", icon: FolderKanban },
   { type: "COMMUNITY_UPDATE", label: "Community update", icon: Users },
   { type: "NEEDS_HELP", label: "Need help", icon: CircleHelp },
@@ -76,21 +77,55 @@ export function SocialComposer({
     }
   };
 
-  const upload = (file: File | null) => {
+  const upload = async (file: File | null) => {
     if (!file) return;
+    const classification = classifySocialMedia(file);
+    if (!classification) {
+      toast("Unsupported image or video type", "error");
+      return;
+    }
+    if (file.size > classification.maxBytes) {
+      toast(classification.type === "image" ? "Image must be under 5MB" : "Video must be under 50MB", "error");
+      return;
+    }
+
     setUploading(true);
-    const formData = new FormData();
-    formData.set("media", file);
-    startTransition(async () => {
-      const result = await uploadSocialPostMedia(formData);
-      setUploading(false);
-      if (result.error || !result.media) {
-        toast(result.error ?? "Could not attach media", "error");
+    try {
+      // Upload binary bytes directly to Storage. Sending the File through a
+      // Server Action hits Next's 1MB request parser before BELONG validation.
+      const supabase = createClient();
+      const extension = socialMediaExtension(file.name, file.type);
+      const path = `${viewer.id}/${crypto.randomUUID()}.${extension}`;
+      const { error } = await supabase.storage.from("post-media").upload(path, file, {
+        upsert: false,
+        contentType: file.type,
+        cacheControl: "3600",
+      });
+      if (error) {
+        toast("Could not upload media. Please try again.", "error");
         return;
       }
-      setMedia(result.media);
+      const { data, error: signedUrlError } = await supabase.storage
+        .from("post-media")
+        .createSignedUrl(path, 15 * 60);
+      if (signedUrlError || !data?.signedUrl) {
+        await supabase.storage.from("post-media").remove([path]);
+        toast("Could not prepare the uploaded media. Please try again.", "error");
+        return;
+      }
+      setMedia({
+        url: data.signedUrl,
+        path,
+        type: classification.type,
+        mimeType: file.type,
+        sizeBytes: file.size,
+        name: file.name,
+      });
       toast("Media attached", "success");
-    });
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
   };
 
   const publish = () => {
@@ -154,7 +189,7 @@ export function SocialComposer({
           onClick={() => setExpanded(true)}
           className="min-h-12 min-w-0 flex-1 rounded-2xl border border-white/8 bg-black/15 px-4 text-left text-sm text-fg-muted transition hover:border-brand/30 hover:text-fg-secondary"
         >
-          What are you building, thinking, or sharing?
+          What&apos;s happening in your world?
         </button>
       </div>
 
@@ -183,11 +218,33 @@ export function SocialComposer({
             </select>
           )}
           {media && (
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-brand/20 bg-brand/5 px-3 py-2 text-sm">
-              <span className="min-w-0 truncate text-fg-secondary">{media.name}</span>
-              <button type="button" onClick={removeMedia} aria-label="Remove attachment">
-                <X className="h-4 w-4 text-fg-muted" />
-              </button>
+            <div className="overflow-hidden rounded-xl border border-brand/20 bg-brand/5">
+              <div className="relative bg-black/20">
+                {media.type === "image" ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={media.url}
+                    alt=""
+                    className="max-h-40 w-full object-contain"
+                  />
+                ) : (
+                  <video
+                    src={media.url}
+                    controls
+                    preload="metadata"
+                    className="max-h-40 w-full"
+                  />
+                )}
+                <button
+                  type="button"
+                  onClick={removeMedia}
+                  aria-label="Remove attachment"
+                  className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white transition hover:bg-black/80 focus-ring"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                </button>
+              </div>
+              <p className="truncate px-3 py-2 text-xs text-fg-muted">{media.name}</p>
             </div>
           )}
         </div>
@@ -197,7 +254,7 @@ export function SocialComposer({
         ref={inputRef}
         type="file"
         className="hidden"
-        onChange={(event) => upload(event.target.files?.[0] ?? null)}
+        onChange={(event) => void upload(event.target.files?.[0] ?? null)}
       />
 
       <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">

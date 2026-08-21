@@ -6,11 +6,12 @@ import {
   deleteSocialPost,
   deleteSocialPostComment,
   toggleSocialPostSupport,
+  updateSocialPost,
 } from "@/lib/actions/social";
 import { startConversation } from "@/lib/actions/connections";
 import { formatDistanceToNow, formatInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { Avatar, Button, Input, useToast } from "@/systems/design-system";
+import { Avatar, Button, Input, Textarea, useToast } from "@/systems/design-system";
 import {
   ExternalLink,
   HeartHandshake,
@@ -18,6 +19,7 @@ import {
   MessageCircle,
   MessageSquare,
   MoreHorizontal,
+  Pencil,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -28,9 +30,11 @@ import styles from "./social-feed.module.css";
 export function SocialPostCard({
   post,
   currentUserId,
+  highlighted = false,
 }: {
   post: SocialPost;
   currentUserId: string;
+  highlighted?: boolean;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -39,6 +43,8 @@ export function SocialPostCard({
   const [comment, setComment] = useState("");
   const [commentsOpen, setCommentsOpen] = useState(post.comments.length > 0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draftBody, setDraftBody] = useState(post.body);
   const [pending, startTransition] = useTransition();
   const isAuthor = local.author.id === currentUserId;
 
@@ -127,8 +133,45 @@ export function SocialPostCard({
     });
   };
 
+  const startEdit = () => {
+    setMenuOpen(false);
+    setDraftBody(local.body);
+    setEditing(true);
+  };
+
+  const cancelEdit = () => {
+    setDraftBody(local.body);
+    setEditing(false);
+  };
+
+  const saveEdit = () => {
+    const trimmed = draftBody.trim();
+    if (!trimmed && !local.mediaUrl) {
+      toast("Post content or media is required", "error");
+      return;
+    }
+    const previous = local;
+    setLocal((value) => ({ ...value, body: trimmed }));
+    setEditing(false);
+
+    startTransition(async () => {
+      const result = await updateSocialPost(local.id, { body: trimmed });
+      if (result.error) {
+        setLocal(previous);
+        setDraftBody(previous.body);
+        setEditing(true);
+        toast(result.error, "error");
+        return;
+      }
+      toast("Post updated", "success");
+    });
+  };
+
   return (
-    <article id={`post-${local.id}`} className={styles.post}>
+    <article
+      id={`post-${local.id}`}
+      className={cn(styles.post, highlighted && styles.postHighlighted)}
+    >
       <div className="p-4 sm:p-5">
         <header className="flex items-start gap-3">
           <Link
@@ -170,18 +213,28 @@ export function SocialPostCard({
                     <MoreHorizontal className="h-5 w-5" aria-hidden />
                   </button>
                   {menuOpen && (
-                    <button
-                      type="button"
-                      disabled={pending}
-                      onClick={() => {
-                        setMenuOpen(false);
-                        removePost();
-                      }}
-                      className="absolute right-0 top-10 z-10 flex min-h-10 min-w-32 items-center gap-2 rounded-xl border border-white/10 bg-bg-elevated px-3 py-2 text-sm text-error shadow-xl transition-colors hover:bg-bg-hover focus-ring"
-                    >
-                      <Trash2 className="h-4 w-4" aria-hidden />
-                      Delete
-                    </button>
+                    <div className="absolute right-0 top-10 z-10 min-w-32 overflow-hidden rounded-xl border border-white/10 bg-bg-elevated shadow-xl">
+                      <button
+                        type="button"
+                        onClick={startEdit}
+                        className="flex min-h-10 w-full items-center gap-2 px-3 py-2 text-sm text-fg-secondary transition-colors hover:bg-bg-hover focus-ring"
+                      >
+                        <Pencil className="h-4 w-4" aria-hidden />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          removePost();
+                        }}
+                        className="flex min-h-10 w-full items-center gap-2 px-3 py-2 text-sm text-error transition-colors hover:bg-bg-hover focus-ring"
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden />
+                        Delete
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
@@ -203,10 +256,42 @@ export function SocialPostCard({
           </div>
         </header>
 
-        {local.body && (
-          <p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-6 text-fg-secondary">
-            {local.body}
-          </p>
+        {editing ? (
+          <div className="mt-4 space-y-2">
+            <Textarea
+              rows={4}
+              value={draftBody}
+              onChange={(event) => setDraftBody(event.target.value)}
+              placeholder="Update your post..."
+              className="min-h-24 resize-y"
+              autoFocus
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={pending}
+                onClick={cancelEdit}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                disabled={pending || (!draftBody.trim() && !local.mediaUrl)}
+                onClick={saveEdit}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        ) : (
+          local.body && (
+            <p className="mt-4 whitespace-pre-wrap break-words text-[15px] leading-6 text-fg-secondary">
+              {local.body}
+            </p>
+          )
         )}
       </div>
 

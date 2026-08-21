@@ -14,7 +14,6 @@ import {
   Card,
   CardContent,
   EmptyState,
-  EntityCard,
   FeatureScreen,
   Input,
   Label,
@@ -26,8 +25,26 @@ import {
 import { formatInitials } from "@/lib/format";
 import { MIN_LISTING_CENTS } from "@/lib/stripe/config";
 import type { ListingWithSeller } from "@/lib/data/marketplace";
+import {
+  deriveResourceCategory,
+  deriveResourceType,
+  RESOURCE_CATEGORIES,
+  resourceCategoryLabel,
+  type ResourceCategory,
+} from "@/lib/data/resource-category";
 import type { MarketplaceListing } from "@/types/database.types";
-import { Plus, ShoppingBag, Store } from "lucide-react";
+import {
+  Briefcase,
+  Compass,
+  GraduationCap,
+  Plus,
+  Rocket,
+  ShoppingBag,
+  Store,
+  Wrench,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
@@ -37,6 +54,14 @@ type MarketplaceScreenProps = {
   currentUserId: string;
 };
 
+const CATEGORY_ICONS: Record<ResourceCategory, LucideIcon> = {
+  tools: Wrench,
+  guidance: Compass,
+  learning: GraduationCap,
+  funding: Rocket,
+  services: Briefcase,
+};
+
 export function MarketplaceScreen({
   listings,
   myListings,
@@ -44,13 +69,50 @@ export function MarketplaceScreen({
 }: MarketplaceScreenProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [tab, setTab] = useState("browse");
+  const [tab, setTab] = useState("discover");
+  const [categoryFilter, setCategoryFilter] = useState<ResourceCategory | "all">("all");
+  const [resourceTypeFilter, setResourceTypeFilter] = useState<"all" | "product" | "service">("all");
   const [createOpen, setCreateOpen] = useState(false);
+  const [offerKind, setOfferKind] = useState<"product" | "service">("product");
   const [isPending, startTransition] = useTransition();
 
   const myActive = useMemo(
     () => myListings.filter((l) => l.status === "active" || l.status === "draft"),
     [myListings]
+  );
+
+  const categorizedListings = useMemo(
+    () =>
+      listings.map((listing) => ({
+        listing,
+        category: deriveResourceCategory(listing),
+        resourceType: deriveResourceType(listing),
+      })),
+    [listings]
+  );
+
+  const categoryTabs = useMemo(() => {
+    const counts = new Map<ResourceCategory, number>();
+    for (const { category } of categorizedListings) {
+      counts.set(category, (counts.get(category) ?? 0) + 1);
+    }
+    return [
+      { id: "all" as const, label: "All", count: categorizedListings.length },
+      ...RESOURCE_CATEGORIES.map((c) => ({
+        id: c.id,
+        label: c.label,
+        count: counts.get(c.id) ?? 0,
+      })),
+    ];
+  }, [categorizedListings]);
+
+  const filteredListings = useMemo(
+    () =>
+      categorizedListings.filter(({ category, resourceType }) =>
+        (categoryFilter === "all" || category === categoryFilter) &&
+        (resourceTypeFilter === "all" || resourceType === resourceTypeFilter)
+      ),
+    [categorizedListings, categoryFilter, resourceTypeFilter]
   );
 
   const handlePurchase = (listingId: string) => {
@@ -82,7 +144,7 @@ export function MarketplaceScreen({
       });
       if (result.error) toast(result.error, "error");
       else {
-        toast("Listing created", "success");
+        toast("Resource created", "success");
         setCreateOpen(false);
         router.refresh();
       }
@@ -94,7 +156,7 @@ export function MarketplaceScreen({
       const result = await publishListing(listingId);
       if (result.error) toast(result.error, "error");
       else {
-        toast("Listing published", "success");
+        toast("Resource published", "success");
         router.refresh();
       }
     });
@@ -105,7 +167,7 @@ export function MarketplaceScreen({
       const result = await archiveListing(listingId);
       if (result.error) toast(result.error, "error");
       else {
-        toast("Listing archived", "success");
+        toast("Resource archived", "success");
         router.refresh();
       }
     });
@@ -115,81 +177,83 @@ export function MarketplaceScreen({
     <>
       <FeatureScreen
         label="Marketplace"
-        title="Creator marketplace"
-        description="Buy and sell digital goods, templates, and resources from builders."
+        title="Resources"
+        description="Discover services, tools, guidance, and support from builders in your network."
         action={
           <Button onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4" aria-hidden />
-            New listing
+            Offer a resource
           </Button>
         }
         toolbar={
           <Tabs
             className="w-fit"
             tabs={[
-              { id: "browse", label: "Browse", count: listings.length },
-              { id: "selling", label: "My listings", count: myActive.length },
+              { id: "discover", label: "Discover", count: listings.length },
+              { id: "mine", label: "My resources", count: myActive.length },
             ]}
             active={tab}
             onChange={setTab}
           />
         }
       >
-        {tab === "browse" ? (
+        {tab === "discover" ? (
           listings.length === 0 ? (
-            <EmptyState
-              icon={ShoppingBag}
-              title="No listings yet"
-              description="Be the first to sell something on the BELONG marketplace."
-              action={{ label: "Create listing", onClick: () => setCreateOpen(true) }}
-            />
+            <Card className="p-8 text-center">
+              <ShoppingBag className="mx-auto h-8 w-8 text-brand" aria-hidden />
+              <h2 className="mt-3 text-lg font-semibold text-fg-primary">Be the first to offer something to the BELONG community.</h2>
+              <div className="mt-5 flex flex-wrap justify-center gap-3">
+                <Button onClick={() => { setOfferKind("product"); setCreateOpen(true); }}>Offer a Product</Button>
+                <Button variant="secondary" onClick={() => { setOfferKind("service"); setCreateOpen(true); }}>Offer a Service</Button>
+              </div>
+            </Card>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {listings.map((listing) => (
-                <EntityCard
-                  key={listing.id}
-                  href={`/marketplace/${listing.id}`}
-                  title={listing.title}
-                  description={listing.description}
-                  iconNode={
-                    <Avatar
-                      src={listing.seller?.avatar_url ?? undefined}
-                      fallback={formatInitials(listing.seller?.full_name)}
-                      size="sm"
-                    />
-                  }
-                  meta={
-                    <p className="text-sm text-fg-muted">
-                      {listing.seller?.full_name ?? "Seller"}
-                    </p>
-                  }
-                  footer={
-                    <div className="flex items-center justify-between">
-                      <p className="text-xl font-bold text-brand">
-                        {formatCents(listing.price_cents)}
-                      </p>
-                      {listing.seller_id !== currentUserId && (
-                        <Button
-                          size="sm"
-                          variant="brand"
-                          disabled={isPending}
-                          onClick={() => handlePurchase(listing.id)}
-                        >
-                          Buy
-                        </Button>
-                      )}
-                    </div>
-                  }
+            <div className="space-y-4">
+              <Tabs
+                tabs={[
+                  { id: "all", label: "All", count: categorizedListings.length },
+                  { id: "product", label: "Products", count: categorizedListings.filter((item) => item.resourceType === "product").length },
+                  { id: "service", label: "Services", count: categorizedListings.filter((item) => item.resourceType === "service").length },
+                ]}
+                active={resourceTypeFilter}
+                onChange={(id) => setResourceTypeFilter(id as "all" | "product" | "service")}
+                className="w-fit"
+              />
+              <Tabs
+                tabs={categoryTabs}
+                active={categoryFilter}
+                onChange={(id) => setCategoryFilter(id as ResourceCategory | "all")}
+                className="w-fit flex-wrap"
+              />
+              {filteredListings.length === 0 ? (
+                <EmptyState
+                  icon={ShoppingBag}
+                  title="No resources in this category"
+                  description="Try a different category, or check back later."
                 />
-              ))}
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {filteredListings.map(({ listing, category, resourceType }) => (
+                    <ResourceCard
+                      key={listing.id}
+                      listing={listing}
+                      category={category}
+                      resourceType={resourceType}
+                      isOwner={listing.seller_id === currentUserId}
+                      isPending={isPending}
+                      onPurchase={() => handlePurchase(listing.id)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )
         ) : myActive.length === 0 ? (
           <EmptyState
             icon={Store}
-            title="No listings yet"
-            description="Create a listing to start selling to the BELONG community."
-            action={{ label: "Create listing", onClick: () => setCreateOpen(true) }}
+            title="No resources yet"
+            description="Offer a resource to start sharing with the BELONG community."
+            action={{ label: "Offer a resource", onClick: () => setCreateOpen(true) }}
           />
         ) : (
           <div className="space-y-3">
@@ -245,17 +309,17 @@ export function MarketplaceScreen({
       <Modal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        title="New listing"
-        description="Sell a digital product to the community."
+        title={`Offer a ${offerKind}`}
+        description={offerKind === "product" ? "Share a product, tool, or resource with the community." : "Describe the service you can provide to the community."}
       >
         <form action={handleCreate} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
-            <Input id="title" name="title" required placeholder="Product name" />
+            <Input id="title" name="title" required placeholder={offerKind === "product" ? "Product name" : "Service name"} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea id="description" name="description" placeholder="What are you selling?" />
+            <Textarea id="description" name="description" placeholder="What are you offering?" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="price">Price (USD)</Label>
@@ -278,11 +342,93 @@ export function MarketplaceScreen({
               Cancel
             </Button>
             <Button type="submit" isLoading={isPending}>
-              Create listing
+              Offer resource
             </Button>
           </div>
         </form>
       </Modal>
     </>
+  );
+}
+
+function ResourceCard({
+  listing,
+  category,
+  resourceType,
+  isOwner,
+  isPending,
+  onPurchase,
+}: {
+  listing: ListingWithSeller;
+  category: ResourceCategory;
+  resourceType: "product" | "service";
+  isOwner: boolean;
+  isPending: boolean;
+  onPurchase: () => void;
+}) {
+  const CategoryIcon = CATEGORY_ICONS[category];
+  const detailHref = `/marketplace/${listing.id}`;
+  const isFree = listing.price_cents <= 0;
+
+  return (
+    <Card className="group overflow-hidden transition-all hover:border-border-strong hover:shadow-md">
+      <Link
+        href={detailHref}
+        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
+      >
+        {listing.image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={listing.image_url}
+            alt=""
+            className="h-36 w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-36 w-full items-center justify-center bg-gradient-to-br from-brand/15 to-brand-secondary/10">
+            <CategoryIcon className="h-8 w-8 text-brand/70" aria-hidden />
+          </div>
+        )}
+        <CardContent className="space-y-3 pt-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-1.5">
+              <Badge variant="brand">{resourceType === "product" ? "Product" : "Service"}</Badge>
+              <Badge variant="outline">{resourceCategoryLabel(category)}</Badge>
+            </div>
+            {isFree && <Badge variant="success">Free</Badge>}
+          </div>
+          <h3 className="font-semibold text-fg-primary transition-colors group-hover:text-brand">
+            {listing.title}
+          </h3>
+          {listing.description && (
+            <p className="text-caption line-clamp-2">{listing.description}</p>
+          )}
+          <div className="flex items-center gap-2">
+            <Avatar
+              src={listing.seller?.avatar_url ?? undefined}
+              fallback={formatInitials(listing.seller?.full_name)}
+              size="sm"
+            />
+            <p className="text-sm text-fg-muted">{listing.seller?.full_name ?? "Builder"}</p>
+          </div>
+        </CardContent>
+      </Link>
+      <div className="flex items-center justify-between gap-2 border-t border-border-subtle px-6 py-4">
+        <p className="text-lg font-bold text-brand">
+          {isFree ? "Free" : formatCents(listing.price_cents)}
+        </p>
+        <div className="flex items-center gap-2">
+          <Link href={detailHref}>
+            <Button size="sm" variant="secondary">
+              View
+            </Button>
+          </Link>
+          {!isOwner && !isFree && (
+            <Button size="sm" variant="brand" disabled={isPending} onClick={onPurchase}>
+              Buy
+            </Button>
+          )}
+        </div>
+      </div>
+    </Card>
   );
 }

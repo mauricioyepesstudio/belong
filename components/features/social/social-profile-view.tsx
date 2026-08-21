@@ -3,7 +3,7 @@
 import type { SocialProfilePage } from "@/engines/social";
 import { Avatar, Badge, Button, Card, CardContent, EmptyState } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
-import { FolderKanban, MapPin, MoreHorizontal, Sparkles, Users } from "lucide-react";
+import { FolderKanban, MapPin, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { SocialConnectionActions } from "./social-connection-actions";
@@ -68,10 +68,6 @@ export function SocialProfileView({
                   connectionId={page.connectionId}
                 />
               )}
-              <Button variant="ghost" aria-label="More profile actions">
-                <MoreHorizontal className="h-4 w-4" aria-hidden />
-                More
-              </Button>
             </div>
           </div>
         </div>

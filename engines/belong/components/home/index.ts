@@ -1,5 +1,4 @@
 export { HomeScreen } from "./home-screen";
-export { HomeComposer } from "./home-composer";
 export { HomeRecommendations } from "./home-recommendations";
 export { HomeFocusWelcome } from "./home-focus-welcome";
 export { HomeContinue, SectionHeading } from "./home-continue";

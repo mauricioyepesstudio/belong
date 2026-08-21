@@ -37,14 +37,14 @@ export function ListingDetailView({
 
   return (
     <FeatureScreen
-      label="Marketplace"
+      label="Resources"
       title={listing.title}
       description={formatCents(listing.price_cents)}
       action={
         <Link href="/marketplace">
           <Button variant="ghost">
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Back to marketplace
+            Back to resources
           </Button>
         </Link>
       }

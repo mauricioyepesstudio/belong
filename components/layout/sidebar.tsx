@@ -42,7 +42,7 @@ export function Sidebar({ profile, unreadNotifications = 0, unreadMessages = 0 }
       className="hidden lg:flex lg:w-[var(--sidebar-width)] lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 border-r border-border-subtle bg-bg-elevated/80 backdrop-blur-xl"
       aria-label="Main navigation"
     >
-      <div className="flex h-[var(--header-height)] items-center px-6">
+      <div className="flex h-[var(--header-height)] items-center justify-between px-6">
         <Logo href="/dashboard" />
       </div>
 

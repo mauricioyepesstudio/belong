@@ -1,14 +1,15 @@
 "use client";
 
-import { fetchMessages, sendMessage } from "@/lib/actions/messages";
-import { FeatureScreen, Avatar, Button, Card, CardContent, EmptyState, Input, useToast } from "@/systems/design-system";
+import { fetchMessages, markConversationRead, sendMessage } from "@/lib/actions/messages";
+import { FeatureScreen, Avatar, Button, Card, CardContent, EmptyState, Input, Textarea, useToast } from "@/systems/design-system";
 import { Skeleton } from "@/components/ui";
 import { useRealtimeMessages } from "@/hooks/use-realtime-messages";
 import { formatDistanceToNow, formatInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Message } from "@/types/database.types";
 import { ArrowLeft, MessageSquare, Search } from "lucide-react";
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState, useTransition, type KeyboardEvent } from "react";
 
 type ConversationItem = {
   id: string;
@@ -26,6 +27,21 @@ type MessagesViewProps = {
   currentUserId: string;
 };
 
+function formatDayLabel(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const diffDays = Math.round((startOfDay(now) - startOfDay(date)) / 86400000);
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  return date.toLocaleDateString(undefined, {
+    month: "long",
+    day: "numeric",
+    year: date.getFullYear() === now.getFullYear() ? undefined : "numeric",
+  });
+}
+
 export function MessagesView({
   conversations,
   initialMessages,
@@ -33,6 +49,8 @@ export function MessagesView({
   currentUserId,
 }: MessagesViewProps) {
   const { toast } = useToast();
+  const router = useRouter();
+  const [conversationList, setConversationList] = useState(conversations);
   const [active, setActive] = useState(activeConversationId ?? conversations[0]?.id ?? "");
   const [mobileShowThread, setMobileShowThread] = useState(Boolean(activeConversationId));
   const [query, setQuery] = useState("");
@@ -42,11 +60,11 @@ export function MessagesView({
   const [isPending, startTransition] = useTransition();
 
   const filtered = useMemo(
-    () => conversations.filter((c) => c.name.toLowerCase().includes(query.toLowerCase())),
-    [conversations, query]
+    () => conversationList.filter((c) => c.name.toLowerCase().includes(query.toLowerCase())),
+    [conversationList, query]
   );
 
-  const selected = conversations.find((c) => c.id === active);
+  const selected = conversationList.find((c) => c.id === active);
 
   const loadMessages = useCallback(async (conversationId: string) => {
     setLoadingMessages(true);
@@ -60,12 +78,21 @@ export function MessagesView({
     }
   }, [toast]);
 
-  const onRealtimeMessage = useCallback((message: Message) => {
-    setMessages((prev) => {
-      if (prev.some((m) => m.id === message.id)) return prev;
-      return [...prev, message];
-    });
-  }, []);
+  const onRealtimeMessage = useCallback(
+    (message: Message) => {
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === message.id)) return prev;
+        return [...prev, message];
+      });
+
+      // Thread is already open — mark incoming messages from others read immediately
+      // instead of waiting for the next full page load.
+      if (message.sender_id !== currentUserId) {
+        void markConversationRead(message.conversation_id);
+      }
+    },
+    [currentUserId]
+  );
 
   useRealtimeMessages(active || null, onRealtimeMessage);
 
@@ -73,6 +100,7 @@ export function MessagesView({
     setActive(conversationId);
     setMobileShowThread(true);
     void loadMessages(conversationId);
+    router.replace(`/messages?conversation=${encodeURIComponent(conversationId)}`, { scroll: false });
   };
 
   const handleSend = () => {
@@ -85,13 +113,28 @@ export function MessagesView({
         return;
       }
       if (result.message) {
+        const sent = result.message;
         setMessages((prev) => {
-          if (prev.some((m) => m.id === result.message!.id)) return prev;
-          return [...prev, result.message!];
+          if (prev.some((m) => m.id === sent.id)) return prev;
+          return [...prev, sent];
         });
+        setConversationList((prev) =>
+          prev.map((c) =>
+            c.id === active
+              ? { ...c, preview: sent.body, time: sent.created_at, unread: false }
+              : c
+          )
+        );
         setBody("");
       }
     });
+  };
+
+  const handleComposerKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   const threadPanel = selected ? (
@@ -126,30 +169,45 @@ export function MessagesView({
             description="Send a message to break the ice."
           />
         ) : (
-          messages.map((m) => {
-            const isOwn = m.sender_id === currentUserId;
-            return (
-              <div
-                key={m.id}
-                className={cn(
-                  "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
-                  isOwn ? "ml-auto bg-brand text-white" : "bg-bg-surface text-fg-secondary"
-                )}
-              >
-                {m.body}
-              </div>
-            );
-          })
+          (() => {
+            let lastDayKey = "";
+            return messages.map((m) => {
+              const isOwn = m.sender_id === currentUserId;
+              const dayKey = new Date(m.created_at).toDateString();
+              const showSeparator = dayKey !== lastDayKey;
+              lastDayKey = dayKey;
+              return (
+                <div key={m.id} className="contents">
+                  {showSeparator && (
+                    <div className="my-1 flex items-center justify-center">
+                      <span className="rounded-full bg-bg-surface px-3 py-1 text-[11px] font-medium text-fg-faint">
+                        {formatDayLabel(m.created_at)}
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    className={cn(
+                      "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
+                      isOwn ? "ml-auto bg-brand text-white" : "bg-bg-surface text-fg-secondary"
+                    )}
+                  >
+                    {m.body}
+                  </div>
+                </div>
+              );
+            });
+          })()
         )}
       </CardContent>
-      <div className="flex gap-2 border-t border-border-subtle p-4">
-        <Input
-          placeholder="Type a message..."
-          className="flex-1"
+      <div className="flex items-end gap-2 border-t border-border-subtle p-4">
+        <Textarea
+          placeholder="Type a message... (Shift+Enter for a new line)"
+          className="min-h-0 flex-1 resize-none py-2.5"
+          rows={2}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           aria-label="Message input"
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+          onKeyDown={handleComposerKeyDown}
         />
         <Button onClick={handleSend} disabled={isPending || !body.trim()} isLoading={isPending}>
           Send
@@ -172,7 +230,7 @@ export function MessagesView({
       title="Messages"
       description="Stay connected with your builders."
     >
-      {conversations.length === 0 ? (
+      {conversationList.length === 0 ? (
         <EmptyState
           icon={MessageSquare}
           title="No conversations yet"

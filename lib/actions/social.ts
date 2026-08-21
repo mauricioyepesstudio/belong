@@ -8,11 +8,14 @@ import type { Json, SocialPostType as DatabaseSocialPostType } from "@/types/dat
 import {
   classifySocialMedia,
   createSocialPostRecord,
+  fetchGlobalSocialFeed,
   isOwnedSocialMediaPath,
   notifySocialInteraction,
   socialCommentFromRow,
   socialMediaExtension,
   type CreateSocialPostInput,
+  type SocialFeedPage,
+  type SocialPost,
   type SocialPostType,
   type SocialComment,
 } from "@/engines/social";
@@ -111,6 +114,33 @@ export async function createSocialPost(
   if ("error" in result) return { error: result.error };
   revalidateSocialSurfaces(profile.id);
   return { id: result.post.id };
+}
+
+export async function fetchSocialFeedPage(
+  cursor: string
+): Promise<ActionResult & { page?: SocialFeedPage }> {
+  const supabase = await createClient();
+  const viewer = await requireProfile();
+  try {
+    const page = await fetchGlobalSocialFeed(supabase, viewer.id, { cursor, limit: 15 });
+    return { page };
+  } catch (error) {
+    return { error: toUserErrorMessage(error, "Could not load more posts. Please try again.") };
+  }
+}
+
+/**
+ * Compact home-page preview of the global social feed — a thin Server
+ * Action wrapper around fetchGlobalSocialFeed so the (client) HomeScreen
+ * component tree can fetch a few real posts (see
+ * engines/belong/components/home/home-social-preview.tsx) without
+ * duplicating feed-fetching logic or needing its own Server Component.
+ */
+export async function getHomeSocialPreview(limit = 3): Promise<SocialPost[]> {
+  const supabase = await createClient();
+  const viewer = await requireProfile();
+  const { posts } = await fetchGlobalSocialFeed(supabase, viewer.id, { limit });
+  return posts;
 }
 
 export async function updateSocialPost(

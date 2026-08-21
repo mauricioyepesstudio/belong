@@ -48,6 +48,7 @@ export function HomeImpactRipple({
       <SectionHeader
         label="Your impact ripple"
         title="Every action creates a ripple. You're changing more lives than you think."
+        icon={Heart}
       />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(220px,0.75fr)_minmax(380px,2fr)_minmax(220px,0.75fr)] lg:items-stretch">

@@ -8,13 +8,13 @@ import {
 } from "@/engines/opportunity";
 import { PeopleDiscoveryScreen } from "@/engines/opportunity/components/people-discovery-screen";
 
-export const metadata: Metadata = { title: "Encuentra amigos" };
+export const metadata: Metadata = { title: "Discover people" };
 
 const PAGE_SIZE = 24;
 
 function resolveCategory(raw: string | undefined): DiscoveryCategory {
   const categories: readonly string[] = DISCOVERY_CATEGORIES;
-  return raw && categories.includes(raw) ? (raw as DiscoveryCategory) : "Todos";
+  return raw && categories.includes(raw) ? (raw as DiscoveryCategory) : "All";
 }
 
 export default async function PeopleDiscoverPage({

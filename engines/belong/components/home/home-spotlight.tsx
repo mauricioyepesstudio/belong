@@ -29,7 +29,7 @@ export function HomeSpotlight({
 }) {
   return (
     <section aria-labelledby="spotlight-heading">
-      <SectionHeader label="Builder spotlight" title="Stories that inspire." />
+      <SectionHeader label="Builder spotlight" title="Stories that inspire." icon={Sparkles} />
 
       <div className="grid gap-4 lg:grid-cols-[1.3fr_1.9fr_0.9fr]">
         {topContributor ? (

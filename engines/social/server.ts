@@ -127,6 +127,8 @@ export async function notifySocialInteraction(
       target_id: params.postId,
       post_id: params.postId,
       interaction_type: params.kind,
+      actor_name: params.actor.full_name,
+      actor_avatar_url: params.actor.avatar_url,
       ...(params.commentId ? { comment_id: params.commentId } : {}),
     },
   });

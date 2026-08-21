@@ -3,7 +3,7 @@
 import { useCallback, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Sparkles, Users } from "lucide-react";
+import { ArrowLeft, LayoutGrid, Loader2, Rows3, Sparkles, Users, X } from "lucide-react";
 import { Button, EmptyState, useToast } from "@/systems/design-system";
 import { StaggerItem, StaggerList } from "@/components/motion/fade-in";
 import { sendConnectionRequest } from "@/lib/actions/connections";
@@ -37,6 +37,7 @@ export function PeopleDiscoveryScreen({
   const [connectionOverrides, setConnectionOverrides] = useState<
     Map<string, UserConnectionState>
   >(new Map());
+  const [viewMode, setViewMode] = useState<"focus" | "grid">("focus");
 
   // The chip row reflects the just-tapped category immediately for
   // responsiveness; the actual list content only ever renders from
@@ -59,7 +60,7 @@ export function PeopleDiscoveryScreen({
       setPendingCategory(category);
       startNav(() => {
         const params = new URLSearchParams();
-        if (category !== "Todos") params.set("category", category);
+        if (category !== "All") params.set("category", category);
         const query = params.toString();
         router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
       });
@@ -78,7 +79,7 @@ export function PeopleDiscoveryScreen({
         setConnectionOverrides((prev) =>
           new Map(prev).set(person.id, { id: result.id ?? null, state: "pending-sent" })
         );
-        toast(`Solicitud enviada a ${person.fullName}`, "success");
+        toast(`Request sent to ${person.fullName}`, "success");
       });
     },
     [toast]
@@ -90,18 +91,18 @@ export function PeopleDiscoveryScreen({
         <Link href="/community?tab=people">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4" aria-hidden />
-            Atrás
+            Back
           </Button>
         </Link>
-        <p className="text-label">Encuentra amigos</p>
+        <p className="text-label">Discover people</p>
       </div>
 
       <div>
         <h1 className="text-display whitespace-pre-line text-fg-primary">
-          {"Personas que impulsan\nlo que te importa."}
+          {"People who move\nwhat matters to you."}
         </h1>
         <p className="mt-3 whitespace-pre-line text-body-lg">
-          {"Conecta con personas afines a tus objetivos,\nvalores e intereses."}
+          {"Connect with people aligned with your goals,\nvalues, skills, and interests."}
         </p>
       </div>
 
@@ -112,6 +113,15 @@ export function PeopleDiscoveryScreen({
         disabled={isNavPending}
       />
 
+      <div className="flex justify-end gap-2" aria-label="Discovery view">
+        <Button size="sm" variant={viewMode === "focus" ? "brand" : "secondary"} onClick={() => setViewMode("focus")}>
+          <Rows3 className="h-4 w-4" aria-hidden /> Discover
+        </Button>
+        <Button size="sm" variant={viewMode === "grid" ? "brand" : "secondary"} onClick={() => setViewMode("grid")}>
+          <LayoutGrid className="h-4 w-4" aria-hidden /> Browse
+        </Button>
+      </div>
+
       <div aria-busy={isNavPending} className={isNavPending ? "opacity-60 transition-opacity" : "transition-opacity"}>
         <DiscoveryPeopleList
           key={initialCategory}
@@ -120,6 +130,7 @@ export function PeopleDiscoveryScreen({
           connectionOverrides={connectionOverrides}
           isConnecting={isConnecting}
           onConnect={handleConnect}
+          viewMode={viewMode}
         />
       </div>
     </div>
@@ -132,6 +143,7 @@ type DiscoveryPeopleListProps = {
   connectionOverrides: Map<string, UserConnectionState>;
   isConnecting: boolean;
   onConnect: (person: DiscoveryPerson) => void;
+  viewMode: "focus" | "grid";
 };
 
 function DiscoveryPeopleList({
@@ -140,12 +152,15 @@ function DiscoveryPeopleList({
   connectionOverrides,
   isConnecting,
   onConnect,
+  viewMode,
 }: DiscoveryPeopleListProps) {
   const { toast } = useToast();
   const [people, setPeople] = useState<DiscoveryPerson[]>(initialResult.people);
-  const [offset, setOffset] = useState(initialResult.offset + initialResult.people.length);
+  const [offset, setOffset] = useState(initialResult.offset + initialResult.limit);
   const [hasMore, setHasMore] = useState(initialResult.hasMore);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const visiblePeople = people.filter((person) => !dismissedIds.has(person.id));
 
   const handleLoadMore = useCallback(async () => {
     setIsLoadingMore(true);
@@ -158,19 +173,19 @@ function DiscoveryPeopleList({
     }
 
     setPeople((prev) => [...prev, ...result.people]);
-    setOffset((prev) => prev + result.people.length);
+    setOffset(result.offset + result.limit);
     setHasMore(result.hasMore);
   }, [category, offset, toast]);
 
-  if (people.length === 0) {
+  if (visiblePeople.length === 0) {
     return (
       <EmptyState
         icon={Users}
-        title={category === "Todos" ? "Aún no hay suficientes personas" : "Nadie coincide con este filtro todavía"}
+        title={category === "All" ? "No people are available yet" : "No one matches this filter yet"}
         description={
-          category === "Todos"
-            ? "A medida que más builders se unan a BELONG y completen su perfil, aparecerán aquí personas afines a ti."
-            : "Prueba con otra categoría o vuelve a \"Todos\" para ver a todas las personas disponibles."
+          category === "All"
+            ? "As more builders join BELONG, people aligned with you will appear here."
+            : "Try another category or return to All to see everyone available."
         }
       />
     );
@@ -178,8 +193,8 @@ function DiscoveryPeopleList({
 
   return (
     <div className="space-y-6">
-      <StaggerList className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" reveal={false}>
-        {people.map((person) => (
+      <StaggerList className={viewMode === "grid" ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : "mx-auto max-w-2xl"} reveal={false}>
+        {(viewMode === "focus" ? visiblePeople.slice(0, 1) : visiblePeople).map((person) => (
           <StaggerItem key={person.id}>
             <DiscoveryPersonCard
               person={person}
@@ -187,6 +202,16 @@ function DiscoveryPeopleList({
               isConnecting={isConnecting}
               onConnect={onConnect}
             />
+            {viewMode === "focus" && (
+              <Button
+                type="button"
+                variant="secondary"
+                className="mt-3 w-full justify-center"
+                onClick={() => setDismissedIds((previous) => new Set(previous).add(person.id))}
+              >
+                <X className="h-4 w-4" aria-hidden /> Pass
+              </Button>
+            )}
           </StaggerItem>
         ))}
       </StaggerList>
@@ -197,12 +222,12 @@ function DiscoveryPeopleList({
             {isLoadingMore ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                Cargando...
+                Loading...
               </>
             ) : (
               <>
                 <Sparkles className="h-4 w-4" aria-hidden />
-                Cargar más personas
+                Load more people
               </>
             )}
           </Button>

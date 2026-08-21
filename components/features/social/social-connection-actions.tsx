@@ -9,6 +9,7 @@ import { Button, useToast } from "@/systems/design-system";
 import { Check, Clock3, MessageSquare, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { playSound } from "@/lib/sound";
 
 export type SocialConnectionState =
   | "self"
@@ -41,6 +42,7 @@ export function SocialConnectionActions({
         return;
       }
       setState("pending_sent");
+      playSound("connection-request-sent");
       toast(`Connection request sent to ${name}`, "success");
       router.refresh();
     });
@@ -69,6 +71,7 @@ export function SocialConnectionActions({
         return;
       }
       setState(accept ? "connected" : "none");
+      if (accept) playSound("connection-accepted");
       toast(
         accept ? `You and ${name} are now connected` : "Connection request declined",
         "success"

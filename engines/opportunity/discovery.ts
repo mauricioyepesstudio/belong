@@ -25,16 +25,14 @@ import { scorePersonMatch } from "./matchers";
 import { buildCompatibilityProfile, buildOpportunityGraphContext } from "./profile-vector";
 import { locationMatches, overlapMatches } from "./scoring";
 import type { PersonCandidate } from "./types";
+import { getMatchTier } from "@/engines/people/location";
 
 /**
- * Category labels surfaced in the discovery filter chips. There is no
- * backing schema taxonomy for these (confirmed: no category/tag enum on users,
- * identity_profiles, or user_skills scoped to this concept) — matching is a
- * best-effort keyword heuristic over existing free-text fields, not
- * authoritative data. Treat results as an approximation.
+ * Category labels surfaced in the discovery filter chips.
  */
 export const DISCOVERY_CATEGORIES = [
   "All",
+  "Local to you",
   "Design",
   "Technology",
   "Impact",
@@ -45,12 +43,7 @@ export const DISCOVERY_CATEGORIES = [
 
 export type DiscoveryCategory = (typeof DISCOVERY_CATEGORIES)[number];
 
-/** Keyword heuristic per category. Matched case-insensitively as substrings
- * against: candidate skills, candidate interests, candidate role, candidate
- * bio, and the `tag` of any community the candidate belongs to. This is a
- * deliberately loose approximation since no category taxonomy exists in the
- * schema — do not treat matches/non-matches as authoritative categorization. */
-const CATEGORY_KEYWORDS: Record<Exclude<DiscoveryCategory, "All">, string[]> = {
+const CATEGORY_KEYWORDS: Record<Exclude<DiscoveryCategory, "All" | "Local to you">, string[]> = {
   "Design": [
     "design", "diseño", "diseno", "ux", "ui", "product design",
     "graphic", "figma", "branding", "illustration",
@@ -82,28 +75,18 @@ export type DiscoveryPerson = {
   fullName: string;
   avatarUrl: string | null;
   role: string | null;
-  /** Public, profile-authored approximate location only. */
   location: string | null;
   nearYou: boolean;
-  /** 2-3 skills/interests for card display. Not authoritative categorization. */
   tags: string[];
-  /** 0-100, produced by the existing scorePersonMatch/SCORE_WEIGHTS engine. */
   affinityScore: number;
-  /** Human-readable reasons from the shared explanation builder. */
   matchReasons: string[];
   connectionState: UserConnectionState;
-  /** Reuses the existing /community?tab=people&q=<name> deep-link convention. */
   profileSearchHref: string;
 };
 
 export type DiscoverPeopleOptions = {
   category?: DiscoveryCategory | null;
-  /** Page size (defaults to 24). Applies to the underlying DB page fetch;
-   * because category filtering and MIN_SCORE thresholding happen after the
-   * fetch, the number of people actually returned can be smaller than
-   * `limit` even when more rows exist — see `hasMore`. */
   limit?: number;
-  /** Row offset for pagination (defaults to 0). */
   offset?: number;
 };
 
@@ -111,16 +94,12 @@ export type DiscoverPeopleResult = {
   people: DiscoveryPerson[];
   limit: number;
   offset: number;
-  /** True if the underlying candidate table has more rows beyond this page
-   * (independent of how many survived category filtering / scoring). */
   hasMore: boolean;
 };
 
 const DEFAULT_PAGE_SIZE = 24;
 const DEFAULT_HOME_LIMIT = 8;
 const HOME_FALLBACK_TARGET = 5;
-/** Over-fetch multiplier used by discoverPeopleForHome so a small "top N" slice
- * still has a reasonable chance of surviving category-less scoring/thresholding. */
 const HOME_OVER_FETCH_MULTIPLIER = 3;
 
 function candidateHaystack(candidate: PersonCandidate, communityTags: string[]): string {
@@ -140,9 +119,9 @@ function candidateMatchesCategory(
   communityTags: string[],
   category: DiscoveryCategory | null | undefined
 ): boolean {
-  if (!category || category === "All") return true;
-  const keywords = CATEGORY_KEYWORDS[category];
-  if (!keywords) return true; // Unknown/unrecognized category label: fail open, don't hide people.
+  if (!category || category === "All" || category === "Local to you") return true;
+  const keywords = CATEGORY_KEYWORDS[category as Exclude<DiscoveryCategory, "All" | "Local to you">];
+  if (!keywords) return true;
   const haystack = candidateHaystack(candidate, communityTags);
   return keywords.some((keyword) => haystack.includes(keyword));
 }
@@ -194,29 +173,6 @@ async function resolveConnectionStatesByCandidate(
   return byOtherUser;
 }
 
-/**
- * Fetches a scored, paginated page of "people to discover" for the viewer.
- *
- * Composition (in order):
- *  1. fetchPeopleCandidates(supabase, viewerId, { limit: limit+1, offset }) —
- *     already excludes the viewer (.neq) and anyone with an accepted/pending
- *     connection (either direction). Fetching one extra row lets us detect
- *     `hasMore` without a separate count query.
- *  2. Category keyword-heuristic filter (see CATEGORY_KEYWORDS) applied to the
- *     raw candidate page, BEFORE scoring — this is intentional: it avoids
- *     spending scoring work on candidates already excluded by category, and
- *     because scoring is deterministic per-candidate, order vs. scoring
- *     doesn't change which candidates ultimately qualify.
- *  3. scorePersonMatch(profile, candidate, context) from the existing
- *     Opportunity Engine (unmodified) — returns null below MIN_SCORE or when
- *     no explanation bullets are produced; those candidates are dropped.
- *  4. Sort remaining by affinityScore descending.
- *
- * Known gap: there is no blocking/hide mechanism anywhere in the schema
- * (confirmed via grep across migrations/types), so blocked-user exclusion is
- * NOT implemented — only self-exclusion and accepted/pending-connection
- * exclusion apply, both inherited from fetchPeopleCandidates.
- */
 export async function discoverPeople(
   supabase: SupabaseServerClient,
   viewerProfile: UserProfile,
@@ -249,13 +205,21 @@ export async function discoverPeople(
     resolveConnectionStatesByCandidate(supabase, viewerProfile.id),
   ]);
 
-  const eligibleCandidates = pageCandidates.filter((candidate) =>
-      candidateMatchesCategory(candidate, communityTagsByCandidate.get(candidate.id) ?? [], category)
-    );
+  const eligibleCandidates = pageCandidates.filter((candidate) => {
+    const matchesCategory = candidateMatchesCategory(candidate, communityTagsByCandidate.get(candidate.id) ?? [], category);
+    if (category === "Local to you") {
+      return matchesCategory && getMatchTier(viewerProfile.location, candidate.location) !== "NONE";
+    }
+    return matchesCategory;
+  });
+
   const scoredPeople = eligibleCandidates
     .map((candidate) => {
       const recommendation = scorePersonMatch(compatibilityProfile, candidate, context);
       if (!recommendation) return null;
+
+      const locationMatch = getMatchTier(viewerProfile.location, candidate.location);
+      const affinityScore = recommendation.score + (locationMatch === "SAME_CITY" ? 5 : locationMatch === "SAME_STATE" ? 2 : 0);
 
       const tags = [...new Set([...candidate.skills, ...candidate.interests])].slice(0, 3);
       const connectionRows = connectionStatesByCandidate.get(candidate.id) ?? [];
@@ -268,8 +232,11 @@ export async function discoverPeople(
         location: candidate.location,
         nearYou: locationMatches(viewerProfile.location, candidate.location),
         tags,
-        affinityScore: recommendation.score,
-        matchReasons: recommendation.reasons,
+        affinityScore: Math.min(100, affinityScore),
+        matchReasons: [
+          ...recommendation.reasons,
+          locationMatch === "SAME_CITY" ? "Same city" : locationMatch === "SAME_STATE" ? "Same state" : ""
+        ].filter(Boolean),
         connectionState: resolveConnectionState(viewerProfile.id, connectionRows),
         profileSearchHref: recommendation.href,
       };
@@ -278,9 +245,6 @@ export async function discoverPeople(
     .filter((person): person is DiscoveryPerson => person !== null)
     .sort((a, b) => b.affinityScore - a.affinityScore);
 
-  // People discovery should not disappear merely because sparse profiles fail
-  // the Opportunity Engine's strong-match threshold. Keep the score honest at
-  // zero and expose only real signals; profile completion can improve it later.
   const scoredIds = new Set(scoredPeople.map((person) => person.id));
   const fallbackPeople = eligibleCandidates
     .filter((candidate) => !scoredIds.has(candidate.id))
@@ -305,13 +269,6 @@ export async function discoverPeople(
   return { people, limit, offset, hasMore };
 }
 
-/**
- * Thin convenience wrapper around discoverPeople for the home suggestions
- * carousel — same underlying recommendation pipeline, just a small
- * top-N slice with no category filter and no caller-managed pagination.
- * Over-fetches (see HOME_OVER_FETCH_MULTIPLIER) since category-less scoring
- * can still drop candidates below MIN_SCORE.
- */
 export async function discoverPeopleForHome(
   supabase: SupabaseServerClient,
   viewerProfile: UserProfile,
@@ -409,6 +366,7 @@ function toDiscoveryPerson(
   viewer: Pick<UserProfile, "id" | "location">,
   connectionRows: ConnectionStateRow[] = []
 ): DiscoveryPerson {
+  const locationMatch = getMatchTier(viewer.location, candidate.location);
   return {
     id: candidate.id,
     fullName: candidate.fullName ?? "Builder",
@@ -417,8 +375,11 @@ function toDiscoveryPerson(
     location: candidate.location,
     nearYou: locationMatches(viewer.location, candidate.location),
     tags: [...new Set([...candidate.skills, ...candidate.interests])].slice(0, 3),
-    affinityScore: recommendation.score,
-    matchReasons: recommendation.reasons,
+    affinityScore: Math.min(100, recommendation.score + (locationMatch === "SAME_CITY" ? 5 : locationMatch === "SAME_STATE" ? 2 : 0)),
+    matchReasons: [
+        ...recommendation.reasons,
+        locationMatch === "SAME_CITY" ? "Same city" : locationMatch === "SAME_STATE" ? "Same state" : ""
+    ].filter(Boolean),
     connectionState: resolveConnectionState(viewer.id, connectionRows),
     profileSearchHref: recommendation.href,
   };

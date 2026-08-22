@@ -14,6 +14,7 @@ import {
 } from "@/systems/design-system";
 import { CheckCircle2, FolderKanban, Plus, UserCheck } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
+import { resolveProjectTaskAction } from "@/engines/project/show-up-resolver";
 
 const COLUMNS: { id: ProjectTaskStatus; label: string }[] = [
   { id: "todo", label: "Todo" },
@@ -264,7 +265,7 @@ export function ProjectTasksTab({
                       onClick={() => handleClaim(task)}
                     >
                       <UserCheck className="h-3.5 w-3.5" aria-hidden />
-                      Claim task
+                      {resolveProjectTaskAction(task, canApproveWork).label}
                     </Button>
                   )}
                   {task.status === "review" && canApproveWork && (
@@ -278,7 +279,7 @@ export function ProjectTasksTab({
                       onClick={() => handleApprove(task)}
                     >
                       <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-                      Approve work
+                      {resolveProjectTaskAction(task, canApproveWork).label}
                     </Button>
                   )}
                   <select

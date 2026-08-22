@@ -11,6 +11,8 @@ import { getBuildGoalOption } from "@/engines/mission/config";
 import { selectCompactRecommendations } from "@/engines/belong/home/recommendations";
 import { useReducedMotion } from "framer-motion";
 import { FadeIn, StaggerList, StaggerItem } from "@/components/motion/fade-in";
+import { PeopleStoryDeck } from "@/components/features/discovery/story-deck/PeopleStoryDeck";
+import { PeopleStoryCompact } from "@/components/features/discovery/story-deck/PeopleStoryCompact";
 import {
   Bell,
   Bot,
@@ -59,9 +61,6 @@ const RECOMMENDATION_ICON: Record<string, ComponentType<{ className?: string; "a
   missions: Target,
 };
 
-// World hero artwork — approved floating-island composition, matches
-// reference/belong-dashboard-reference.png. onError below still guards
-// against the file ever going missing (falls back to an inert background).
 const WORLD_ART_SRC = "/images/home-world.webp";
 
 const STAR_FIELD = [
@@ -79,13 +78,6 @@ function clampPercent(value: number) {
   return Math.min(100, Math.max(0, Math.round(value)));
 }
 
-// Deterministic-but-organic member node placement. A stable hash of the
-// person's id seeds both a small angle jitter and a small radius jitter, so
-// positions never shift between renders/reloads for the same person, but
-// don't look like a perfectly symmetric grid either. Base angles are offset
-// from the cardinal top/right/bottom/left points on purpose — it keeps nodes
-// clear of the top-left hero copy, top-right hero actions, and the
-// bottom-center identity caption/CTA.
 const MEMBER_NODE_BASE_ANGLES = [18, 90, 162, 234, 306];
 
 function hashPersonId(id: string): number {
@@ -99,10 +91,10 @@ function hashPersonId(id: string): number {
 function memberNodePosition(personId: string, index: number) {
   const hash = hashPersonId(personId);
   const baseAngle = MEMBER_NODE_BASE_ANGLES[index % MEMBER_NODE_BASE_ANGLES.length];
-  const angleJitter = (hash % 21) - 10; // -10..10 degrees
+  const angleJitter = (hash % 21) - 10;
   const angleRad = ((baseAngle + angleJitter - 90) * Math.PI) / 180;
-  const radiusX = 32 + ((hash >> 5) % 7) - 3; // 29..35
-  const radiusY = 25 + ((hash >> 9) % 7) - 3; // 22..28
+  const radiusX = 32 + ((hash >> 5) % 7) - 3;
+  const radiusY = 25 + ((hash >> 9) % 7) - 3;
   return {
     leftPct: clampPercent(50 + radiusX * Math.cos(angleRad)),
     topPct: clampPercent(50 + radiusY * Math.sin(angleRad)),
@@ -138,56 +130,6 @@ function Panel({
   );
 }
 
-// Mirrors HomeSuggestionsCarousel's ConnectAction — this popover shows the
-// same real connection state/actions as the "Suggestions for You" carousel,
-// just intentionally worded "Request sent" (vs "Pending") to read naturally
-// inside the world-map mini-card.
-function MemberConnectAction({
-  state,
-  pending,
-  fullName,
-  onConnect,
-  onMessage,
-}: {
-  state: UserConnectionState["state"];
-  pending: boolean;
-  fullName: string;
-  onConnect: () => void;
-  onMessage: () => void;
-}) {
-  if (state === "connected") {
-    return (
-      <Button size="sm" variant="secondary" disabled={pending} onClick={onMessage} className="flex-1 justify-center">
-        <MessageSquare className="h-3.5 w-3.5" aria-hidden />
-        Message
-      </Button>
-    );
-  }
-
-  if (state === "pending-sent" || state === "pending-received") {
-    return (
-      <Button size="sm" variant="secondary" disabled className="flex-1 justify-center">
-        <Clock className="h-3.5 w-3.5" aria-hidden />
-        Request sent
-      </Button>
-    );
-  }
-
-  return (
-    <Button
-      size="sm"
-      variant="brand"
-      disabled={pending}
-      onClick={onConnect}
-      className="flex-1 justify-center"
-      aria-label={`Connect with ${fullName}`}
-    >
-      <Plus className="h-3.5 w-3.5" aria-hidden />
-      Connect
-    </Button>
-  );
-}
-
 export function HomeUniverse({
   data,
   onPostUpdate,
@@ -202,6 +144,7 @@ export function HomeUniverse({
   const [isConnectPending, startConnectTransition] = useTransition();
   const [askQuery, setAskQuery] = useState("");
   const [worldArtMissing, setWorldArtMissing] = useState(false);
+  const [deckOpen, setDeckOpen] = useState(false);
 
   useEffect(() => {
     if (!activePersonId) return;
@@ -211,6 +154,7 @@ export function HomeUniverse({
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [activePersonId]);
+  
   const firstName = data.profile.full_name?.split(" ")[0] ?? "Builder";
   const mission = data.missionEngine.lifeMission;
   const missionTitle = mission?.title ?? data.primaryMission?.title ?? "Define your north star";
@@ -274,45 +218,11 @@ export function HomeUniverse({
     router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 
-  // Up to 5 real recommended-member nodes replace the old fixed category
-  // orbit — same DiscoveryPerson[] pipeline already powering the "Suggestions
-  // for You" carousel (HomeSuggestionsCarousel), just rendered in the world
-  // stage. Positions are derived once per render from a stable hash of each
-  // person's id (see memberNodePosition above), not stored in state, so they
-  // stay put across re-renders without needing layout state.
   const memberNodes = data.suggestedPeople.slice(0, 5).map((person, index) => ({
     person,
     ...memberNodePosition(person.id, index),
   }));
   const activePerson = memberNodes.find((n) => n.person.id === activePersonId)?.person ?? null;
-
-  const handleMemberConnect = (person: DiscoveryPerson) => {
-    startConnectTransition(async () => {
-      const result = await sendConnectionRequest(person.id);
-      if (result.error) {
-        toast(result.error, "error");
-        return;
-      }
-      setConnectionOverrides((prev) => new Map(prev).set(person.id, { id: result.id ?? null, state: "pending-sent" }));
-      toast(`Connection request sent to ${person.fullName}`, "success");
-      playTone("connect");
-      setPulsingPersonId(person.id);
-      window.setTimeout(() => {
-        setPulsingPersonId((current) => (current === person.id ? null : current));
-      }, 1200);
-    });
-  };
-
-  const handleMemberMessage = (person: DiscoveryPerson) => {
-    startConnectTransition(async () => {
-      const result = await startConversation(person.id);
-      if (result.error) {
-        toast(result.error, "error");
-        return;
-      }
-      router.push(`/messages?conversation=${result.id}`);
-    });
-  };
 
   return (
     <div className={styles.universe}>
@@ -445,8 +355,6 @@ export function HomeUniverse({
             </Link>
           </div>
 
-          {/* Layer 1 — world artwork. onError keeps a broken-image icon from
-              ever showing if the asset is ever removed/renamed. */}
           <div className={styles.worldArt} aria-hidden>
             {!worldArtMissing && (
               <Image
@@ -461,13 +369,11 @@ export function HomeUniverse({
             )}
           </div>
 
-          {/* Layer 2 — atmospheric overlay (cool-to-warm mood wash) */}
           <div className={styles.nebulaViolet} aria-hidden />
           <div className={styles.nebulaAmber} aria-hidden />
           <div className={styles.horizon} aria-hidden />
           <div className={styles.vignette} aria-hidden />
 
-          {/* Layer 3 — stars / particles */}
           <div className={styles.stars} aria-hidden />
           {STAR_FIELD.map((star, index) => (
             <span
@@ -483,16 +389,10 @@ export function HomeUniverse({
               }}
             />
           ))}
-          {/* Layer 4 — glow / fog (decorative orbit rings + core glow) */}
           <div className={styles.orbitOuter} aria-hidden />
           <div className={styles.orbitInner} aria-hidden />
           <div className={styles.coreGlow} aria-hidden />
 
-          {/* Layer 5 — dynamic orbit connection lines, one per real member
-              node below. Coordinates are the node's left/top percentages *
-              10 / * 6.2 (viewBox is 1000x620, i.e. 100% = 620 on the y
-              axis), computed live from memberNodePosition so lines always
-              track wherever each person's node actually renders. */}
           <svg className={styles.connections} viewBox="0 0 1000 620" preserveAspectRatio="none" aria-hidden>
             <defs>
               <linearGradient id="world-line-violet" x1="0" x2="1">
@@ -516,11 +416,6 @@ export function HomeUniverse({
             ))}
           </svg>
 
-          {/* Layer 6 — central authenticated user avatar + progress ring.
-              The ring is positioned at the true 50%/50% center of the stage
-              independently of the caption text below it, so the avatar's
-              visual center always matches the node/connection-line center
-              regardless of how many lines of caption text render. */}
           <FadeIn direction="none" className={styles.identityCore}>
             <div className={styles.avatarRingWrap}>
               <div className={styles.pulseRingOuter} aria-hidden />
@@ -565,12 +460,6 @@ export function HomeUniverse({
             </div>
           </FadeIn>
 
-          {/* Layer 7 — up to 5 real recommended-member nodes, above the
-              artwork/atmosphere layers. Each node opens an inline mini-card
-              (below, outside .worldStage so it can never get clipped) with
-              the same real connect/message actions as the suggestions
-              carousel. The glow marker on each avatar is purely decorative —
-              there is no real-time presence data behind it. */}
           <StaggerList className={styles.nodesLayer} stagger={0.07} reveal={reducedMotion ? false : true}>
             {memberNodes.map(({ person, leftPct, topPct }) => {
               const firstNameOnly = person.fullName?.split(" ")[0] ?? "Builder";
@@ -614,76 +503,36 @@ export function HomeUniverse({
               );
             })}
           </StaggerList>
-
-        </section>
-
-        {activePerson && (
-          <>
-            <div
-              className={styles.memberPopoverBackdrop}
-              onClick={() => setActivePersonId(null)}
-              aria-hidden
-            />
-            <div
-              className={styles.memberPopover}
-              role="dialog"
-              aria-modal="true"
-              aria-label={`${activePerson.fullName} recommendation`}
-            >
-              <button
-                type="button"
-                className={styles.memberPopoverClose}
+          {activePerson && (
+            <>
+              <div
+                className={styles.memberPopoverBackdrop}
                 onClick={() => setActivePersonId(null)}
-                aria-label="Close"
+                aria-hidden
+              />
+              <div
+                className={styles.memberPopover}
+                role="dialog"
+                aria-modal="true"
               >
-                <X className="h-4 w-4" aria-hidden />
-              </button>
-              <div className="flex items-start gap-3 pr-6">
-                <Avatar
-                  src={activePerson.avatarUrl ?? undefined}
-                  fallback={formatInitials(activePerson.fullName)}
-                  size="lg"
-                />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-white">{activePerson.fullName}</p>
-                  <p className="truncate text-xs text-white/55">{activePerson.role ?? "Builder"}</p>
-                  {activePerson.location && <p className="mt-0.5 truncate text-[11px] text-white/45">{activePerson.location}</p>}
-                </div>
-              </div>
-              <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-200/70">
-                {(connectionOverrides.get(activePerson.id) ?? activePerson.connectionState).state === "connected"
-                  ? "Connected"
-                  : (connectionOverrides.get(activePerson.id) ?? activePerson.connectionState).state.startsWith("pending")
-                    ? "Pending"
-                    : "Recommended"}
-              </p>
-              {activePerson.tags.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-1">
-                  {activePerson.tags.slice(0, 3).map((tag) => (
-                    <span key={tag} className={styles.memberPopoverTag}>{tag}</span>
-                  ))}
-                </div>
-              )}
-              <p className="mt-2.5 text-xs font-semibold text-violet-200">{activePerson.affinityScore}% affinity</p>
-              <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/65">Why this person?</p>
-              <p className="mt-1 text-[11px] leading-4 text-white/50">
-                {activePerson.matchReasons[0] ?? "Recommendation signals will improve as profiles grow."}
-              </p>
-              <div className="mt-4 flex items-center gap-2">
-                <Link href={`/people/${activePerson.id}`} className={styles.memberPopoverSecondary}>
-                  View Profile
-                </Link>
-                <MemberConnectAction
-                  state={(connectionOverrides.get(activePerson.id) ?? activePerson.connectionState).state}
-                  pending={isConnectPending}
-                  fullName={activePerson.fullName}
-                  onConnect={() => handleMemberConnect(activePerson)}
-                  onMessage={() => handleMemberMessage(activePerson)}
+                <PeopleStoryCompact
+                  person={activePerson}
+                  onOpenDeck={() => {
+                    setDeckOpen(true);
+                    setActivePersonId(null);
+                  }}
                 />
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+
+          {deckOpen && (
+            <PeopleStoryDeck
+              people={data.suggestedPeople}
+              onClose={() => setDeckOpen(false)}
+            />
+          )}
+        </section>
 
         <div className={styles.mobileHeroActions} aria-label="Build your world">
           <button type="button" onClick={onPostUpdate} className={styles.primaryButton}>

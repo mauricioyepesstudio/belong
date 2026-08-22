@@ -15,6 +15,7 @@ import { ArrowLeft, Calendar, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { resolveEventAction } from "@/engines/event/show-up-resolver";
 
 export function EventDetailView({ event }: { event: EventWithMeta }) {
   const router = useRouter();
@@ -76,7 +77,7 @@ export function EventDetailView({ event }: { event: EventWithMeta }) {
             isLoading={isPending}
             onClick={toggleRegistration}
           >
-            {event.registered ? "Unregister" : "Register for event"}
+            {resolveEventAction(event, isPending).label}
           </Button>
         </CardContent>
       </Card>

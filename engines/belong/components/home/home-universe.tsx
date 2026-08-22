@@ -12,6 +12,7 @@ import { selectCompactRecommendations } from "@/engines/belong/home/recommendati
 import { useReducedMotion } from "framer-motion";
 import { FadeIn, StaggerList, StaggerItem } from "@/components/motion/fade-in";
 import { PeopleStoryDeck } from "@/components/features/discovery/story-deck/PeopleStoryDeck";
+import { PeopleStoryDeckV2Modal } from "@/components/features/discovery/story-deck/v2/PeopleStoryDeckV2Modal";
 import { PeopleStoryCompact } from "@/components/features/discovery/story-deck/PeopleStoryCompact";
 import {
   Bell,
@@ -526,12 +527,14 @@ export function HomeUniverse({
             </>
           )}
 
-          {deckOpen && (
-            <PeopleStoryDeck
+          {deckOpen && activePerson && (
+            <PeopleStoryDeckV2Modal
               people={data.suggestedPeople}
+              initialPersonId={activePerson.id}
               onClose={() => setDeckOpen(false)}
             />
           )}
+
         </section>
 
         <div className={styles.mobileHeroActions} aria-label="Build your world">

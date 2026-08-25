@@ -45,6 +45,15 @@ export const mobileNav: NavItem[] = [
   { label: "More", href: "#more", icon: Menu },
 ];
 
+/** Reference-style bottom dock shown only on the Home/dashboard route. */
+export const homeMobileNav: NavItem[] = [
+  { label: "Explore", href: "/search", icon: Compass },
+  { label: "Connect", href: "/people/discover", icon: Users },
+  { label: "Build", href: "/dashboard?build=open", icon: Sparkles },
+  { label: "Messages", href: "/messages", icon: MessageSquare },
+  { label: "Profile", href: "/profile", icon: User },
+];
+
 /** Compact primary-destination nav shown in the top bar on the Home/dashboard route. */
 export const homeTopNav: NavItem[] = [
   { label: "Today", href: "/dashboard", icon: LayoutDashboard },

@@ -1,44 +1,35 @@
 version: 1
 project: belong
+manifest: .ai/PROJECT_MANIFEST.yaml
 orchestrator:
   role: orchestrator
   max_parallel_tasks: 4
   requires_review: true
+  must_validate_project_identity: true
+  stop_on_boundary_violation: true
 agents:
-  - id: product
-    area: product
-    can_write: true
-  - id: ux
-    area: product
-    can_write: true
-  - id: frontend
-    area: engineering
-    can_write: true
-  - id: backend
-    area: engineering
-    can_write: true
-  - id: security
-    area: assurance
-    can_write: false
-  - id: qa
-    area: assurance
-    can_write: false
-  - id: community_trust
-    area: product
-    can_write: true
-  - id: growth
-    area: growth
-    can_write: true
-  - id: analytics
-    area: growth
-    can_write: false
-  - id: reviewer
-    area: assurance
-    can_write: false
+  - {id: product, area: product, autonomy: L1, can_write: true}
+  - {id: ux, area: product, autonomy: L1, can_write: true}
+  - {id: frontend, area: engineering, autonomy: L1, can_write: true}
+  - {id: backend, area: engineering, autonomy: L1, can_write: true}
+  - {id: security, area: assurance, autonomy: L0, can_write: false}
+  - {id: qa, area: assurance, autonomy: L0, can_write: false}
+  - {id: community_trust, area: product, autonomy: L1, can_write: true}
+  - {id: growth, area: growth, autonomy: L1, can_write: true}
+  - {id: analytics, area: growth, autonomy: L0, can_write: false}
+  - {id: reviewer, area: assurance, autonomy: L0, can_write: false}
 policies:
   default_external_action: blocked
   default_production_write: blocked
+  cross_project_write: blocked
+  secret_access: blocked
+  paid_spend: owner-approval
+  public_publish: owner-approval
+  production_deploy: owner-approval
+  database_migration: owner-approval
+  destructive_database_operation: blocked
   require_independent_reviewer: true
   serialize_migrations: true
   owner_decision_status: owner-decision
   proof_required_for_done: true
+  proof_loop_active: false

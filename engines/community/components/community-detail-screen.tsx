@@ -47,6 +47,7 @@ import {
   AnalyticsSource,
   trackClientEvent,
 } from "@/systems/analytics";
+import { resolveCommunityAction } from "@/engines/community/show-up-resolver";
 
 type CurrentUser = {
   id: string;
@@ -334,7 +335,7 @@ export function CommunityDetailScreen({
               <div className="flex flex-wrap gap-2">
                 {!isMember && (
                   <Button disabled={isPending} onClick={handleJoin} className="w-full sm:w-auto">
-                    {community.is_paid ? "Subscribe" : "Join community"}
+                    {resolveCommunityAction(data, isMember, isPending).label}
                   </Button>
                 )}
                 {isMember && !isOwner && (

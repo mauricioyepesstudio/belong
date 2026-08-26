@@ -17,6 +17,7 @@ import {
 import { DiscoveryCategoryChips } from "./discovery-category-chips";
 import { DiscoveryPersonCard } from "./discovery-person-card";
 import { loadMoreDiscoveryPeople } from "./discovery-load-more";
+import { PeopleStoryDeckV2Layout } from "@/components/features/discovery/story-deck/v2/PeopleStoryDeckV2Layout";
 
 type PeopleDiscoveryScreenProps = {
   initialCategory: DiscoveryCategory;
@@ -34,18 +35,9 @@ export function PeopleDiscoveryScreen({
   const [isNavPending, startNav] = useTransition();
   const [isConnecting, startConnect] = useTransition();
   const [pendingCategory, setPendingCategory] = useState<DiscoveryCategory | null>(null);
-  const [connectionOverrides, setConnectionOverrides] = useState<
-    Map<string, UserConnectionState>
-  >(new Map());
+  const [connectionOverrides, setConnectionOverrides] = useState<Map<string, UserConnectionState>>(new Map());
   const [viewMode, setViewMode] = useState<"focus" | "grid">("focus");
 
-  // The chip row reflects the just-tapped category immediately for
-  // responsiveness; the actual list content only ever renders from
-  // initialCategory/initialResult (the real server-fetched data). Once the
-  // server round-trip lands and initialCategory changes to match, clear the
-  // optimistic override — done as a render-time state adjustment (React's
-  // recommended pattern) rather than an effect, since it only needs to run
-  // in response to a prop change, not synchronize with anything external.
   const [prevInitialCategory, setPrevInitialCategory] = useState(initialCategory);
   if (initialCategory !== prevInitialCategory) {
     setPrevInitialCategory(initialCategory);
@@ -134,16 +126,23 @@ export function PeopleDiscoveryScreen({
       </div>
 
       <div aria-busy={isNavPending} className={isNavPending ? "opacity-60 transition-opacity" : "transition-opacity"}>
-        <DiscoveryPeopleList
-          key={initialCategory}
-          category={initialCategory}
-          initialResult={initialResult}
-          connectionOverrides={connectionOverrides}
-          isConnecting={isConnecting}
-          onConnect={handleConnect}
-          onMessage={handleMessage}
-          viewMode={viewMode}
-        />
+        {viewMode === "focus" ? (
+           <PeopleStoryDeckV2Layout
+             people={initialResult.people}
+             onClose={() => setViewMode("grid")}
+           />
+        ) : (
+          <DiscoveryPeopleList
+            key={initialCategory}
+            category={initialCategory}
+            initialResult={initialResult}
+            connectionOverrides={connectionOverrides}
+            isConnecting={isConnecting}
+            onConnect={handleConnect}
+            onMessage={handleMessage}
+            viewMode={viewMode}
+          />
+        )}
       </div>
     </div>
   );
@@ -208,7 +207,7 @@ function DiscoveryPeopleList({
   return (
     <div className="space-y-6">
       <StaggerList className={viewMode === "grid" ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : "mx-auto max-w-2xl"} reveal={false}>
-        {(viewMode === "focus" ? visiblePeople.slice(0, 1) : visiblePeople).map((person) => (
+        {visiblePeople.map((person) => (
           <StaggerItem key={person.id}>
             <DiscoveryPersonCard
               person={person}
@@ -217,16 +216,6 @@ function DiscoveryPeopleList({
               onConnect={onConnect}
               onMessage={onMessage}
             />
-            {viewMode === "focus" && (
-              <Button
-                type="button"
-                variant="secondary"
-                className="mt-3 w-full justify-center"
-                onClick={() => setDismissedIds((previous) => new Set(previous).add(person.id))}
-              >
-                <X className="h-4 w-4" aria-hidden /> Pass
-              </Button>
-            )}
           </StaggerItem>
         ))}
       </StaggerList>

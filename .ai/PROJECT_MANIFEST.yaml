@@ -1,0 +1,56 @@
+version: 1
+project:
+  id: belong
+  name: BELONG
+  repository: mauricioyepesstudio/belong
+  canonical_path_windows: C:\\BELONG-RECONCILE\\remote-canonical
+  ai_ops_worktree_windows: C:\\AI-OPS\\belong
+
+git:
+  canonical_branch: reconcile/belong-canonical-20260825
+  canonical_commit_at_registration: fd670c86ce3d6413c3abf1bb5b6b889f150f36d6
+  control_plane_branch: work/ai-control-plane-v1
+  proof_loop_branch: work/proof-loop-v1
+  production_branch: null
+  default_branch_requires_correction: true
+  merge_requires_owner_approval: true
+  force_push: blocked
+
+runtime:
+  framework: nextjs
+  local_port: null
+  local_port_status: requires-verification
+
+services:
+  supabase:
+    project_ref: null
+    status: requires-verification
+    production_migration_requires_owner_approval: true
+    destructive_operation: blocked
+  vercel:
+    project_id: null
+    status: requires-verification
+    production_deploy_requires_owner_approval: true
+
+boundaries:
+  allowed_repository: mauricioyepesstudio/belong
+  forbidden_projects:
+    - mauricio-portfolio
+    - pros360era
+    - marketing-ai-platform
+  cross_project_write: blocked
+  secrets_read: blocked
+  external_publish: owner-approval
+  paid_spend: owner-approval
+
+proof_loop:
+  branch: work/proof-loop-v1
+  commit_at_registration: 642a6c7901e7d624cd8e847b4b18b137b3dddbea
+  state: pending-local-validation
+  canonical_gate: false
+  required_before_activation:
+    - hardened migration verified
+    - local Supabase migration succeeds
+    - validation SQL succeeds
+    - security review passes
+    - owner approves integration

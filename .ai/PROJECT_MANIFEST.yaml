@@ -3,9 +3,9 @@ project:
   id: belong
   name: BELONG
   repository: mauricioyepesstudio/belong
+  visibility: public
   canonical_path_windows: C:\\BELONG-RECONCILE\\remote-canonical
   ai_ops_worktree_windows: C:\\AI-OPS\\belong
-
 git:
   canonical_branch: reconcile/belong-canonical-20260825
   canonical_commit_at_registration: fd670c86ce3d6413c3abf1bb5b6b889f150f36d6
@@ -15,34 +15,40 @@ git:
   default_branch_requires_correction: true
   merge_requires_owner_approval: true
   force_push: blocked
-
 runtime:
   framework: nextjs
-  local_port: null
-  local_port_status: requires-verification
-
+  reserved_local_port: 3010
+  dev_command: npm run dev -- --port 3010
+  build_command: npm run build
+  lint_command: npm run lint
+  test_command: npm test
 services:
   supabase:
-    project_ref: null
-    status: requires-verification
+    project_ref: hewdanqdxiizxanlqgmg
+    status: linked-local
     production_migration_requires_owner_approval: true
     destructive_operation: blocked
   vercel:
-    project_id: null
-    status: requires-verification
+    project_id: prj_eAAmw50DFVcRlCSXrVhmaYg48dFl
+    org_id: team_wY2WBOjgilrmaTGoab7TO7HV
+    status: linked-local
     production_deploy_requires_owner_approval: true
-
+verification:
+  deterministic:
+    - npm run lint
+    - npm test
+    - npm run build
+  database_commands:
+    db_push: owner-approval
+    db_reset: local-only
+    db_types: local-only
 boundaries:
   allowed_repository: mauricioyepesstudio/belong
-  forbidden_projects:
-    - mauricio-portfolio
-    - pros360era
-    - marketing-ai-platform
+  forbidden_projects: [mauricio-portfolio, pros360era, marketing-ai-platform]
   cross_project_write: blocked
   secrets_read: blocked
   external_publish: owner-approval
   paid_spend: owner-approval
-
 proof_loop:
   branch: work/proof-loop-v1
   commit_at_registration: 642a6c7901e7d624cd8e847b4b18b137b3dddbea
@@ -54,3 +60,10 @@ proof_loop:
     - validation SQL succeeds
     - security review passes
     - owner approves integration
+activation:
+  state: registry-and-local-verification
+  autonomous_execution: false
+  blockers:
+    - production branch unresolved
+    - default branch correction pending
+    - proof loop validation pending

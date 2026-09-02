@@ -5,7 +5,14 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/actions/types";
 import { toUserErrorMessage } from "@/lib/errors/user-message";
-import { CIRCLE_MAX_MEMBERS, canAccept, canInvite, isAtCapacity } from "@/engines/circles";
+import {
+  CIRCLE_MAX_MEMBERS,
+  canAccept,
+  canDeleteCheckin,
+  canInvite,
+  canPostCheckin,
+  isAtCapacity,
+} from "@/engines/circles";
 
 function revalidateCircleSurfaces() {
   revalidatePath("/dashboard");
@@ -248,5 +255,75 @@ export async function removeCircleMember(
     };
   }
   revalidateCircleSurfaces();
+  return {};
+}
+
+export async function postCircleCheckin(circleId: string, body: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const trimmedBody = body.trim();
+  if (!trimmedBody) return { error: "Check-in cannot be empty" };
+
+  // Never trust RLS alone: re-verify the caller is an active member before
+  // inserting, mirroring every other action in this file.
+  const { data: actingMembership } = await supabase
+    .from("accountability_circle_members")
+    .select("user_id, status")
+    .eq("circle_id", circleId)
+    .eq("user_id", profile.id)
+    .maybeSingle();
+
+  if (
+    !canPostCheckin(
+      actingMembership ? { userId: actingMembership.user_id, status: actingMembership.status } : null,
+      profile.id
+    )
+  ) {
+    return { error: "Only active members can post a check-in" };
+  }
+
+  const { data: checkin, error } = await supabase
+    .from("accountability_checkins")
+    .insert({
+      circle_id: circleId,
+      author_id: profile.id,
+      body: trimmedBody,
+    })
+    .select("id")
+    .single();
+  if (error || !checkin) {
+    return {
+      error: toUserErrorMessage(error, "Could not post this check-in. Please try again."),
+    };
+  }
+
+  revalidatePath(`/circles/${circleId}`);
+  return { id: checkin.id };
+}
+
+export async function deleteCircleCheckin(checkinId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const { data: checkin } = await supabase
+    .from("accountability_checkins")
+    .select("id, circle_id, author_id")
+    .eq("id", checkinId)
+    .maybeSingle();
+  if (!checkin) return { error: "Check-in not found" };
+
+  if (!canDeleteCheckin({ authorId: checkin.author_id }, profile.id)) {
+    return { error: "Not authorized" };
+  }
+
+  const { error } = await supabase.from("accountability_checkins").delete().eq("id", checkin.id);
+  if (error) {
+    return {
+      error: toUserErrorMessage(error, "Could not delete this check-in. Please try again."),
+    };
+  }
+
+  revalidatePath(`/circles/${checkin.circle_id}`);
   return {};
 }

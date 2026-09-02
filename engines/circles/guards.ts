@@ -50,3 +50,31 @@ export function canRemove(
 export function isAtCapacity(activeAndInvitedCount: number): boolean {
   return activeAndInvitedCount >= CIRCLE_MAX_MEMBERS;
 }
+
+/**
+ * Only an active member may post a check-in, and only as themselves.
+ * Mirrors the accountability_checkins insert RLS policy exactly.
+ */
+export function canPostCheckin(
+  actingMembership: MembershipGuardRecord | null,
+  userId: string
+): boolean {
+  return (
+    actingMembership !== null &&
+    actingMembership.userId === userId &&
+    actingMembership.status === "active"
+  );
+}
+
+export type CheckinGuardRecord = {
+  authorId: string;
+};
+
+/**
+ * Only the author may delete their own check-in -- no one else, not even
+ * the circle's creator. Mirrors the accountability_checkins delete RLS
+ * policy exactly.
+ */
+export function canDeleteCheckin(checkin: CheckinGuardRecord, userId: string): boolean {
+  return checkin.authorId === userId;
+}

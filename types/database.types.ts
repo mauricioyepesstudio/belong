@@ -1373,6 +1373,30 @@ export interface Database {
         };
         Relationships: [];
       };
+      accountability_checkins: {
+        Row: {
+          id: string;
+          circle_id: string;
+          author_id: string;
+          body: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          circle_id: string;
+          author_id: string;
+          body: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          circle_id?: string;
+          author_id?: string;
+          body?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       community_post_likes: {
         Row: {
           id: string;
@@ -1910,6 +1934,8 @@ export type CollaborationRecordRow = Database["public"]["Tables"]["collaboration
 export type AccountabilityCircleRow = Database["public"]["Tables"]["accountability_circles"]["Row"];
 export type AccountabilityCircleMemberRow =
   Database["public"]["Tables"]["accountability_circle_members"]["Row"];
+export type AccountabilityCheckinRow =
+  Database["public"]["Tables"]["accountability_checkins"]["Row"];
 export type CommunityPostLike = Database["public"]["Tables"]["community_post_likes"]["Row"];
 export type CommunityPostComment = Database["public"]["Tables"]["community_post_comments"]["Row"];
 export type ProjectPost = Database["public"]["Tables"]["project_posts"]["Row"];

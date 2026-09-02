@@ -38,11 +38,21 @@ export default async function CollaborationsPage() {
             />
           ) : (
             <div className="space-y-3">
-              {pendingReceived.map((record) => (
-                <CollaborationCard key={record.id} record={record} viewerId={profile.id}>
-                  <CollaborationRecordActions recordId={record.id} mode="respond" />
-                </CollaborationCard>
-              ))}
+              {pendingReceived.map((record) => {
+                const partner =
+                  record.proposer.id === profile.id ? record.partner : record.proposer;
+                return (
+                  <CollaborationCard key={record.id} record={record} viewerId={profile.id}>
+                    <CollaborationRecordActions
+                      recordId={record.id}
+                      mode="respond"
+                      partnerName={partner.fullName}
+                      partnerAvatarUrl={partner.avatarUrl}
+                      summary={record.summary}
+                    />
+                  </CollaborationCard>
+                );
+              })}
             </div>
           )}
         </section>

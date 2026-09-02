@@ -3,8 +3,10 @@
 import type { SocialProfilePage } from "@/engines/social";
 import { Avatar, Badge, Button, Card, CardContent, EmptyState } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
-import { FolderKanban, MapPin, MoreHorizontal, Sparkles, Users } from "lucide-react";
+import { CollaborationProposeDialog } from "@/components/features/collaboration/collaboration-propose-dialog";
+import { FolderKanban, Handshake, MapPin, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { SocialConnectionActions } from "./social-connection-actions";
 import { SocialFeed } from "./social-feed";
@@ -16,13 +18,14 @@ type ProfileTab = (typeof tabs)[number];
 export function SocialProfileView({
   page,
   initialTab = "posts",
-  profileHref,
 }: {
   page: SocialProfilePage;
   initialTab?: ProfileTab;
-  profileHref: string;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [tab, setTab] = useState<ProfileTab>(initialTab);
+  const [collaborationOpen, setCollaborationOpen] = useState(false);
   const { profile, viewer, stats } = page;
 
   return (
@@ -61,28 +64,45 @@ export function SocialProfileView({
                   <Button variant="secondary">Edit profile</Button>
                 </Link>
               ) : (
-                <SocialConnectionActions
-                  userId={profile.id}
-                  name={profile.fullName ?? "this builder"}
-                  initialState={page.connectionState}
-                  connectionId={page.connectionId}
-                />
+                <>
+                  <SocialConnectionActions
+                    userId={profile.id}
+                    name={profile.fullName ?? "this builder"}
+                    initialState={page.connectionState}
+                    connectionId={page.connectionId}
+                  />
+                  <Button variant="outline" onClick={() => setCollaborationOpen(true)}>
+                    <Handshake className="h-4 w-4" aria-hidden />
+                    Propose collaboration
+                  </Button>
+                </>
               )}
-              <Button variant="ghost" aria-label="More profile actions">
-                <MoreHorizontal className="h-4 w-4" aria-hidden />
-                More
-              </Button>
             </div>
           </div>
         </div>
       </section>
+
+      {!page.isSelf && (
+        <CollaborationProposeDialog
+          open={collaborationOpen}
+          onClose={() => setCollaborationOpen(false)}
+          partnerId={profile.id}
+          partnerName={profile.fullName ?? "this builder"}
+        />
+      )}
 
       <nav className={styles.tabs} aria-label="Profile sections">
         {tabs.map((item) => (
           <button
             key={item}
             type="button"
-            onClick={() => setTab(item)}
+            onClick={() => {
+              setTab(item);
+              const params = new URLSearchParams(window.location.search);
+              params.set("tab", item);
+              params.delete("cursor");
+              router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+            }}
             className={`min-h-11 shrink-0 rounded-xl px-4 text-xs font-semibold uppercase tracking-[0.08em] transition ${
               tab === item ? "bg-brand/15 text-brand" : "text-fg-muted hover:bg-white/5 hover:text-fg-primary"
             }`}
@@ -99,7 +119,8 @@ export function SocialProfileView({
           contexts={page.publishingContexts}
           showComposer={page.isSelf}
           emptyTitle={page.isSelf ? "Nothing shared yet." : "Nothing shared yet."}
-          loadMoreHref={`${profileHref}?tab=posts`}
+          feedMode="profile"
+          profileUserId={profile.id}
         />
       )}
 

@@ -99,6 +99,7 @@ export const platformRoutes = [
   "/billing",
   "/search",
   "/collaborations",
+  "/circles",
 ] as const;
 
 export function isNavActive(pathname: string, href: string): boolean {

@@ -6,6 +6,38 @@ import { isStripeConfigured, MIN_LISTING_CENTS } from "@/lib/stripe/config";
 import { getStripe } from "@/lib/stripe/server";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import {
+  isListingImageType,
+  listingImageExtension,
+  LISTING_IMAGE_MAX_BYTES,
+} from "@/engines/marketplace/media";
+import { toUserErrorMessage } from "@/lib/errors/user-message";
+
+export async function uploadListingImage(
+  formData: FormData
+): Promise<ActionResult & { imageUrl?: string }> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+  const file = formData.get("image") as File | null;
+  if (!file || file.size === 0) return { error: "No file provided" };
+
+  if (!isListingImageType(file.type)) return { error: "Unsupported image type" };
+  if (file.size > LISTING_IMAGE_MAX_BYTES) return { error: "Image must be under 5MB" };
+
+  const extension = listingImageExtension(file.name, file.type);
+  const path = `${profile.id}/${crypto.randomUUID()}.${extension}`;
+  const { error } = await supabase.storage.from("listing-media").upload(path, file, {
+    upsert: false,
+    contentType: file.type,
+    cacheControl: "3600",
+  });
+  if (error) {
+    return { error: toUserErrorMessage(error, "Could not upload image. Please try again.") };
+  }
+
+  const { data } = supabase.storage.from("listing-media").getPublicUrl(path);
+  return { imageUrl: data.publicUrl };
+}
 
 export async function createListing(data: {
   title: string;

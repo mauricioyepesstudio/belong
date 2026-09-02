@@ -25,6 +25,8 @@ export type SocialPostType =
   | "impact";
 export type SocialMediaType = "image" | "video";
 export type CollaborationStatus = "pending" | "confirmed" | "declined";
+export type AccountabilityCircleMemberRole = "owner" | "member";
+export type AccountabilityCircleMemberStatus = "invited" | "active" | "left";
 export type SubscriptionTier = "free" | "pro" | "creator";
 export type SubscriptionStatus = "active" | "canceled" | "past_due" | "trialing" | "incomplete" | "incomplete_expired" | "unpaid";
 export type PaymentType = "platform_subscription" | "community_subscription" | "project_funding" | "donation" | "marketplace_purchase" | "creator_tip";
@@ -1314,6 +1316,63 @@ export interface Database {
         };
         Relationships: [];
       };
+      accountability_circles: {
+        Row: {
+          id: string;
+          name: string;
+          goal_description: string;
+          creator_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          goal_description: string;
+          creator_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          goal_description?: string;
+          creator_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      accountability_circle_members: {
+        Row: {
+          id: string;
+          circle_id: string;
+          user_id: string;
+          role: AccountabilityCircleMemberRole;
+          status: AccountabilityCircleMemberStatus;
+          joined_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          circle_id: string;
+          user_id: string;
+          role?: AccountabilityCircleMemberRole;
+          status?: AccountabilityCircleMemberStatus;
+          joined_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          circle_id?: string;
+          user_id?: string;
+          role?: AccountabilityCircleMemberRole;
+          status?: AccountabilityCircleMemberStatus;
+          joined_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       community_post_likes: {
         Row: {
           id: string;
@@ -1848,6 +1907,9 @@ export type SocialPostRow = Database["public"]["Tables"]["social_posts"]["Row"];
 export type SocialPostCommentRow = Database["public"]["Tables"]["social_post_comments"]["Row"];
 export type SocialPostReactionRow = Database["public"]["Tables"]["social_post_reactions"]["Row"];
 export type CollaborationRecordRow = Database["public"]["Tables"]["collaboration_records"]["Row"];
+export type AccountabilityCircleRow = Database["public"]["Tables"]["accountability_circles"]["Row"];
+export type AccountabilityCircleMemberRow =
+  Database["public"]["Tables"]["accountability_circle_members"]["Row"];
 export type CommunityPostLike = Database["public"]["Tables"]["community_post_likes"]["Row"];
 export type CommunityPostComment = Database["public"]["Tables"]["community_post_comments"]["Row"];
 export type ProjectPost = Database["public"]["Tables"]["project_posts"]["Row"];

@@ -3,7 +3,7 @@ import { requireProfile } from "@/lib/auth/session";
 import type { MarketplaceListing, UserProfile } from "@/types/database.types";
 
 export type ListingWithSeller = MarketplaceListing & {
-  seller: Pick<UserProfile, "id" | "full_name" | "avatar_url">;
+  seller: Pick<UserProfile, "id" | "full_name" | "avatar_url" | "connect_charges_enabled">;
 };
 
 export async function getActiveListings(): Promise<ListingWithSeller[]> {
@@ -21,7 +21,7 @@ export async function getActiveListings(): Promise<ListingWithSeller[]> {
   const sellerIds = [...new Set(listings.map((l) => l.seller_id))];
   const { data: sellers } = await supabase
     .from("users")
-    .select("id, full_name, avatar_url")
+    .select("id, full_name, avatar_url, connect_charges_enabled")
     .in("id", sellerIds);
 
   const sellerMap = new Map(sellers?.map((s) => [s.id, s]) ?? []);
@@ -32,6 +32,7 @@ export async function getActiveListings(): Promise<ListingWithSeller[]> {
       id: listing.seller_id,
       full_name: null,
       avatar_url: null,
+      connect_charges_enabled: false,
     },
   }));
 }
@@ -62,7 +63,7 @@ export async function getListingById(id: string): Promise<ListingWithSeller | nu
 
   const { data: seller } = await supabase
     .from("users")
-    .select("id, full_name, avatar_url")
+    .select("id, full_name, avatar_url, connect_charges_enabled")
     .eq("id", listing.seller_id)
     .maybeSingle();
 
@@ -72,6 +73,7 @@ export async function getListingById(id: string): Promise<ListingWithSeller | nu
       id: listing.seller_id,
       full_name: null,
       avatar_url: null,
+      connect_charges_enabled: false,
     },
   };
 }

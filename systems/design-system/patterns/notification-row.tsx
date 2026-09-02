@@ -4,6 +4,8 @@ import { formatDistanceToNow } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Notification } from "@/types/database.types";
 import Link from "next/link";
+import { Avatar } from "@/components/ui";
+import { formatInitials } from "@/lib/format";
 import { createElement } from "react";
 
 type NotificationRowProps = {
@@ -19,17 +21,20 @@ export function NotificationRow({ notification, onNavigate, compact }: Notificat
   });
   const href = getNotificationHref(notification.type, notification.metadata);
   const isUnread = !notification.read_at;
+  const metadata = notification.metadata && typeof notification.metadata === "object" && !Array.isArray(notification.metadata) ? notification.metadata : {};
+  const actorName = typeof metadata.actor_name === "string" ? metadata.actor_name : null;
+  const actorAvatar = typeof metadata.actor_avatar_url === "string" ? metadata.actor_avatar_url : null;
 
   const content = (
     <>
-      <div
+      {actorName || actorAvatar ? <Avatar src={actorAvatar ?? undefined} fallback={formatInitials(actorName)} size="sm" className="h-10 w-10 rounded-xl" /> : <div
         className={cn(
           "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
           isUnread ? "bg-brand/10 text-brand" : "bg-bg-hover text-fg-muted"
         )}
       >
         {icon}
-      </div>
+      </div>}
       <div className="min-w-0 flex-1">
         <p
           className={cn(

@@ -119,8 +119,7 @@ export function SocialProfileView({
           contexts={page.publishingContexts}
           showComposer={page.isSelf}
           emptyTitle={page.isSelf ? "Nothing shared yet." : "Nothing shared yet."}
-          feedMode="profile"
-          profileUserId={profile.id}
+          loadMoreHref={`${pathname}?tab=posts`}
         />
       )}
 

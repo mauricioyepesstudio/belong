@@ -1,5 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+import { IconTile } from "@/systems/design-system";
 
 type GlassCardProps = {
   children: ReactNode;
@@ -27,16 +29,21 @@ export function SectionHeader({
   label,
   title,
   action,
+  icon,
 }: {
   label: string;
   title: string;
   action?: ReactNode;
+  icon?: LucideIcon;
 }) {
   return (
-    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <p className="text-label">{label}</p>
-        <h2 className="text-heading-lg mt-2 text-fg-primary">{title}</h2>
+    <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex items-center gap-3">
+        {icon && <IconTile icon={icon} className="shrink-0" />}
+        <div>
+          <p className="text-label">{label}</p>
+          <h2 className="mt-1 text-heading-lg text-fg-primary">{title}</h2>
+        </div>
       </div>
       {action}
     </div>

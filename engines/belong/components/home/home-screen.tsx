@@ -1,16 +1,18 @@
 "use client";
 
 import type { HomeEngineData } from "@/engines/belong/data";
+import type { SocialPublishingContext } from "@/engines/social";
 import { applyImpactScoreInsert } from "@/engines/impact";
 import { useDashboardRealtime } from "@/engines/core/realtime";
 import { Modal } from "@/components/ui/modal";
-import { useRef, useState } from "react";
+import { SocialComposer } from "@/components/features/social/social-composer";
+import { useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { HomeComposer } from "./home-composer";
 import { DashboardActions } from "../dashboard/dashboard-actions";
 import { HomeMobileCompanionPanels, HomeUniverse } from "./home-universe";
 import { HomeSuggestionsCarousel } from "./home-suggestions-carousel";
 import { HomeLiveBuilders } from "./home-live-builders";
+import { HomeSocialPreview } from "./home-social-preview";
 import { HomeMissionsRow } from "./home-missions-row";
 import { HomeImpactRipple } from "./home-impact-ripple";
 import { HomeSpotlight } from "./home-spotlight";
@@ -37,18 +39,31 @@ export function HomeScreen(data: HomeEngineData) {
   const latestImpactActivity = achievementActivity ?? data.homeTimeline[0] ?? null;
   const topContributor = data.homeDiscovery.topContributors[0] ?? null;
 
+  // Post destination options for the composer, built from data already on
+  // the page (the same communities/projects the rest of Home renders) —
+  // avoids a second server round-trip just to list them.
+  const publishingContexts = useMemo<SocialPublishingContext[]>(
+    () => [
+      ...communities.map((community) => ({ type: "community" as const, id: community.id, name: community.name })),
+      ...recentProjects.map((project) => ({ type: "project" as const, id: project.id, name: project.name })),
+    ],
+    [communities, recentProjects]
+  );
+
   return (
     <div className="pb-8">
       <div className="space-y-5">
         <HomeUniverse
           data={{ ...data, impactScore }}
-          onJoinCommunity={() => setCommunityOpen(true)}
+          onPostUpdate={() => setComposerOpen(true)}
           onStartMission={() => setMissionOpen(true)}
         />
 
         <HomeSuggestionsCarousel people={data.suggestedPeople} />
 
         <HomeLiveBuilders activities={data.homeTimeline} />
+
+        <HomeSocialPreview />
 
         <HomeMobileCompanionPanels data={{ ...data, impactScore }} />
       </div>
@@ -70,20 +85,15 @@ export function HomeScreen(data: HomeEngineData) {
       <Modal
         open={composerOpen}
         onClose={() => setComposerOpen(false)}
-        title="Create post"
-        description="Share an update with your community"
+        title="Post an update"
+        description="What's happening in your world?"
         size="xl"
       >
         <div ref={composerRef}>
-          <HomeComposer
-            profile={profile}
-            communities={communities}
-            expanded
-            hideHeader
-            onNeedCommunity={() => {
-              setComposerOpen(false);
-              setCommunityOpen(true);
-            }}
+          <SocialComposer
+            viewer={{ id: profile.id, fullName: profile.full_name, avatarUrl: profile.avatar_url }}
+            contexts={publishingContexts}
+            onPublished={() => setComposerOpen(false)}
           />
         </div>
       </Modal>

@@ -1,25 +1,19 @@
 "use client";
 
 import type { WeeklyGoal } from "@/engines/mission/types";
-import { ArrowRight, Plus } from "lucide-react";
-import Image from "next/image";
+import { ArrowRight, Palette, Plus, Rocket, Target, TrendingUp, UsersRound } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import { GlassCard, SectionHeader } from "../dashboard/primitives";
 import styles from "./home-missions-row.module.css";
 
 type MissionArtBucket = "startup" | "community" | "growth" | "portfolio" | "default";
 
-// Expected future per-mission illustrations — none of these files exist in
-// the repo yet (see public/images/, which only has home-world.webp today).
-// Until real artwork is delivered, the onError handler below keeps the
-// placeholder gradient texture visible instead of a broken-image icon.
-const MISSION_ART_SRC: Record<MissionArtBucket, string> = {
-  startup: "/images/missions/mission-startup.webp",
-  community: "/images/missions/mission-community.webp",
-  growth: "/images/missions/mission-growth.webp",
-  portfolio: "/images/missions/mission-portfolio.webp",
-  default: "/images/missions/mission-default.webp",
+const MISSION_ART_ICON = {
+  startup: Rocket,
+  community: UsersRound,
+  growth: TrendingUp,
+  portfolio: Palette,
+  default: Target,
 };
 
 const BUCKET_RULES: Array<{ keywords: string[]; bucket: MissionArtBucket }> = [
@@ -49,27 +43,12 @@ export function HomeMissionsRow({
   onCreateMission: () => void;
 }) {
   const cards = goals.slice(0, 4);
-  // Tracks which mission art assets have failed to load (all of them today —
-  // the files under public/images/missions/ don't exist yet) so the
-  // <Image> element is removed and the CSS gradient fallback shows cleanly
-  // instead of a broken-image icon. Same onError pattern as WORLD_ART_SRC in
-  // home-universe.tsx.
-  const [missingArt, setMissingArt] = useState<Set<string>>(new Set());
-
-  const markArtMissing = (goalId: string) => {
-    setMissingArt((prev) => {
-      if (prev.has(goalId)) return prev;
-      const next = new Set(prev);
-      next.add(goalId);
-      return next;
-    });
-  };
-
   return (
     <section aria-labelledby="missions-row-heading">
       <SectionHeader
         label="Your missions"
         title="Your path. Your pace. We're with you."
+        icon={Target}
         action={
           <Link href="/profile?tab=missions" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">
             View all missions <ArrowRight className="h-3.5 w-3.5" aria-hidden />
@@ -81,8 +60,7 @@ export function HomeMissionsRow({
         {cards.map((goal) => {
           const percent = clampPercent((goal.current_count / Math.max(1, goal.target_count)) * 100);
           const bucket = missionArtBucket(goal);
-          const artSrc = MISSION_ART_SRC[bucket];
-          const artMissing = missingArt.has(goal.id);
+          const MissionIcon = MISSION_ART_ICON[bucket];
 
           return (
             <Link
@@ -92,17 +70,9 @@ export function HomeMissionsRow({
             >
               <GlassCard hover glow className={styles.card} data-bucket={bucket}>
                 <div className={styles.artStage}>
-                  <div className={styles.artFallback} data-bucket={bucket} aria-hidden />
-                  {!artMissing && (
-                    <Image
-                      src={artSrc}
-                      alt=""
-                      fill
-                      sizes="(min-width: 640px) 240px, 78vw"
-                      className={styles.artImage}
-                      onError={() => markArtMissing(goal.id)}
-                    />
-                  )}
+                  <div className={styles.artFallback} data-bucket={bucket} aria-hidden>
+                    <MissionIcon className={styles.artFallbackIcon} />
+                  </div>
                   <p className={styles.title}>{goal.title}</p>
                 </div>
 

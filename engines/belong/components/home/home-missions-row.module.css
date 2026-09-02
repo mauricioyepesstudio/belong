@@ -77,6 +77,17 @@
   mask-image: radial-gradient(circle at 30% 30%, black, transparent 75%);
 }
 
+.artFallbackIcon {
+  position: absolute;
+  right: 1rem;
+  bottom: 1.35rem;
+  z-index: 1;
+  width: 2.1rem;
+  height: 2.1rem;
+  color: rgba(255, 255, 255, 0.58);
+  filter: drop-shadow(0 0 14px rgba(139, 92, 246, 0.5));
+}
+
 .artFallback[data-bucket="startup"] { --tone-a: rgba(167, 139, 250, 0.5); --tone-b: rgba(217, 70, 239, 0.24); }
 .artFallback[data-bucket="community"] { --tone-a: rgba(34, 211, 238, 0.46); --tone-b: rgba(59, 130, 246, 0.24); }
 .artFallback[data-bucket="growth"] { --tone-a: rgba(52, 211, 153, 0.46); --tone-b: rgba(45, 212, 191, 0.24); }

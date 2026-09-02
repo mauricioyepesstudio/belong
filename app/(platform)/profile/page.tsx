@@ -22,7 +22,6 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     <SocialProfileView
       page={page}
       initialTab={initialTab}
-      profileHref="/profile"
     />
   );
 }

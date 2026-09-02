@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
 import { resolveConnectionState } from "@/lib/core/connection-state";
-import { fetchGlobalSocialFeed, fetchProfileSocialFeed } from "./data";
+import { fetchGlobalSocialFeed, fetchProfileSocialFeed, fetchSocialPostById } from "./data";
 import type {
+  SocialPost,
   SocialProfilePage,
   SocialPublishingContext,
 } from "./types";
@@ -49,6 +50,12 @@ export async function getGlobalSocialFeed(options: PageOptions = {}) {
     },
     publishingContexts: contexts,
   };
+}
+
+export async function getSocialPostById(postId: string): Promise<SocialPost | null> {
+  const supabase = await createClient();
+  const viewer = await requireProfile();
+  return fetchSocialPostById(supabase, postId, viewer.id);
 }
 
 export async function getSocialProfilePage(

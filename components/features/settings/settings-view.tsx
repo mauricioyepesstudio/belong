@@ -4,6 +4,7 @@ import { updateProfile, uploadAvatar } from "@/lib/actions/platform";
 import { updateCompatibilityMetadata } from "@/lib/actions/identity";
 import { updatePassword } from "@/lib/actions/auth";
 import { BillingSettings } from "@/engines/billing";
+import { NotificationPreferencesPanel } from "@/components/features/notifications/notification-preferences";
 import type { BillingSummary } from "@/lib/actions/billing";
 import {
   Avatar,
@@ -42,7 +43,7 @@ export function SettingsView({
   const requestedTab = searchParams.get("tab");
   const [selectedTab, setSelectedTab] = useState("account");
   const tab =
-    requestedTab === "profile" || requestedTab === "billing" || requestedTab === "account"
+    requestedTab === "profile" || requestedTab === "billing" || requestedTab === "account" || requestedTab === "notifications"
       ? requestedTab
       : selectedTab;
   const [isSaving, startSaveTransition] = useTransition();
@@ -137,6 +138,7 @@ export function SettingsView({
           tabs={[
             { id: "account", label: "Account" },
             { id: "profile", label: "Profile" },
+            { id: "notifications", label: "Notifications" },
             { id: "billing", label: "Billing" },
           ]}
           active={tab}
@@ -351,6 +353,7 @@ export function SettingsView({
           </Card>
         )}
 
+        {tab === "notifications" && <NotificationPreferencesPanel />}
         {tab === "billing" && <BillingSettings summary={billing} />}
       </div>
     </FeatureScreen>

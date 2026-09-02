@@ -1,5 +1,5 @@
 import type { HomeImpactMetrics } from "@/engines/belong/home/types";
-import { FolderKanban, HandHeart, Trophy, Users } from "lucide-react";
+import { Activity, FolderKanban, HandHeart, Trophy, Users } from "lucide-react";
 import { GlassCard, SectionHeader } from "../dashboard/primitives";
 import styles from "./home-numbers.module.css";
 
@@ -44,7 +44,7 @@ export function HomeNumbers({
 
   return (
     <section aria-labelledby="belong-numbers-heading">
-      <SectionHeader label="BELONG in numbers" title="What you're building, together." />
+      <SectionHeader label="BELONG in numbers" title="What you're building, together." icon={Activity} />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {tiles.map(({ label, value, icon: Icon }) => (
           <GlassCard key={label} className="p-4">

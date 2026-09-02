@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check, Sparkles, UserPlus } from "lucide-react";
+import { Clock3, MapPin, MessageSquare, Sparkles, UserPlus } from "lucide-react";
 import { Avatar, Badge, Button } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ type DiscoveryPersonCardProps = {
   connection: UserConnectionState;
   isConnecting: boolean;
   onConnect: (person: DiscoveryPerson) => void;
+  onMessage: (person: DiscoveryPerson) => void;
 };
 
 export function DiscoveryPersonCard({
@@ -21,8 +22,9 @@ export function DiscoveryPersonCard({
   connection,
   isConnecting,
   onConnect,
+  onMessage,
 }: DiscoveryPersonCardProps) {
-  const topReason = person.matchReasons[0] ?? null;
+  const reasons = person.matchReasons.slice(0, 3);
 
   return (
     <GlassCard hover className="overflow-hidden">
@@ -41,11 +43,21 @@ export function DiscoveryPersonCard({
             <div className="flex flex-wrap items-center gap-2">
               <p className="truncate font-semibold text-fg-primary">{person.fullName}</p>
               <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2 py-0.5 text-micro font-semibold text-emerald-300">
-                {person.affinityScore}% afinidad
+                {person.affinityScore}% aligned
               </span>
+              <Badge variant="outline">
+                {connection.state === "connected" ? "Connected" : connection.state === "none" ? "Recommended" : "Pending"}
+              </Badge>
             </div>
             {person.role && (
               <p className="mt-0.5 truncate text-sm text-fg-muted">{person.role}</p>
+            )}
+            {person.location && (
+              <p className="mt-1 flex items-center gap-1 truncate text-xs text-fg-muted">
+                <MapPin className="h-3 w-3" aria-hidden />
+                {person.location}
+                {person.nearYou && <Badge variant="success">Near you</Badge>}
+              </p>
             )}
           </div>
         </div>
@@ -60,16 +72,22 @@ export function DiscoveryPersonCard({
           </div>
         )}
 
-        {topReason && (
-          <p className="mt-3 flex items-start gap-1.5 text-caption text-brand/90">
-            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-            <span className="truncate">{topReason}</span>
+        <div className="mt-3 text-caption text-brand/90">
+          <p className="flex items-center gap-1.5 font-semibold">
+            <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden /> Why this person?
           </p>
-        )}
+          {reasons.length > 0 ? (
+            <ul className="mt-1.5 space-y-1 pl-5 text-fg-muted">
+              {reasons.map((reason) => <li key={reason} className="list-disc">{reason}</li>)}
+            </ul>
+          ) : (
+            <p className="mt-1.5 text-fg-muted">A real BELONG member open to discovery. Shared signals will appear as profiles grow.</p>
+          )}
+        </div>
       </Link>
 
       <div className="flex items-center justify-between gap-3 border-t border-border-subtle px-5 py-3">
-        <span className="text-micro text-fg-faint">Toca la tarjeta para ver el perfil</span>
+        <span className="text-micro text-fg-faint">Open the card to view the profile</span>
         <Button
           type="button"
           size="sm"
@@ -80,8 +98,8 @@ export function DiscoveryPersonCard({
                 ? "ghost"
                 : "secondary"
           }
-          disabled={isConnecting || connection.state !== "none"}
-          onClick={() => onConnect(person)}
+          disabled={isConnecting || connection.state === "pending-sent" || connection.state === "pending-received"}
+          onClick={() => connection.state === "connected" ? onMessage(person) : onConnect(person)}
           aria-label={
             connection.state === "none"
               ? `Connect with ${person.fullName}`
@@ -93,11 +111,11 @@ export function DiscoveryPersonCard({
         >
           {connection.state === "connected" ? (
             <>
-              <Check className="h-3.5 w-3.5" aria-hidden />
-              Connected
+              <MessageSquare className="h-3.5 w-3.5" aria-hidden />
+              Message
             </>
           ) : connection.state === "pending-sent" || connection.state === "pending-received" ? (
-            "Pending"
+            <><Clock3 className="h-3.5 w-3.5" aria-hidden />Request sent</>
           ) : (
             <>
               <UserPlus className="h-3.5 w-3.5" aria-hidden />

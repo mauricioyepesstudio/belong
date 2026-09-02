@@ -55,7 +55,7 @@ export function MarketplaceScreen({
 }: MarketplaceScreenProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [tab, setTab] = useState("browse");
+  const [tab, setTab] = useState("discover");
   const [createOpen, setCreateOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
@@ -177,7 +177,7 @@ export function MarketplaceScreen({
       });
       if (result.error) toast(result.error, "error");
       else {
-        toast("Listing created", "success");
+        toast("Resource created", "success");
         setCreateOpen(false);
         resetImageState();
         setNewListingCategory(null);
@@ -191,7 +191,7 @@ export function MarketplaceScreen({
       const result = await publishListing(listingId);
       if (result.error) toast(result.error, "error");
       else {
-        toast("Listing published", "success");
+        toast("Resource published", "success");
         router.refresh();
       }
     });
@@ -202,7 +202,7 @@ export function MarketplaceScreen({
       const result = await archiveListing(listingId);
       if (result.error) toast(result.error, "error");
       else {
-        toast("Listing archived", "success");
+        toast("Resource archived", "success");
         router.refresh();
       }
     });
@@ -224,15 +224,15 @@ export function MarketplaceScreen({
           <Tabs
             className="w-fit"
             tabs={[
-              { id: "browse", label: "Discover", count: listings.length },
-              { id: "selling", label: "My resources", count: myActive.length },
+              { id: "discover", label: "Discover", count: listings.length },
+              { id: "mine", label: "My resources", count: myActive.length },
             ]}
             active={tab}
             onChange={setTab}
           />
         }
       >
-        {tab === "browse" ? (
+        {tab === "discover" ? (
           listings.length === 0 ? (
             <EmptyState
               icon={BookOpen}
@@ -304,8 +304,21 @@ export function MarketplaceScreen({
                       </Link>
                     </div>
                     {listing.seller_id !== currentUserId && (
-                      <Button className="mt-3 w-full" size="sm" variant="brand" disabled={isPending} onClick={() => handlePurchase(listing.id)}>
-                        Request access
+                      <Button
+                        className="mt-3 w-full"
+                        size="sm"
+                        variant="brand"
+                        disabled={isPending || !listing.seller.connect_charges_enabled}
+                        onClick={() => handlePurchase(listing.id)}
+                        title={
+                          !listing.seller.connect_charges_enabled
+                            ? "This provider is not accepting payments yet"
+                            : undefined
+                        }
+                      >
+                        {listing.seller.connect_charges_enabled
+                          ? "Request access"
+                          : "Payments unavailable"}
                       </Button>
                     )}
                   </CardContent>

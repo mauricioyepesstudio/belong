@@ -4,7 +4,9 @@ import { Avatar, Logo } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import { mainNav, homeTopNav, isNavActive } from "@/systems/navigation";
 import type { UserProfile } from "@/types/database.types";
-import { Bell, MessageSquare, Search } from "lucide-react";
+import { MessageSquare, Search } from "lucide-react";
+import { NotificationBell } from "@/components/features/notifications/notification-bell";
+import { SoundToggle } from "@/components/features/notifications/sound-toggle";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -89,16 +91,12 @@ export function AppTopNav({
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-brand" aria-hidden />
             )}
           </Link>
-          <Link
-            href="/notifications"
-            className="relative flex h-9 w-9 items-center justify-center rounded-xl text-fg-muted transition-colors hover:bg-bg-hover hover:text-fg-primary focus-ring"
-            aria-label={`Notifications${unreadNotifications > 0 ? `, ${unreadNotifications} unread` : ""}`}
-          >
-            <Bell className="h-[18px] w-[18px]" aria-hidden />
-            {unreadNotifications > 0 && (
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-brand" aria-hidden />
-            )}
-          </Link>
+          {profile?.id && (
+            <>
+              <SoundToggle />
+              <NotificationBell userId={profile.id} initialUnreadCount={unreadNotifications} />
+            </>
+          )}
           <Link
             href="/profile"
             className="ml-1 flex items-center gap-2 rounded-xl p-1 transition-colors hover:bg-bg-hover"

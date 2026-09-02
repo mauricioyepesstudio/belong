@@ -83,11 +83,14 @@ export function ListingDetailView({
               </div>
             </div>
           </div>
-          {!isOwner && listing.status === "active" && (
+          {!isOwner && listing.status === "active" && listing.seller.connect_charges_enabled && (
             <Button variant="brand" disabled={isPending} isLoading={isPending} onClick={handlePurchase}>
               <MessageSquare className="h-4 w-4" aria-hidden />
               Request for {formatCents(listing.price_cents)}
             </Button>
+          )}
+          {!isOwner && listing.status === "active" && !listing.seller.connect_charges_enabled && (
+            <p className="text-sm text-fg-muted">This provider is not accepting payments yet.</p>
           )}
           {!isOwner && listing.status !== "active" && (
             <p className="text-sm text-fg-muted">

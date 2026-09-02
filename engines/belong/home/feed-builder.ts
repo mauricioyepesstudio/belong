@@ -237,7 +237,13 @@ export function buildHomeTimeline(input: {
         ]
       : [];
 
+  const seenIds = new Set<string>();
   return [...legacy, ...suggested]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .filter((activity) => {
+      if (seenIds.has(activity.id)) return false;
+      seenIds.add(activity.id);
+      return true;
+    })
     .slice(0, 24);
 }

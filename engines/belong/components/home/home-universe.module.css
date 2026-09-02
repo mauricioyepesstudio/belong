@@ -83,6 +83,9 @@
 .connections { position:absolute; inset:0; z-index:4; width:100%; height:100%; opacity:.36; filter:drop-shadow(0 0 7px rgba(139,92,246,.38)); }
 .connections path { fill:none; stroke:url(#world-line-violet); stroke-width:1; stroke-dasharray:5 8; vector-effect:non-scaling-stroke; animation:signal 7s linear infinite; }
 .connections path:nth-child(2n) { animation-direction:reverse; animation-duration:9s; }
+.connections .connectionConnected { stroke-width:1.8; stroke-dasharray:none; opacity:.95; }
+.connections .connectionPending { stroke-dasharray:2 7; opacity:.7; }
+.connections .connectionRecommended { stroke-dasharray:5 8; opacity:.52; }
 
 /* Layer 6 — central avatar + progress ring.
    .identityCore spans the full stage so its two children — the ring and the
@@ -104,34 +107,72 @@
 .youBadge { display:inline-flex; padding:.2rem .65rem; border-radius:999px; border:1px solid rgba(196,181,253,.35); background:rgba(139,92,246,.16); font-size:10px; font-weight:700; letter-spacing:.16em; color:#ddd6fe; box-shadow:0 0 16px rgba(139,92,246,.25); }
 
 .nodesLayer { position:absolute; inset:0; z-index:6; }
-.node { display:flex; width:6rem; flex-direction:column; align-items:center; gap:.4rem; text-align:center; transition:transform .25s ease; animation:float 5s ease-in-out infinite; }
-.node:hover, .node:focus-visible { z-index:2; transform:translateY(-4px) scale(1.06); outline:none; }
-.node:hover .nodeIcon, .node:focus-visible .nodeIcon { box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 0 0 1px rgba(196,181,253,.5), 0 0 32px rgba(139,92,246,.6); }
-.nodeIcon { display:grid; place-items:center; width:3.75rem; height:3.75rem; flex:none; border-radius:50%; color:#c4b5fd; background:linear-gradient(160deg, rgba(139,92,246,.28), rgba(139,92,246,.1)); border:1.5px solid rgba(167,139,250,.45); box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 0 24px rgba(139,92,246,.35); transition:box-shadow .25s ease; }
-.node[data-tone="cyan"] .nodeIcon { color:#67e8f9; background:linear-gradient(160deg, rgba(34,211,238,.26), rgba(34,211,238,.08)); border-color:rgba(34,211,238,.45); box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 0 24px rgba(34,211,238,.35); }
-.node[data-tone="amber"] .nodeIcon { color:#fcd34d; background:linear-gradient(160deg, rgba(245,158,11,.26), rgba(245,158,11,.08)); border-color:rgba(245,158,11,.45); box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 0 24px rgba(245,158,11,.32); }
-.node[data-tone="cyan"]:hover .nodeIcon, .node[data-tone="cyan"]:focus-visible .nodeIcon { box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 0 0 1px rgba(103,232,249,.5), 0 0 34px rgba(34,211,238,.6); }
-.node[data-tone="amber"]:hover .nodeIcon, .node[data-tone="amber"]:focus-visible .nodeIcon { box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 0 0 1px rgba(252,211,77,.5), 0 0 34px rgba(245,158,11,.55); }
-.nodeLabel { font-size:9px; font-weight:750; letter-spacing:.09em; text-transform:uppercase; color:rgba(255,255,255,.85); text-shadow:0 1px 6px rgba(0,0,0,.6); }
-.nodeValue { margin-top:-.25rem; font-size:11px; font-weight:700; color:rgba(255,255,255,.5); }
 
-/* Tight, consistent-radius orbit — 7 nodes evenly spaced around the avatar,
-   matching the approved reference composition. */
-.nodePeople, .nodeCommunities, .nodeEvents, .nodeOpportunities, .nodeResources, .nodeCompanion, .nodePlatform { position:absolute; transform:translate(-50%,-50%); }
-.nodePlatform { left:50%; top:20%; }
-.nodeCommunities { left:79.5%; top:32.8%; }
-.nodeEvents { left:84.8%; top:57.8%; }
-.nodeCompanion { left:56.3%; top:78.5%; }
-.nodeResources { left:29.4%; top:74.6%; }
-.nodeOpportunities { left:15.2%; top:57.8%; }
-.nodePeople { left:20.5%; top:32.8%; }
-.nodePeople .node { animation-delay:-2.2s; }
-.nodeCommunities .node, .nodeEvents .node { animation-delay:-.8s; }
-.nodeOpportunities .node { animation-delay:-3.1s; }
-.nodeResources .node { animation-delay:-1.8s; }
-.nodeCompanion .node { animation-delay:-2.6s; }
-.nodePlatform .node { animation-delay:-3.6s; }
-.stageCaption { position:absolute; left:50%; bottom:1.5%; z-index:7; display:flex; transform:translateX(-50%); align-items:center; gap:.4rem; white-space:nowrap; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.35); }
+/* Real recommended-member nodes (up to 5, see memberNodePosition in
+   home-universe.tsx). Position (left/top) is set inline per-person — a
+   deterministic hash-derived, organically-spread placement, not a fixed
+   CSS class per node like the old 7-category orbit. */
+.memberNode { position:absolute; transform:translate(-50%,-50%); z-index:1; }
+.memberNodeButton { display:flex; width:4.6rem; flex-direction:column; align-items:center; gap:.3rem; text-align:center; animation:float 5s ease-in-out infinite; }
+.memberNodeButton:hover, .memberNodeButton:focus-visible { z-index:2; outline:none; }
+.memberNodeButton:hover .memberNodeAvatarWrap, .memberNodeButton:focus-visible .memberNodeAvatarWrap { box-shadow:0 0 0 2px rgba(196,181,253,.55), 0 0 28px rgba(139,92,246,.55); }
+.memberNodeConnected .memberNodeAvatarWrap { box-shadow:0 0 0 2px rgba(103,232,249,.44), 0 0 24px rgba(34,211,238,.34); }
+.memberNodePending .memberNodeAvatarWrap { box-shadow:0 0 0 2px rgba(251,191,36,.35), 0 0 20px rgba(251,191,36,.2); }
+.memberNodeRecommended .memberNodeAvatarWrap { opacity:.94; }
+.memberNodeAvatarWrap { position:relative; display:grid; place-items:center; border-radius:50%; transition:box-shadow .25s ease, transform .2s ease; }
+/* Decorative-only "luminous presence" glow — not tied to any real online
+   status; BELONG has no real-time presence data. */
+.memberNodeGlow { position:absolute; inset:-7px; z-index:-1; border-radius:50%; background:radial-gradient(circle, rgba(34,211,238,.5), transparent 70%); filter:blur(4px); opacity:.85; animation:presenceGlow 3.2s ease-in-out infinite; }
+.memberNodeName { max-width:4.6rem; overflow:hidden; font-size:9.5px; font-weight:700; letter-spacing:.03em; color:rgba(255,255,255,.88); text-overflow:ellipsis; text-shadow:0 1px 6px rgba(0,0,0,.7); white-space:nowrap; }
+.memberNodePulse { animation:memberPulse 1.1s ease-out; }
+
+@media (max-width: 1023px) {
+  .memberNode:nth-child(n+5) { display:none; }
+}
+@media (max-width: 640px) {
+  .memberNode:nth-child(n+4) { display:none; }
+  .memberNodeButton { width:3.6rem; }
+  .memberNodeName { max-width:3.6rem; font-size:8.5px; }
+}
+
+/* Mini-card popover for a selected member node. Always rendered fixed to
+   the viewport (not anchored to the node) so it is never clipped by the
+   world stage regardless of where the node sits or how small the
+   viewport is — a bottom sheet on mobile, a centered card from 640px up. */
+.memberPopoverBackdrop { position:fixed; inset:0; z-index:40; background:rgba(2,3,14,.55); backdrop-filter:blur(2px); }
+.memberPopover {
+  position:fixed;
+  z-index:41;
+  left:0;
+  right:0;
+  bottom:0;
+  width:auto;
+  max-height:80vh;
+  overflow-y:auto;
+  border:1px solid rgba(167,139,250,.22);
+  border-radius:1.25rem 1.25rem 0 0;
+  background:linear-gradient(160deg, rgba(16,13,38,.98), rgba(6,6,20,.98));
+  box-shadow:0 -20px 60px rgba(0,0,0,.5);
+  padding:1.1rem 1.1rem 1.4rem;
+}
+.memberPopoverClose { position:absolute; top:.75rem; right:.75rem; display:grid; place-items:center; width:1.8rem; height:1.8rem; border-radius:50%; color:rgba(255,255,255,.6); background:rgba(255,255,255,.06); }
+.memberPopoverTag { border-radius:999px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.06); padding:.15rem .55rem; font-size:10px; color:rgba(255,255,255,.75); }
+.memberPopoverSecondary { display:inline-flex; min-height:36px; flex:1; align-items:center; justify-content:center; border-radius:.7rem; border:1px solid rgba(255,255,255,.14); font-size:12px; font-weight:600; color:rgba(255,255,255,.85); transition:border-color .2s ease, background .2s ease; }
+.memberPopoverSecondary:hover { border-color:rgba(255,255,255,.24); background:rgba(255,255,255,.05); }
+
+@media (min-width: 640px) {
+  .memberPopover {
+    left:50%;
+    top:50%;
+    right:auto;
+    bottom:auto;
+    width:min(340px, calc(100vw - 2rem));
+    max-height:min(80vh, 480px);
+    transform:translate(-50%,-50%);
+    border-radius:1.1rem;
+    box-shadow:0 24px 60px rgba(0,0,0,.45);
+  }
+}
 
 /* "Find people" stage CTA — sits in the gap between the lowest orbit node
    (.nodeCompanion, the deeper of the two bottom nodes) and .stageCaption.
@@ -176,6 +217,8 @@
 @keyframes drift { from { transform:translate3d(-3%,-2%,0) rotate(-4deg); } to { transform:translate3d(4%,3%,0) rotate(5deg); } }
 @keyframes signal { to { stroke-dashoffset:-130; } }
 @keyframes ringPulse { 0% { transform:scale(.92); opacity:.75; } 100% { transform:scale(1.3); opacity:0; } }
+@keyframes presenceGlow { 0%,100% { opacity:.55; transform:scale(.92); } 50% { opacity:1; transform:scale(1.08); } }
+@keyframes memberPulse { 0% { box-shadow:0 0 0 0 rgba(34,211,238,.55); } 70% { box-shadow:0 0 0 14px rgba(34,211,238,0); } 100% { box-shadow:0 0 0 0 rgba(34,211,238,0); } }
 
 @media (max-width: 640px) {
   /* De-boxed hero: strip the "card inside a card" framing so the world art
@@ -222,11 +265,6 @@
       inset 0 0 46px rgba(0, 0, 0, 0.55);
   }
 
-  .node { width:3.6rem; }
-  .nodeIcon { width:2.4rem; height:2.4rem; }
-  .nodeValue { display:none; }
-  .nodeLabel { line-height:1.15; }
-
   /* Decorative orbit connection lines use hardcoded desktop-only SVG
      coordinates that no longer line up with the repositioned mobile nodes
      below — hide rather than show mismatched lines pointing at empty space. */
@@ -243,24 +281,6 @@
     font-size: 8px;
     line-height: 1.4;
   }
-
-  /* Mobile-only node layout. Desktop's wide-radius angular placement above
-     (not edited) compresses into overlapping node/label clusters on a
-     narrow portrait stage. This is an independent compact two-column
-     layout, hand-verified against the 336-406px stage widths produced by
-     360-430px viewports (min-height 530px above), so no node or label
-     collides with another, the avatar/caption keep-out zone stays clear,
-     and nothing leaves the stage bounds. .nodeResources/.nodeCompanion's
-     top:78% (was 79%) still leaves a large gap below the 54%-row nodes
-     (~59px at 530px height) — see the .stageCta comment further down for
-     the collision math against the CTA itself. */
-  .nodePlatform { left: 50%; top: 8%; }
-  .nodePeople { left: 15%; top: 29%; }
-  .nodeCommunities { left: 85%; top: 29%; }
-  .nodeOpportunities { left: 15%; top: 54%; }
-  .nodeEvents { left: 85%; top: 54%; }
-  .nodeResources { left: 15%; top: 78%; }
-  .nodeCompanion { left: 85%; top: 78%; }
 
   /* Mobile "find people" CTA. Clearance math at the 530px .worldStage
      min-height above (identical at both 360px and 430px viewports — every
@@ -291,7 +311,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora, .orbitOuter, .orbitInner, .coreGlow, .avatarRing::after, .node, .connections path, .pulseRing, .pulseRingOuter, .twinkle, .nebulaAmber, .nebulaViolet { animation:none; }
+  .aurora, .orbitOuter, .orbitInner, .coreGlow, .avatarRing::after, .memberNodeButton, .memberNodeGlow, .memberNodePulse, .connections path, .pulseRing, .pulseRingOuter, .twinkle, .nebulaAmber, .nebulaViolet { animation:none; }
   .progressRingFill { transition:none; }
 }
 
@@ -367,13 +387,16 @@
   text-transform: uppercase;
   color: rgba(255,255,255,.42);
 }
-.liveDot {
+/* Static decorative dot — intentionally not animated/pulsing and not green
+   (the conventional "online" color), so it doesn't imply real-time presence
+   that BELONG doesn't track. */
+.networkDot {
   width: 6px;
   height: 6px;
   flex: none;
   border-radius: 999px;
-  background: #22c55e;
-  box-shadow: 0 0 10px rgba(34,197,94,.8);
+  background: #a78bfa;
+  box-shadow: 0 0 10px rgba(167,139,250,.7);
 }
 
 .heroCopy {
@@ -522,13 +545,6 @@
   }
   .heroCopy { max-width: 55%; }
   .heroActions { width: clamp(150px, 22%, 214px); }
-  .nodePlatform { top: 25%; }
-  .nodePeople { left: 27%; top: 40%; }
-  .nodeCommunities { left: 73%; top: 40%; }
-  .nodeOpportunities { left: 20%; top: 63%; }
-  .nodeEvents { left: 80%; top: 63%; }
-  .nodeResources { left: 34%; top: 80%; }
-  .nodeCompanion { left: 66%; top: 80%; }
 }
 
 @media (min-width: 1440px) {
@@ -638,22 +654,6 @@
   .identityCaption { width: 190px; transform: translate(-50%, 48px); }
   .identityCaption h2 { font-size: 11px; line-height:1.2; }
   .identityCaption p { font-size: 8px; line-height:1.25; }
-  .node {
-    width: 110px;
-    max-width: 28vw;
-  }
-  .nodeLabel {
-    width: 100%;
-    overflow-wrap: anywhere;
-    text-align: center;
-  }
-  .nodePlatform { left: 50%; top: 22%; }
-  .nodePeople { left: 23%; top: 37%; }
-  .nodeCommunities { left: 77%; top: 37%; }
-  .nodeOpportunities { left: 23%; top: 68%; }
-  .nodeEvents { left: 77%; top: 68%; }
-  .nodeResources { left: 28%; top: 84%; }
-  .nodeCompanion { left: 72%; top: 84%; }
   .mobileJourneySummary {
     display: block;
     min-height: 180px;

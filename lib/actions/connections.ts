@@ -58,7 +58,7 @@ export async function sendConnectionRequest(recipientId: string): Promise<Action
     title: "Connection request",
     body: `${profile.full_name ?? "Someone"} wants to connect`,
     type: "connection",
-    metadata: { connection_id: connection.id, requester_id: profile.id },
+    metadata: { connection_id: connection.id, requester_id: profile.id, actor_name: profile.full_name, actor_avatar_url: profile.avatar_url },
   });
   if (notification.error) {
     await supabase.from("connections").delete().eq("id", connection.id);
@@ -106,6 +106,8 @@ export async function respondToConnection(
         connection_id: connectionId,
         actor_id: profile.id,
         connected_user_id: profile.id,
+        actor_name: profile.full_name,
+        actor_avatar_url: profile.avatar_url,
       },
     });
     if (notification.error) {

@@ -47,7 +47,20 @@ export type FetchPeopleCandidatesOptions = {
   limit?: number;
   /** Row offset for pagination. Defaults to 0. */
   offset?: number;
+  /** Discovery surfaces may show existing relationships with their real state. */
+  includeExistingRelationships?: boolean;
 };
+
+function isNonDiscoverableAccount(user: { email: string; full_name: string | null }): boolean {
+  const email = user.email.toLowerCase();
+  const name = user.full_name?.trim().toLowerCase() ?? "";
+  return (
+    /(^|[.+_-])e2e([.+_@-]|$)/.test(email) ||
+    /^(system|service|noreply|no-reply)@/.test(email) ||
+    /^e2e\b/.test(name) ||
+    /^(system|service) account\b/.test(name)
+  );
+}
 
 /**
  * Fetches candidate people for matching, excluding the viewer and anyone with an
@@ -68,7 +81,7 @@ export async function fetchPeopleCandidates(
     await Promise.all([
       supabase
         .from("users")
-        .select("id, full_name, avatar_url, role, location, bio, build_goal")
+        .select("id, email, full_name, avatar_url, role, location, bio, build_goal")
         .neq("id", userId)
         .eq("onboarding_completed", true)
         .order("id", { ascending: true })
@@ -119,7 +132,8 @@ export async function fetchPeopleCandidates(
   }
 
   return (users ?? [])
-    .filter((user) => !excluded.has(user.id))
+    .filter((user) => !isNonDiscoverableAccount(user))
+    .filter((user) => options.includeExistingRelationships || !excluded.has(user.id))
     .map((user) => ({
       id: user.id,
       fullName: user.full_name,

@@ -204,6 +204,21 @@ export async function fetchProfileSocialFeed(
   };
 }
 
+export async function fetchSocialPostById(
+  supabase: SupabaseServerClient,
+  postId: string,
+  viewerId: string
+): Promise<SocialPost | null> {
+  const { data: row, error } = await supabase
+    .from("social_posts")
+    .select("*")
+    .eq("id", postId)
+    .maybeSingle();
+  if (error || !row) return null;
+  const posts = await hydrateSocialPosts(supabase, [row], viewerId);
+  return posts[0] ?? null;
+}
+
 export async function fetchGlobalSocialFeed(
   supabase: SupabaseServerClient,
   viewerId: string,

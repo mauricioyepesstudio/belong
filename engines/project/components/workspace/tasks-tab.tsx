@@ -107,28 +107,32 @@ export function ProjectTasksTab({
     });
   };
 
-  const handleDrop = (status: ProjectTaskStatus, index: number) => {
-    if (!draggingId) return;
-    const task = tasks.find((t) => t.id === draggingId);
-    if (!task || task.status === status && task.sortOrder === index) return;
+  const moveTask = (task: ProjectTask, status: ProjectTaskStatus, index: number) => {
+    if (task.status === status && task.sortOrder === index) return;
     if (status === "done" && task.status !== "done" && !canApproveWork) {
       toast("The project owner must approve work before it is completed", "error");
-      setDraggingId(null);
       return;
     }
 
     setTasks((prev) =>
       prev.map((t) =>
-        t.id === draggingId ? { ...t, status, sortOrder: index } : t
+        t.id === task.id ? { ...t, status, sortOrder: index } : t
       )
     );
 
     startTransition(async () => {
-      const result = await moveProjectTask(draggingId, status, index);
+      const result = await moveProjectTask(task.id, status, index);
       if (result.error) toast(result.error, "error");
       else onActivityCommitted?.();
     });
+  };
+
+  const handleDrop = (status: ProjectTaskStatus, index: number) => {
+    if (!draggingId) return;
+    const task = tasks.find((t) => t.id === draggingId);
     setDraggingId(null);
+    if (!task) return;
+    moveTask(task, status, index);
   };
 
   const handleApprove = (task: ProjectTask) => {
@@ -277,6 +281,27 @@ export function ProjectTasksTab({
                       Approve work
                     </Button>
                   )}
+                  <select
+                    aria-label={`Move "${task.title}" to another column`}
+                    value=""
+                    disabled={isPending}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={(event) => {
+                      const newStatus = event.target.value as ProjectTaskStatus;
+                      event.target.value = "";
+                      if (!newStatus) return;
+                      moveTask(task, newStatus, tasksByStatus(newStatus).length);
+                    }}
+                    className="mt-2 h-7 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 text-xs text-fg-muted focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                  >
+                    <option value="">Move to...</option>
+                    {COLUMNS.filter((c) => c.id !== task.status).map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               ))}
             </div>

@@ -12,6 +12,7 @@ import {
   Settings,
   ShoppingBag,
   User,
+  UserPlus,
   Users,
 } from "lucide-react";
 import type { NavItem } from "@/types";
@@ -24,7 +25,7 @@ export const mainNav: NavItem[] = [
   { label: "Projects", href: "/projects", icon: FolderKanban },
   { label: "Opportunities", href: "/opportunities", icon: Sparkles },
   { label: "Events", href: "/events", icon: Calendar },
-  { label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
+  { label: "Resources", href: "/marketplace", icon: ShoppingBag },
   { label: "Messages", href: "/messages", icon: MessageSquare },
   { label: "Notifications", href: "/notifications", icon: Bell },
 ];
@@ -35,21 +36,13 @@ export const secondaryNav: NavItem[] = [
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
+/** Unified bottom-nav dock shown on every authenticated route. */
 export const mobileNav: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: LayoutDashboard },
   { label: "Feed", href: "/feed", icon: Compass },
   { label: "Build", href: "/dashboard?build=open", icon: Sparkles },
   { label: "Messages", href: "/messages", icon: MessageSquare },
   { label: "More", href: "#more", icon: Menu },
-];
-
-/** Reference-style bottom dock shown only on the Home/dashboard route. */
-export const homeMobileNav: NavItem[] = [
-  { label: "Explore", href: "/search", icon: Compass },
-  { label: "Connect", href: "/people/discover", icon: Users },
-  { label: "Build", href: "/dashboard?build=open", icon: Sparkles },
-  { label: "Messages", href: "/messages", icon: MessageSquare },
-  { label: "Profile", href: "/profile", icon: User },
 ];
 
 /** Compact primary-destination nav shown in the top bar on the Home/dashboard route. */
@@ -66,7 +59,7 @@ export const homeTopNav: NavItem[] = [
 
 /** Routes surfaced in the mobile More menu (not in the bottom bar). */
 export const mobileMoreNav: NavItem[] = [
-  { label: "People", href: "/people/discover", icon: Users },
+  { label: "People", href: "/people/discover", icon: UserPlus },
   { label: "Profile", href: "/profile", icon: User },
   { label: "Notifications", href: "/notifications", icon: Bell },
   { label: "Communities", href: "/community", icon: Users },

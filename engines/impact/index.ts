@@ -20,3 +20,14 @@ export { ImpactSection } from "./components/impact-section";
 export type { BelongScoreCounts, BelongScoreResult } from "./belong-score";
 export { computeBelongScore, BELONG_SCORE_COMMENT_WEIGHT } from "./belong-score";
 export { fetchBelongScoreInputs } from "./belong-score-data";
+export type {
+  CollaborationStatus,
+  CollaborationRecordRow,
+  CollaborationParticipant,
+  CollaborationContext,
+  CollaborationRecord,
+  MyCollaborations,
+} from "./passport/types";
+export { listMyCollaborations } from "./passport/data";
+export type { CollaborationGuardRecord } from "./passport/guards";
+export { canPropose, canConfirm, canDecline, canCancel } from "./passport/guards";

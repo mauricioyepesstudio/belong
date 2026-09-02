@@ -37,8 +37,8 @@ export const secondaryNav: NavItem[] = [
 
 export const mobileNav: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Community", href: "/community", icon: Users },
-  { label: "Projects", href: "/projects", icon: FolderKanban },
+  { label: "Feed", href: "/feed", icon: Compass },
+  { label: "Build", href: "/dashboard?build=open", icon: Sparkles },
   { label: "Messages", href: "/messages", icon: MessageSquare },
   { label: "More", href: "#more", icon: Menu },
 ];
@@ -66,11 +66,14 @@ export const homeTopNav: NavItem[] = [
 
 /** Routes surfaced in the mobile More menu (not in the bottom bar). */
 export const mobileMoreNav: NavItem[] = [
+  { label: "People", href: "/people/discover", icon: Users },
   { label: "Profile", href: "/profile", icon: User },
   { label: "Notifications", href: "/notifications", icon: Bell },
+  { label: "Communities", href: "/community", icon: Users },
+  { label: "Projects", href: "/projects", icon: FolderKanban },
   { label: "Organizations", href: "/organizations", icon: Building2 },
   { label: "Events", href: "/events", icon: Calendar },
-  { label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
+  { label: "Resources", href: "/marketplace", icon: ShoppingBag },
   { label: "Creator", href: "/creator", icon: Crown },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
@@ -95,6 +98,7 @@ export const platformRoutes = [
   "/creator",
   "/billing",
   "/search",
+  "/collaborations",
 ] as const;
 
 export function isNavActive(pathname: string, href: string): boolean {

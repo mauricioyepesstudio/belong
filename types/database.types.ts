@@ -24,6 +24,7 @@ export type SocialPostType =
   | "needs_help"
   | "impact";
 export type SocialMediaType = "image" | "video";
+export type CollaborationStatus = "pending" | "confirmed" | "declined";
 export type SubscriptionTier = "free" | "pro" | "creator";
 export type SubscriptionStatus = "active" | "canceled" | "past_due" | "trialing" | "incomplete" | "incomplete_expired" | "unpaid";
 export type PaymentType = "platform_subscription" | "community_subscription" | "project_funding" | "donation" | "marketplace_purchase" | "creator_tip";
@@ -1262,6 +1263,48 @@ export interface Database {
         };
         Relationships: [];
       };
+      collaboration_records: {
+        Row: {
+          id: string;
+          proposer_id: string;
+          partner_id: string;
+          status: CollaborationStatus;
+          summary: string;
+          project_id: string | null;
+          community_id: string | null;
+          proposed_at: string;
+          responded_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          proposer_id: string;
+          partner_id: string;
+          status?: CollaborationStatus;
+          summary: string;
+          project_id?: string | null;
+          community_id?: string | null;
+          proposed_at?: string;
+          responded_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          proposer_id?: string;
+          partner_id?: string;
+          status?: CollaborationStatus;
+          summary?: string;
+          project_id?: string | null;
+          community_id?: string | null;
+          proposed_at?: string;
+          responded_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       community_post_likes: {
         Row: {
           id: string;
@@ -1795,6 +1838,7 @@ export type CommunityPost = Database["public"]["Tables"]["community_posts"]["Row
 export type SocialPostRow = Database["public"]["Tables"]["social_posts"]["Row"];
 export type SocialPostCommentRow = Database["public"]["Tables"]["social_post_comments"]["Row"];
 export type SocialPostReactionRow = Database["public"]["Tables"]["social_post_reactions"]["Row"];
+export type CollaborationRecordRow = Database["public"]["Tables"]["collaboration_records"]["Row"];
 export type CommunityPostLike = Database["public"]["Tables"]["community_post_likes"]["Row"];
 export type CommunityPostComment = Database["public"]["Tables"]["community_post_comments"]["Row"];
 export type ProjectPost = Database["public"]["Tables"]["project_posts"]["Row"];

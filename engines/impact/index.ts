@@ -17,3 +17,6 @@ export {
 } from "./service";
 export { applyImpactScoreInsert } from "./apply-impact-score";
 export { ImpactSection } from "./components/impact-section";
+export type { BelongScoreCounts, BelongScoreResult } from "./belong-score";
+export { computeBelongScore, BELONG_SCORE_COMMENT_WEIGHT } from "./belong-score";
+export { fetchBelongScoreInputs } from "./belong-score-data";

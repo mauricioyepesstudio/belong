@@ -30,6 +30,12 @@ export type SubscriptionStatus = "active" | "canceled" | "past_due" | "trialing"
 export type PaymentType = "platform_subscription" | "community_subscription" | "project_funding" | "donation" | "marketplace_purchase" | "creator_tip";
 export type PaymentStatus = "pending" | "succeeded" | "failed" | "refunded";
 export type ListingStatus = "draft" | "active" | "sold" | "archived";
+export type MarketplaceListingCategory =
+  | "Services"
+  | "Tools & templates"
+  | "Guidance"
+  | "Learning"
+  | "Funding & launch";
 export type DailyMissionStatus = "pending" | "completed" | "skipped";
 export type WeeklyGoalStatus = "active" | "completed" | "expired";
 export type QuarterlyGoalStatus = "active" | "completed" | "expired";
@@ -720,6 +726,7 @@ export interface Database {
           stripe_product_id: string | null;
           image_url: string | null;
           status: ListingStatus;
+          category: MarketplaceListingCategory | null;
           created_at: string;
           updated_at: string;
         };
@@ -734,6 +741,7 @@ export interface Database {
           stripe_product_id?: string | null;
           image_url?: string | null;
           status?: ListingStatus;
+          category?: MarketplaceListingCategory | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -748,6 +756,7 @@ export interface Database {
           stripe_product_id?: string | null;
           image_url?: string | null;
           status?: ListingStatus;
+          category?: MarketplaceListingCategory | null;
           created_at?: string;
           updated_at?: string;
         };

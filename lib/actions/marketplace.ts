@@ -12,6 +12,7 @@ import {
   LISTING_IMAGE_MAX_BYTES,
 } from "@/engines/marketplace/media";
 import { toUserErrorMessage } from "@/lib/errors/user-message";
+import type { MarketplaceListingCategory } from "@/types/database.types";
 
 export async function uploadListingImage(
   formData: FormData
@@ -45,6 +46,7 @@ export async function createListing(data: {
   priceCents: number;
   imageUrl?: string;
   publish?: boolean;
+  category?: MarketplaceListingCategory;
 }): Promise<ActionResult> {
   const supabase = await createClient();
   const profile = await requireProfile();
@@ -88,6 +90,7 @@ export async function createListing(data: {
       stripe_product_id: stripeProductId,
       stripe_price_id: stripePriceId,
       status: data.publish ? "active" : "draft",
+      category: data.category ?? null,
     })
     .select("id")
     .single();

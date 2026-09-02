@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowLeft, Target } from "lucide-react";
+import { ArrowLeft, MessageCircle, Target } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getAcceptedConnections } from "@/lib/data/connections";
-import { CIRCLE_MAX_MEMBERS, canInvite, isAtCapacity } from "@/engines/circles";
+import { CIRCLE_MAX_MEMBERS, canInvite, isAtCapacity, listCircleCheckins } from "@/engines/circles";
 import {
   CircleInviteMemberDialog,
   CircleLeaveButton,
   CircleRemoveMemberButton,
 } from "@/components/features/circles/circle-detail-actions";
-import { Avatar, Badge, Button, Card, CardContent } from "@/systems/design-system";
+import { CheckinComposer } from "@/components/features/circles/checkin-composer";
+import { CheckinFeed } from "@/components/features/circles/checkin-feed";
+import { Avatar, Badge, Button, Card, CardContent, EmptyState } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 
 type CirclePageProps = {
@@ -32,11 +34,14 @@ export default async function CircleDetailPage({ params }: CirclePageProps) {
     .maybeSingle();
   if (!circle) notFound();
 
-  const { data: memberRows } = await supabase
-    .from("accountability_circle_members")
-    .select("id, user_id, role, status, joined_at, created_at")
-    .eq("circle_id", circleId)
-    .order("created_at", { ascending: true });
+  const [{ data: memberRows }, checkins] = await Promise.all([
+    supabase
+      .from("accountability_circle_members")
+      .select("id, user_id, role, status, joined_at, created_at")
+      .eq("circle_id", circleId)
+      .order("created_at", { ascending: true }),
+    listCircleCheckins(supabase, circleId),
+  ]);
   const rows = memberRows ?? [];
 
   const viewerRow = rows.find((row) => row.user_id === profile.id);
@@ -144,7 +149,27 @@ export default async function CircleDetailPage({ params }: CirclePageProps) {
         </CardContent>
       </Card>
 
-      <p className="text-sm text-fg-muted">Check-ins are coming soon to this circle.</p>
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-fg-muted">
+          Check-ins
+        </h2>
+        {viewerRow.status === "active" && (
+          <Card>
+            <CardContent className="pt-5">
+              <CheckinComposer circleId={circle.id} />
+            </CardContent>
+          </Card>
+        )}
+        {checkins.length === 0 ? (
+          <EmptyState
+            icon={MessageCircle}
+            title="No check-ins yet"
+            description="Be the first to share an update with this circle."
+          />
+        ) : (
+          <CheckinFeed checkins={checkins} viewerId={profile.id} />
+        )}
+      </section>
     </div>
   );
 }

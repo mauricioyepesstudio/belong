@@ -6,7 +6,7 @@ values (
   'listing-media',
   'listing-media',
   true,
-  5242880,
+  12582912,
   array['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 )
 on conflict (id) do nothing;

@@ -90,7 +90,13 @@ export async function createListing(data: {
       stripe_product_id: stripeProductId,
       stripe_price_id: stripePriceId,
       status: data.publish ? "active" : "draft",
-      category: data.category ?? null,
+      // Only sent when explicitly provided: the `category` column ships in
+      // migration 20260902000003, which may not be applied to every
+      // environment yet. Always including it (even as null) would break
+      // every insert with "Could not find the 'category' column" until
+      // that migration lands -- omitting it when unset keeps this action
+      // working before and after the migration is applied.
+      ...(data.category !== undefined ? { category: data.category } : {}),
     })
     .select("id")
     .single();

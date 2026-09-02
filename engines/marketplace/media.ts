@@ -1,4 +1,9 @@
-export const LISTING_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+// 12MB: modern phone camera photos routinely land in the 5-15MB range,
+// so 5MB was rejecting normal real-world photos before they ever reached
+// the server. The Server Action body limit (next.config.ts) and the
+// listing-media storage bucket's file_size_limit (see the migration that
+// creates it) both need to stay at or above this value.
+export const LISTING_IMAGE_MAX_BYTES = 12 * 1024 * 1024;
 
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 

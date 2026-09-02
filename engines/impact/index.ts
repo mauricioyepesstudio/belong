@@ -20,6 +20,9 @@ export { ImpactSection } from "./components/impact-section";
 export type { BelongScoreCounts, BelongScoreResult } from "./belong-score";
 export { computeBelongScore, BELONG_SCORE_COMMENT_WEIGHT } from "./belong-score";
 export { fetchBelongScoreInputs } from "./belong-score-data";
+export type { StreakResult } from "./streak";
+export { computeStreak } from "./streak";
+export { fetchStreakInputs } from "./streak-data";
 export type {
   CollaborationStatus,
   CollaborationRecordRow,

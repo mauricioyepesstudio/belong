@@ -1,6 +1,7 @@
 "use client";
 
 import { AuthCard } from "@/components/auth/auth-card";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button, ErrorMessage, Input, Label } from "@/components/ui";
 import { signUpWithEmail } from "@/lib/actions/auth";
 import {
@@ -92,6 +93,9 @@ export default function RegisterForm() {
           Create account
         </Button>
       </form>
+      <div className="mt-5">
+        <OAuthButtons />
+      </div>
     </AuthCard>
   );
 }

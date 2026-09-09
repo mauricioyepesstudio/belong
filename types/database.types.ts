@@ -88,6 +88,35 @@ export type BuildGoal =
   | "community"
   | "travel"
   | "creator";
+export type ProofClaimType =
+  | "factual"
+  | "causal"
+  | "predictive"
+  | "normative"
+  | "commitment"
+  | "capability"
+  | "solution"
+  | "goal";
+export type ProofClaimStatus = "draft" | "active" | "resolved" | "archived";
+export type ProofChallengeType = "test" | "support" | "counter" | "improve" | "execute";
+export type ProofApproachStatus = "proposed" | "active" | "completed" | "withdrawn";
+export type ProofEvidenceProvenance =
+  | "self_reported"
+  | "participant_recorded"
+  | "owner_confirmed"
+  | "organization_confirmed"
+  | "multi_party_confirmed"
+  | "external_source_linked"
+  | "independently_reviewed";
+export type ProofEvidenceStatus = "active" | "disputed" | "incomplete" | "retracted";
+export type ProofResolution =
+  | "supported"
+  | "partially_supported"
+  | "mixed"
+  | "not_supported"
+  | "inconclusive"
+  | "failed_to_complete"
+  | "withdrawn";
 
 export interface Database {
   public: {
@@ -1727,6 +1756,303 @@ export interface Database {
         };
         Relationships: [];
       };
+      proof_claims: {
+        Row: {
+          id: string;
+          author_id: string;
+          title: string;
+          body: string;
+          claim_type: ProofClaimType;
+          status: ProofClaimStatus;
+          community_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          author_id: string;
+          title: string;
+          body?: string;
+          claim_type: ProofClaimType;
+          status?: ProofClaimStatus;
+          community_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          author_id?: string;
+          title?: string;
+          body?: string;
+          claim_type?: ProofClaimType;
+          status?: ProofClaimStatus;
+          community_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      proof_standards: {
+        Row: {
+          id: string;
+          claim_id: string;
+          problem_statement: string | null;
+          hypothesis: string | null;
+          success_criteria: Json;
+          baseline: string | null;
+          deadline: string | null;
+          evidence_requirements: string | null;
+          refutation_criteria: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          claim_id: string;
+          problem_statement?: string | null;
+          hypothesis?: string | null;
+          success_criteria?: Json;
+          baseline?: string | null;
+          deadline?: string | null;
+          evidence_requirements?: string | null;
+          refutation_criteria?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          claim_id?: string;
+          problem_statement?: string | null;
+          hypothesis?: string | null;
+          success_criteria?: Json;
+          baseline?: string | null;
+          deadline?: string | null;
+          evidence_requirements?: string | null;
+          refutation_criteria?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      proof_challenges: {
+        Row: {
+          id: string;
+          claim_id: string;
+          author_id: string;
+          challenge_type: ProofChallengeType;
+          body: string;
+          status: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          claim_id: string;
+          author_id: string;
+          challenge_type: ProofChallengeType;
+          body: string;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          claim_id?: string;
+          author_id?: string;
+          challenge_type?: ProofChallengeType;
+          body?: string;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      proof_approaches: {
+        Row: {
+          id: string;
+          challenge_id: string;
+          author_id: string;
+          title: string;
+          body: string | null;
+          status: ProofApproachStatus;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          challenge_id: string;
+          author_id: string;
+          title: string;
+          body?: string | null;
+          status?: ProofApproachStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          challenge_id?: string;
+          author_id?: string;
+          title?: string;
+          body?: string | null;
+          status?: ProofApproachStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      proof_execution_links: {
+        Row: {
+          id: string;
+          approach_id: string;
+          project_id: string | null;
+          mission_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          approach_id: string;
+          project_id?: string | null;
+          mission_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          approach_id?: string;
+          project_id?: string | null;
+          mission_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      proof_evidence: {
+        Row: {
+          id: string;
+          author_id: string;
+          claim_id: string | null;
+          approach_id: string | null;
+          outcome_id: string | null;
+          body: string | null;
+          source_url: string | null;
+          media_url: string | null;
+          media_path: string | null;
+          provenance: ProofEvidenceProvenance;
+          status: ProofEvidenceStatus;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          author_id: string;
+          claim_id?: string | null;
+          approach_id?: string | null;
+          outcome_id?: string | null;
+          body?: string | null;
+          source_url?: string | null;
+          media_url?: string | null;
+          media_path?: string | null;
+          provenance?: ProofEvidenceProvenance;
+          status?: ProofEvidenceStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          author_id?: string;
+          claim_id?: string | null;
+          approach_id?: string | null;
+          outcome_id?: string | null;
+          body?: string | null;
+          source_url?: string | null;
+          media_url?: string | null;
+          media_path?: string | null;
+          provenance?: ProofEvidenceProvenance;
+          status?: ProofEvidenceStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      proof_outcomes: {
+        Row: {
+          id: string;
+          claim_id: string;
+          resolution: ProofResolution;
+          summary: string;
+          resolved_by: string;
+          resolved_at: string;
+          criteria_snapshot: Json | null;
+          uncertainty_notes: string | null;
+          position_updated: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          claim_id: string;
+          resolution: ProofResolution;
+          summary: string;
+          resolved_by: string;
+          resolved_at?: string;
+          criteria_snapshot?: Json | null;
+          uncertainty_notes?: string | null;
+          position_updated?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          claim_id?: string;
+          resolution?: ProofResolution;
+          summary?: string;
+          resolved_by?: string;
+          resolved_at?: string;
+          criteria_snapshot?: Json | null;
+          uncertainty_notes?: string | null;
+          position_updated?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      proof_participants: {
+        Row: {
+          id: string;
+          user_id: string;
+          claim_id: string | null;
+          challenge_id: string | null;
+          approach_id: string | null;
+          role: string;
+          intent: string | null;
+          status: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          claim_id?: string | null;
+          challenge_id?: string | null;
+          approach_id?: string | null;
+          role?: string;
+          intent?: string | null;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          claim_id?: string | null;
+          challenge_id?: string | null;
+          approach_id?: string | null;
+          role?: string;
+          intent?: string | null;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -1783,6 +2109,13 @@ export interface Database {
       ai_copilot_action_status: AICopilotActionStatus;
       mission_state: MissionState;
       onboarding_session_status: OnboardingSessionStatus;
+      proof_claim_type: ProofClaimType;
+      proof_claim_status: ProofClaimStatus;
+      proof_challenge_type: ProofChallengeType;
+      proof_approach_status: ProofApproachStatus;
+      proof_evidence_provenance: ProofEvidenceProvenance;
+      proof_evidence_status: ProofEvidenceStatus;
+      proof_resolution: ProofResolution;
     };
   };
 }
@@ -1808,3 +2141,11 @@ export type Subscription = Database["public"]["Tables"]["subscriptions"]["Row"];
 export type Payment = Database["public"]["Tables"]["payments"]["Row"];
 export type MarketplaceListing = Database["public"]["Tables"]["marketplace_listings"]["Row"];
 export type ImpactEventRow = Database["public"]["Tables"]["impact_events"]["Row"];
+export type ProofClaim = Database["public"]["Tables"]["proof_claims"]["Row"];
+export type ProofStandard = Database["public"]["Tables"]["proof_standards"]["Row"];
+export type ProofChallenge = Database["public"]["Tables"]["proof_challenges"]["Row"];
+export type ProofApproach = Database["public"]["Tables"]["proof_approaches"]["Row"];
+export type ProofExecutionLink = Database["public"]["Tables"]["proof_execution_links"]["Row"];
+export type ProofEvidence = Database["public"]["Tables"]["proof_evidence"]["Row"];
+export type ProofOutcome = Database["public"]["Tables"]["proof_outcomes"]["Row"];
+export type ProofParticipant = Database["public"]["Tables"]["proof_participants"]["Row"];

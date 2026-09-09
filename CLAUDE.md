@@ -154,6 +154,42 @@ Use specialized subagents whenever possible:
 
 
 
+\- marketing
+
+&#x20; Drafts positioning, campaigns and launch copy. Draft-only, never publishes.
+
+
+
+\- social-media
+
+&#x20; Drafts social copy and content calendars. Draft-only, never posts.
+
+
+
+\- ui-ux-pro
+
+&#x20; Proposes UX direction and specs for screens without an approved reference yet. Advisory only.
+
+
+
+\- taste-skill
+
+&#x20; Final aesthetic/quality gate before shipping user-facing work. Advisory only.
+
+
+
+\- finance
+
+&#x20; Analyzes pricing, billing and unit economics. Drafts proposals for backend-supabase.
+
+
+
+\- legal
+
+&#x20; Flags compliance, privacy and Proof Loop epistemic-rule risk. Advisory only.
+
+
+
 Do not make the main agent perform every role itself.
 
 

@@ -154,6 +154,34 @@ Use specialized subagents whenever possible:
 
 
 
+Marketing/growth department (never touches application code):
+
+
+
+\- community-growth-strategist
+
+&#x20; User acquisition, positioning, growth strategy.
+
+
+
+\- social-content-lead
+
+&#x20; BELONG's own external social/marketing content, not the product's in-app social features.
+
+
+
+\- brand-taste-lead
+
+&#x20; Visual identity and brand-taste judgment; reviews, never implements.
+
+
+
+\- revenue-compliance-analyst
+
+&#x20; Billing/revenue health and basic legal/privacy review. Read-only, never touches Stripe or payment code.
+
+
+
 Do not make the main agent perform every role itself.
 
 

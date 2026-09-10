@@ -40,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ruflo/claude-flow local runtime state (per-machine, not shared)
+.claude-flow/
+.swarm/
+ruvector.db

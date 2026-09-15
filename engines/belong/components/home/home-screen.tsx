@@ -9,6 +9,7 @@ import { SocialComposer } from "@/components/features/social/social-composer";
 import { useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DashboardActions } from "../dashboard/dashboard-actions";
+import { CreateProofModal } from "../dashboard/create-proof-modal";
 import { HomeMobileCompanionPanels, HomeUniverse } from "./home-universe";
 import { HomeSuggestionsCarousel } from "./home-suggestions-carousel";
 import { HomeLiveBuilders } from "./home-live-builders";
@@ -69,6 +70,16 @@ export function HomeScreen(data: HomeEngineData) {
       </div>
 
       <div className="mt-8 space-y-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-body font-medium text-fg-primary">Prove it</p>
+            <p className="text-caption text-fg-faint">
+              Turn a claim, goal, or commitment into something evidence can resolve.
+            </p>
+          </div>
+          <CreateProofModal communities={communities} />
+        </div>
+
         <HomeMissionsRow goals={data.weeklyGoals} onCreateMission={() => setMissionOpen(true)} />
 
         <HomeImpactRipple impactEngine={data.impactEngine} latestImpact={latestImpactActivity} profile={profile} />

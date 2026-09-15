@@ -1,4 +1,4 @@
-import type { ProofClaim, ProofOutcome, ProofStandard } from "@/types/database.types";
+import type { ProofClaim, ProofClaimType, ProofOutcome, ProofStandard } from "@/types/database.types";
 import type { SupabaseServerClient } from "./types";
 
 export type ProofClaimWithMeta = ProofClaim & {
@@ -62,6 +62,50 @@ export async function getProofClaimWithMeta(
     challengeCount: challengeCount ?? 0,
     participantCount: participantCount ?? 0,
   };
+}
+
+export type ProofClaimDraftInput = {
+  title: string;
+  claimType: ProofClaimType;
+  body?: string;
+  communityId?: string;
+  standard: {
+    problemStatement?: string;
+    hypothesis?: string;
+    successCriteria: string[];
+    baseline?: string;
+    deadline?: string;
+    evidenceRequirements?: string;
+    refutationCriteria?: string;
+  };
+};
+
+/**
+ * Validates the Proof creation entry point (BELONG_PROOF_LOOP.md V1 vertical
+ * slice, steps 1-2: "structured claim/goal and success criteria"). A claim
+ * without at least one declared success criterion is not yet a Proof per the
+ * protocol ("success criteria should be declared before results whenever
+ * practical"), so creation is rejected rather than allowed as an empty draft.
+ */
+export function validateProofClaimInput(
+  data: ProofClaimDraftInput
+): { error: string } | null {
+  if (!data.title.trim()) return { error: "Title is required" };
+
+  const criteria = data.standard.successCriteria.map((c) => c.trim()).filter(Boolean);
+  if (criteria.length === 0) {
+    return { error: "At least one success criterion is required" };
+  }
+
+  if (data.standard.deadline) {
+    const parsed = new Date(data.standard.deadline);
+    if (Number.isNaN(parsed.getTime())) return { error: "Invalid deadline" };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (parsed < today) return { error: "Deadline cannot be in the past" };
+  }
+
+  return null;
 }
 
 export type ProofClaimStage = "seeking_evidence" | "resolved" | "not_yet_open" | "closed";

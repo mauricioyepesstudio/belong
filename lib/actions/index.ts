@@ -14,3 +14,4 @@ export * from "./marketplace";
 export * from "./mission-engine";
 export * from "./ai-copilot";
 export * from "./organizations";
+export * from "./proof";

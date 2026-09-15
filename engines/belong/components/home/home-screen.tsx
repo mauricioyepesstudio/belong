@@ -10,6 +10,7 @@ import { useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DashboardActions } from "../dashboard/dashboard-actions";
 import { CreateProofModal } from "../dashboard/create-proof-modal";
+import { UpgradePrompt } from "@/engines/billing";
 import { HomeMobileCompanionPanels, HomeUniverse } from "./home-universe";
 import { HomeSuggestionsCarousel } from "./home-suggestions-carousel";
 import { HomeLiveBuilders } from "./home-live-builders";
@@ -70,6 +71,8 @@ export function HomeScreen(data: HomeEngineData) {
       </div>
 
       <div className="mt-8 space-y-8">
+        <UpgradePrompt tier={profile.subscription_tier} />
+
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-body font-medium text-fg-primary">Prove it</p>

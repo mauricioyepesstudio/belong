@@ -6,3 +6,4 @@ export { BillingSettings } from "./components/billing-settings";
 export { PayModal } from "./components/pay-modal";
 export { FundProjectModal } from "./components/fund-project-modal";
 export { CreatorScreen } from "./components/creator-screen";
+export { UpgradePrompt } from "./components/upgrade-prompt";

@@ -7,7 +7,7 @@ import { useDashboardRealtime } from "@/engines/core/realtime";
 import { Modal } from "@/components/ui/modal";
 import { SocialComposer } from "@/components/features/social/social-composer";
 import { useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { DashboardActions } from "../dashboard/dashboard-actions";
 import { CreateProofModal } from "../dashboard/create-proof-modal";
 import { UpgradePrompt } from "@/engines/billing";
@@ -18,8 +18,10 @@ import { HomeSocialPreview } from "./home-social-preview";
 import { HomeMissionsRow } from "./home-missions-row";
 import { HomeImpactRipple } from "./home-impact-ripple";
 import { HomeSpotlight } from "./home-spotlight";
+import { HomeQuickActions, type QuickActionId } from "./home-quick-actions";
 
 export function HomeScreen(data: HomeEngineData) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const composerRef = useRef<HTMLDivElement>(null);
   const { profile, communities, discoverCommunities, recentProjects } = data;
@@ -52,6 +54,23 @@ export function HomeScreen(data: HomeEngineData) {
     [communities, recentProjects]
   );
 
+  const handleQuickAction = (action: QuickActionId) => {
+    switch (action) {
+      case "create_post":
+        setComposerOpen(true);
+        break;
+      case "create_project":
+        setProjectOpen(true);
+        break;
+      case "join_community":
+        setCommunityOpen(true);
+        break;
+      case "invite":
+        router.push("/people/discover");
+        break;
+    }
+  };
+
   return (
     <div className="pb-8">
       <div className="space-y-5">
@@ -72,6 +91,8 @@ export function HomeScreen(data: HomeEngineData) {
 
       <div className="mt-8 space-y-8">
         <UpgradePrompt tier={profile.subscription_tier} />
+
+        <HomeQuickActions onAction={handleQuickAction} />
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

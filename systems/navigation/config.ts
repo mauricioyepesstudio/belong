@@ -11,6 +11,7 @@ import {
   Sparkles,
   Settings,
   ShoppingBag,
+  Target,
   User,
   UserPlus,
   Users,
@@ -22,6 +23,7 @@ export const mainNav: NavItem[] = [
   { label: "Feed", href: "/feed", icon: Compass },
   { label: "Organizations", href: "/organizations", icon: Building2 },
   { label: "Community", href: "/community", icon: Users },
+  { label: "Proof", href: "/proof", icon: Target },
   { label: "Projects", href: "/projects", icon: FolderKanban },
   { label: "Opportunities", href: "/opportunities", icon: Sparkles },
   { label: "Events", href: "/events", icon: Calendar },
@@ -60,6 +62,7 @@ export const homeTopNav: NavItem[] = [
 /** Routes surfaced in the mobile More menu (not in the bottom bar). */
 export const mobileMoreNav: NavItem[] = [
   { label: "People", href: "/people/discover", icon: UserPlus },
+  { label: "Proof", href: "/proof", icon: Target },
   { label: "Profile", href: "/profile", icon: User },
   { label: "Notifications", href: "/notifications", icon: Bell },
   { label: "Communities", href: "/community", icon: Users },
@@ -80,6 +83,7 @@ export const platformRoutes = [
   "/missions",
   "/opportunities",
   "/community",
+  "/proof",
   "/projects",
   "/events",
   "/messages",

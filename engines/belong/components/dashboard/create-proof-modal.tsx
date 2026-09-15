@@ -2,22 +2,14 @@
 
 import { createProofClaim } from "@/lib/actions/proof";
 import type { UserCommunity } from "@/lib/core";
+import { PROOF_CLAIM_TYPE_LABELS } from "@/lib/core/proof";
 import type { ProofClaimType } from "@/types/database.types";
 import { Badge, Button, Input, Label, Modal, Textarea, useToast } from "@/systems/design-system";
 import { Plus, Target, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-const CLAIM_TYPES: { value: ProofClaimType; label: string }[] = [
-  { value: "goal", label: "Goal" },
-  { value: "commitment", label: "Commitment" },
-  { value: "capability", label: "Capability" },
-  { value: "solution", label: "Proposed solution" },
-  { value: "predictive", label: "Prediction" },
-  { value: "causal", label: "Causal claim" },
-  { value: "factual", label: "Factual claim" },
-  { value: "normative", label: "Normative / values claim" },
-];
+const CLAIM_TYPES = Object.entries(PROOF_CLAIM_TYPE_LABELS) as [ProofClaimType, string][];
 
 type CreateProofModalProps = {
   communities: UserCommunity[];
@@ -114,9 +106,9 @@ export function CreateProofModal({ communities }: CreateProofModalProps) {
               defaultValue="goal"
               className="mt-1 flex h-10 w-full rounded-xl border border-border-subtle bg-bg-surface px-3 text-sm text-fg-primary"
             >
-              {CLAIM_TYPES.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
+              {CLAIM_TYPES.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
                 </option>
               ))}
             </select>

@@ -10,3 +10,4 @@ export * from "./connections";
 export * from "./organizations";
 export * from "./billing";
 export * from "./marketplace";
+export * from "./proof";

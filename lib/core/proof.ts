@@ -108,6 +108,17 @@ export function validateProofClaimInput(
   return null;
 }
 
+export const PROOF_CLAIM_TYPE_LABELS: Record<ProofClaimType, string> = {
+  goal: "Goal",
+  commitment: "Commitment",
+  capability: "Capability",
+  solution: "Proposed solution",
+  predictive: "Prediction",
+  causal: "Causal claim",
+  factual: "Factual claim",
+  normative: "Normative / values claim",
+};
+
 export type ProofClaimStage = "seeking_evidence" | "resolved" | "not_yet_open" | "closed";
 
 /**
@@ -127,3 +138,10 @@ export function deriveProofClaimStage(claim: Pick<ProofClaim, "status">): ProofC
       return "closed";
   }
 }
+
+export const PROOF_CLAIM_STAGE_LABELS: Record<ProofClaimStage, string> = {
+  not_yet_open: "Not yet open",
+  seeking_evidence: "Seeking evidence",
+  resolved: "Resolved",
+  closed: "Closed",
+};

@@ -21,3 +21,4 @@ export { CreateApproachModal } from "./components/create-approach-modal";
 export { ShowUpModal } from "./components/show-up-modal";
 export { SubmitEvidenceModal } from "./components/submit-evidence-modal";
 export { ResolveProofModal } from "./components/resolve-proof-modal";
+export { ShareProofButton } from "./components/share-proof-button";

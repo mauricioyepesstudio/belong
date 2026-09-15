@@ -1,6 +1,7 @@
 import { CreateApproachModal } from "./create-approach-modal";
 import { CreateChallengeModal } from "./create-challenge-modal";
 import { ResolveProofModal } from "./resolve-proof-modal";
+import { ShareProofButton } from "./share-proof-button";
 import { ShowUpModal } from "./show-up-modal";
 import { SubmitEvidenceModal } from "./submit-evidence-modal";
 import type { ProjectWithMemberCount } from "@/lib/core";
@@ -70,6 +71,7 @@ export function ProofClaimDetailScreen({
       description={claim.body || undefined}
       action={
         <div className="flex flex-wrap gap-2">
+          <ShareProofButton claimId={claim.id} />
           <CreateChallengeModal claimId={claim.id} disabled={claim.status !== "active"} />
           {isAuthor && claim.status === "active" && <ResolveProofModal claimId={claim.id} />}
         </div>

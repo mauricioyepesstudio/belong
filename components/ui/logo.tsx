@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import Link from "next/link";
 import type { HTMLAttributes } from "react";
 
@@ -13,12 +14,20 @@ const sizes = {
   lg: "text-base tracking-[0.35em]",
 };
 
+const markSizes = {
+  sm: 16,
+  md: 20,
+  lg: 24,
+};
+
 export function Logo({ className, href = "/", size = "md", ...props }: LogoProps) {
+  const mark = markSizes[size];
   const content = (
     <span
-      className={cn("font-semibold text-fg-primary", sizes[size], className)}
+      className={cn("inline-flex items-center gap-2 font-semibold text-fg-primary", sizes[size], className)}
       {...props}
     >
+      <Image src="/brand/mark.png" alt="" width={mark} height={mark} className="shrink-0" priority />
       BELONG
     </span>
   );

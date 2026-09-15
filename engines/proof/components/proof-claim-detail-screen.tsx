@@ -1,5 +1,6 @@
 import { CreateApproachModal } from "./create-approach-modal";
 import { CreateChallengeModal } from "./create-challenge-modal";
+import { ResolveProofModal } from "./resolve-proof-modal";
 import { ShowUpModal } from "./show-up-modal";
 import { SubmitEvidenceModal } from "./submit-evidence-modal";
 import type { ProjectWithMemberCount } from "@/lib/core";
@@ -10,10 +11,19 @@ import {
   PROOF_CLAIM_STAGE_LABELS,
   PROOF_CLAIM_TYPE_LABELS,
   PROOF_EVIDENCE_PROVENANCE_LABELS,
+  PROOF_RESOLUTION_LABELS,
 } from "@/lib/core/proof";
 import type { ProofApproach, ProofChallenge, ProofEvidence } from "@/types/database.types";
 import { Badge, Card, CardContent, EmptyState, FeatureScreen } from "@/systems/design-system";
-import { FileCheck, Lightbulb, Link as LinkIcon, MessageSquare, Rocket, Target } from "lucide-react";
+import {
+  CheckCircle2,
+  FileCheck,
+  Lightbulb,
+  Link as LinkIcon,
+  MessageSquare,
+  Rocket,
+  Target,
+} from "lucide-react";
 
 type ProofClaimDetailScreenProps = {
   claim: ProofClaimWithMeta;
@@ -22,6 +32,7 @@ type ProofClaimDetailScreenProps = {
   executionLinksByApproach: Map<string, ProofExecutionLinkWithProjectName[]>;
   userProjects: ProjectWithMemberCount[];
   evidence: ProofEvidence[];
+  currentUserId: string;
 };
 
 const STAGE_BADGE_VARIANT: Record<
@@ -46,19 +57,50 @@ export function ProofClaimDetailScreen({
   executionLinksByApproach,
   userProjects,
   evidence,
+  currentUserId,
 }: ProofClaimDetailScreenProps) {
   const stage = deriveProofClaimStage(claim);
   const successCriteria = successCriteriaOf(claim);
+  const isAuthor = currentUserId === claim.author_id;
 
   return (
     <FeatureScreen
       label={PROOF_CLAIM_TYPE_LABELS[claim.claim_type]}
       title={claim.title}
       description={claim.body || undefined}
-      action={<CreateChallengeModal claimId={claim.id} disabled={claim.status !== "active"} />}
+      action={
+        <div className="flex flex-wrap gap-2">
+          <CreateChallengeModal claimId={claim.id} disabled={claim.status !== "active"} />
+          {isAuthor && claim.status === "active" && <ResolveProofModal claimId={claim.id} />}
+        </div>
+      }
     >
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-6">
+          {claim.outcome && (
+            <Card className="border-brand/20 bg-brand/[0.04]">
+              <CardContent className="space-y-3 pt-6">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-brand" aria-hidden />
+                  <p className="text-label text-brand">Outcome</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="brand">{PROOF_RESOLUTION_LABELS[claim.outcome.resolution]}</Badge>
+                  {claim.outcome.position_updated && (
+                    <Badge variant="outline">Position updated after evidence</Badge>
+                  )}
+                </div>
+                <p className="text-body text-fg-secondary">{claim.outcome.summary}</p>
+                {claim.outcome.uncertainty_notes && (
+                  <div>
+                    <p className="text-label">Uncertainty</p>
+                    <p className="mt-1 text-caption text-fg-faint">{claim.outcome.uncertainty_notes}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardContent className="space-y-4 pt-6">
               <div className="flex items-center gap-2">

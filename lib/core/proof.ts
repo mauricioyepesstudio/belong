@@ -8,6 +8,7 @@ import type {
   ProofEvidenceProvenance,
   ProofExecutionLink,
   ProofOutcome,
+  ProofResolution,
   ProofStandard,
 } from "@/types/database.types";
 import type { SupabaseServerClient } from "./types";
@@ -193,6 +194,22 @@ export const CLIENT_PROOF_EVIDENCE_PROVENANCE: ProofEvidenceProvenance[] = [
   "owner_confirmed",
   "external_source_linked",
 ];
+
+/**
+ * The OUTCOME step (BELONG_PROOF_LOOP.md V1 vertical slice, item 7).
+ * Labels per BELONG_PROOF_PROTOCOL.md's result-states list — "not
+ * supported" is explicitly framed there as not a moral judgment, so the
+ * label stays neutral rather than reading as a verdict.
+ */
+export const PROOF_RESOLUTION_LABELS: Record<ProofResolution, string> = {
+  supported: "Supported",
+  partially_supported: "Partially supported",
+  mixed: "Mixed",
+  not_supported: "Not supported",
+  inconclusive: "Inconclusive",
+  failed_to_complete: "Failed to complete",
+  withdrawn: "Withdrawn",
+};
 
 export const PROOF_EVIDENCE_PROVENANCE_LABELS: Record<ProofEvidenceProvenance, string> = {
   self_reported: "Self-reported",

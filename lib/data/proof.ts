@@ -22,6 +22,7 @@ export {
   PROOF_CLAIM_STAGE_LABELS,
   PROOF_CLAIM_TYPE_LABELS,
   PROOF_EVIDENCE_PROVENANCE_LABELS,
+  PROOF_RESOLUTION_LABELS,
 } from "@/lib/core/proof";
 
 export async function getActiveProofs(limit = 20) {

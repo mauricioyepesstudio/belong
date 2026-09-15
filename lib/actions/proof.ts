@@ -6,7 +6,7 @@ import { requireProfile } from "@/lib/auth/session";
 import type { ActionResult } from "@/lib/actions/types";
 import { validateProofClaimInput, type ProofClaimDraftInput } from "@/lib/core/proof";
 import { requireCommunityMembership } from "@/lib/actions/_shared";
-import type { ProofChallengeType, ProofEvidenceProvenance } from "@/types/database.types";
+import type { ProofChallengeType, ProofEvidenceProvenance, ProofResolution } from "@/types/database.types";
 
 export type { ProofClaimDraftInput };
 
@@ -269,4 +269,65 @@ export async function submitProofEvidence(data: {
   revalidatePath(`/proof/${data.claimId}`);
 
   return { id: evidence.id };
+}
+
+/**
+ * The OUTCOME step (BELONG_PROOF_LOOP.md V1 vertical slice, item 7):
+ * "resolve against the criteria without declaring a person or ideology
+ * universally right or wrong." Inserting into proof_outcomes is the only
+ * way a claim moves to "resolved" — the DB does that transition itself,
+ * via a SECURITY DEFINER trigger writing a one-row token
+ * (belong_internal.proof_resolve_tokens) that proof_claims_enforce_status_transition
+ * checks for, specifically so no client update can spoof a resolution.
+ * RLS (proof_outcomes insert policy) already restricts this to the
+ * claim's own author on a still-active claim; a second insert attempt
+ * fails on the table's own claim_id uniqueness (23505) since a claim
+ * resolves exactly once.
+ */
+export async function resolveProofClaim(data: {
+  claimId: string;
+  resolution: ProofResolution;
+  summary: string;
+  uncertaintyNotes?: string;
+  positionUpdated?: boolean;
+}): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const summary = data.summary.trim();
+  if (!summary) return { error: "Summarize what happened" };
+
+  const { data: standard } = await supabase
+    .from("proof_standards")
+    .select("success_criteria")
+    .eq("claim_id", data.claimId)
+    .maybeSingle();
+
+  const { data: outcome, error } = await supabase
+    .from("proof_outcomes")
+    .insert({
+      claim_id: data.claimId,
+      resolved_by: profile.id,
+      resolution: data.resolution,
+      summary,
+      uncertainty_notes: data.uncertaintyNotes?.trim() || null,
+      position_updated: data.positionUpdated ?? false,
+      criteria_snapshot: standard?.success_criteria ?? null,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    if (error.code === "23505") return { error: "This Proof has already been resolved" };
+    return {
+      error:
+        error.code === "42501"
+          ? "Only the claim's author can resolve it, and only while it's active"
+          : error.message,
+    };
+  }
+
+  revalidatePath(`/proof/${data.claimId}`);
+
+  return { id: outcome.id };
 }

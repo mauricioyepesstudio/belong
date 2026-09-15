@@ -7,6 +7,7 @@ import {
   getProofClaim,
 } from "@/lib/data/proof";
 import { getUserProjects } from "@/lib/data/projects";
+import { requireProfile } from "@/lib/auth/session";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -25,6 +26,7 @@ export default async function ProofClaimPage({ params }: PageProps) {
   const claim = await getProofClaim(id);
   if (!claim) notFound();
 
+  const profile = await requireProfile();
   const challenges = await getChallengesForClaim(id);
   const approachesByChallenge = await getApproachesForChallenges(challenges.map((c) => c.id));
   const approachIds = [...approachesByChallenge.values()].flat().map((approach) => approach.id);
@@ -42,6 +44,7 @@ export default async function ProofClaimPage({ params }: PageProps) {
       executionLinksByApproach={executionLinksByApproach}
       userProjects={userProjects}
       evidence={evidence}
+      currentUserId={profile.id}
     />
   );
 }

@@ -1,5 +1,5 @@
 import { ProofClaimDetailScreen } from "@/engines/proof";
-import { getChallengesForClaim, getProofClaim } from "@/lib/data/proof";
+import { getApproachesForChallenges, getChallengesForClaim, getProofClaim } from "@/lib/data/proof";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -19,6 +19,13 @@ export default async function ProofClaimPage({ params }: PageProps) {
   if (!claim) notFound();
 
   const challenges = await getChallengesForClaim(id);
+  const approachesByChallenge = await getApproachesForChallenges(challenges.map((c) => c.id));
 
-  return <ProofClaimDetailScreen claim={claim} challenges={challenges} />;
+  return (
+    <ProofClaimDetailScreen
+      claim={claim}
+      challenges={challenges}
+      approachesByChallenge={approachesByChallenge}
+    />
+  );
 }

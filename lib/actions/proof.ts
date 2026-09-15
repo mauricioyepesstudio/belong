@@ -124,3 +124,51 @@ export async function createProofChallenge(data: {
 
   return { id: challenge.id };
 }
+
+/**
+ * The APPROACH step (BELONG_PROOF_LOOP.md V1 vertical slice, item 4):
+ * "a concrete method proposed to address a Challenge. Multiple approaches
+ * may coexist" — BELONG surfaces tradeoffs rather than forcing a single
+ * winner, so this never rejects a second approach to the same challenge.
+ */
+export async function createProofApproach(data: {
+  challengeId: string;
+  title: string;
+  body?: string;
+}): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const title = data.title.trim();
+  if (!title) return { error: "Give your approach a name" };
+
+  const { data: approach, error } = await supabase
+    .from("proof_approaches")
+    .insert({
+      challenge_id: data.challengeId,
+      author_id: profile.id,
+      title,
+      body: data.body?.trim() || null,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return {
+      error:
+        error.code === "42501"
+          ? "This challenge isn't open to new approaches right now"
+          : error.message,
+    };
+  }
+
+  const { data: challenge } = await supabase
+    .from("proof_challenges")
+    .select("claim_id")
+    .eq("id", data.challengeId)
+    .maybeSingle();
+
+  if (challenge?.claim_id) revalidatePath(`/proof/${challenge.claim_id}`);
+
+  return { id: approach.id };
+}

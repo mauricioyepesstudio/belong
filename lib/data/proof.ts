@@ -1,6 +1,11 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { getActiveProofClaims, getProofChallenges, getProofClaimWithMeta } from "@/lib/core/proof";
+import {
+  getActiveProofClaims,
+  getProofApproachesForChallenges,
+  getProofChallenges,
+  getProofClaimWithMeta,
+} from "@/lib/core/proof";
 
 export type { ProofClaimDraftInput, ProofClaimStage, ProofClaimWithMeta } from "@/lib/core/proof";
 export {
@@ -23,4 +28,9 @@ export const getProofClaim = cache(async (claimId: string) => {
 export async function getChallengesForClaim(claimId: string) {
   const supabase = await createClient();
   return getProofChallenges(supabase, claimId);
+}
+
+export async function getApproachesForChallenges(challengeIds: string[]) {
+  const supabase = await createClient();
+  return getProofApproachesForChallenges(supabase, challengeIds);
 }

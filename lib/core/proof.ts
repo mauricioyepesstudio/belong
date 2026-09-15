@@ -1,4 +1,5 @@
 import type {
+  ProofApproach,
   ProofChallenge,
   ProofChallengeType,
   ProofClaim,
@@ -85,6 +86,32 @@ export async function getProofChallenges(
     .eq("claim_id", claimId)
     .order("created_at", { ascending: false });
   return data ?? [];
+}
+
+/**
+ * Approaches follow challenge visibility per RLS, and grouping is by
+ * challenge_id so a caller can render each challenge's approach list without
+ * one query per challenge.
+ */
+export async function getProofApproachesForChallenges(
+  supabase: SupabaseServerClient,
+  challengeIds: string[]
+): Promise<Map<string, ProofApproach[]>> {
+  const grouped = new Map<string, ProofApproach[]>();
+  if (challengeIds.length === 0) return grouped;
+
+  const { data } = await supabase
+    .from("proof_approaches")
+    .select("*")
+    .in("challenge_id", challengeIds)
+    .order("created_at", { ascending: false });
+
+  for (const approach of data ?? []) {
+    const existing = grouped.get(approach.challenge_id) ?? [];
+    existing.push(approach);
+    grouped.set(approach.challenge_id, existing);
+  }
+  return grouped;
 }
 
 export type ProofClaimDraftInput = {

@@ -1,3 +1,4 @@
+import { CreateApproachModal } from "./create-approach-modal";
 import { CreateChallengeModal } from "./create-challenge-modal";
 import type { ProofClaimWithMeta } from "@/lib/core/proof";
 import {
@@ -6,13 +7,14 @@ import {
   PROOF_CLAIM_STAGE_LABELS,
   PROOF_CLAIM_TYPE_LABELS,
 } from "@/lib/core/proof";
-import type { ProofChallenge } from "@/types/database.types";
+import type { ProofApproach, ProofChallenge } from "@/types/database.types";
 import { Badge, Card, CardContent, EmptyState, FeatureScreen } from "@/systems/design-system";
-import { MessageSquare, Target } from "lucide-react";
+import { Lightbulb, MessageSquare, Target } from "lucide-react";
 
 type ProofClaimDetailScreenProps = {
   claim: ProofClaimWithMeta;
   challenges: ProofChallenge[];
+  approachesByChallenge: Map<string, ProofApproach[]>;
 };
 
 const STAGE_BADGE_VARIANT: Record<
@@ -30,7 +32,11 @@ function successCriteriaOf(claim: ProofClaimWithMeta): string[] {
   return Array.isArray(raw) ? raw.filter((item): item is string => typeof item === "string") : [];
 }
 
-export function ProofClaimDetailScreen({ claim, challenges }: ProofClaimDetailScreenProps) {
+export function ProofClaimDetailScreen({
+  claim,
+  challenges,
+  approachesByChallenge,
+}: ProofClaimDetailScreenProps) {
   const stage = deriveProofClaimStage(claim);
   const successCriteria = successCriteriaOf(claim);
 
@@ -96,14 +102,37 @@ export function ProofClaimDetailScreen({ claim, challenges }: ProofClaimDetailSc
               />
             ) : (
               <div className="space-y-3">
-                {challenges.map((challenge) => (
-                  <Card key={challenge.id}>
-                    <CardContent className="space-y-2 pt-4">
-                      <Badge variant="outline">{PROOF_CHALLENGE_TYPE_LABELS[challenge.challenge_type]}</Badge>
-                      <p className="text-body text-fg-secondary">{challenge.body}</p>
-                    </CardContent>
-                  </Card>
-                ))}
+                {challenges.map((challenge) => {
+                  const approaches = approachesByChallenge.get(challenge.id) ?? [];
+                  return (
+                    <Card key={challenge.id}>
+                      <CardContent className="space-y-3 pt-4">
+                        <Badge variant="outline">{PROOF_CHALLENGE_TYPE_LABELS[challenge.challenge_type]}</Badge>
+                        <p className="text-body text-fg-secondary">{challenge.body}</p>
+
+                        {approaches.length > 0 && (
+                          <ul className="space-y-2 border-t border-border-subtle pt-3">
+                            {approaches.map((approach) => (
+                              <li key={approach.id} className="flex items-start gap-2">
+                                <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+                                <div>
+                                  <p className="text-body font-medium text-fg-primary">{approach.title}</p>
+                                  {approach.body && (
+                                    <p className="mt-0.5 text-caption text-fg-faint">{approach.body}</p>
+                                  )}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+
+                        {challenge.status === "active" && (
+                          <CreateApproachModal challengeId={challenge.id} />
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </div>

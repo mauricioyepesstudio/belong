@@ -1,5 +1,6 @@
 export {
   getActiveProofs,
+  getApproachesForChallenges,
   getChallengesForClaim,
   getProofClaim,
   deriveProofClaimStage,
@@ -11,3 +12,4 @@ export {
 export { ProofScreen } from "./components/proof-screen";
 export { ProofClaimDetailScreen } from "./components/proof-claim-detail-screen";
 export { CreateChallengeModal } from "./components/create-challenge-modal";
+export { CreateApproachModal } from "./components/create-approach-modal";

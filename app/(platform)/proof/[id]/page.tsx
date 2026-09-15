@@ -1,5 +1,11 @@
 import { ProofClaimDetailScreen } from "@/engines/proof";
-import { getApproachesForChallenges, getChallengesForClaim, getProofClaim } from "@/lib/data/proof";
+import {
+  getApproachesForChallenges,
+  getChallengesForClaim,
+  getExecutionLinksForApproachIds,
+  getProofClaim,
+} from "@/lib/data/proof";
+import { getUserProjects } from "@/lib/data/projects";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -20,12 +26,19 @@ export default async function ProofClaimPage({ params }: PageProps) {
 
   const challenges = await getChallengesForClaim(id);
   const approachesByChallenge = await getApproachesForChallenges(challenges.map((c) => c.id));
+  const approachIds = [...approachesByChallenge.values()].flat().map((approach) => approach.id);
+  const [executionLinksByApproach, userProjects] = await Promise.all([
+    getExecutionLinksForApproachIds(approachIds),
+    getUserProjects(),
+  ]);
 
   return (
     <ProofClaimDetailScreen
       claim={claim}
       challenges={challenges}
       approachesByChallenge={approachesByChallenge}
+      executionLinksByApproach={executionLinksByApproach}
+      userProjects={userProjects}
     />
   );
 }

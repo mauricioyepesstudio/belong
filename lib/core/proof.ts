@@ -4,6 +4,7 @@ import type {
   ProofChallengeType,
   ProofClaim,
   ProofClaimType,
+  ProofExecutionLink,
   ProofOutcome,
   ProofStandard,
 } from "@/types/database.types";
@@ -110,6 +111,52 @@ export async function getProofApproachesForChallenges(
     const existing = grouped.get(approach.challenge_id) ?? [];
     existing.push(approach);
     grouped.set(approach.challenge_id, existing);
+  }
+  return grouped;
+}
+
+export type ProofExecutionLinkWithProjectName = ProofExecutionLink & { projectName: string | null };
+
+/**
+ * The SHOW UP step (BELONG_PROOF_LOOP.md V1 vertical slice, item 5): "route
+ * relevant people ... toward concrete roles" by linking an Approach to an
+ * existing Project. Links follow approach visibility per RLS, grouped by
+ * approach_id; project names are a second query rather than an embedded
+ * select since this hand-maintained schema (see TECHNICAL_DEBT.md TD-09)
+ * has no Relationships metadata for typed joins.
+ */
+export async function getExecutionLinksForApproaches(
+  supabase: SupabaseServerClient,
+  approachIds: string[]
+): Promise<Map<string, ProofExecutionLinkWithProjectName[]>> {
+  const grouped = new Map<string, ProofExecutionLinkWithProjectName[]>();
+  if (approachIds.length === 0) return grouped;
+
+  const { data: links } = await supabase
+    .from("proof_execution_links")
+    .select("*")
+    .in("approach_id", approachIds);
+
+  if (!links || links.length === 0) return grouped;
+
+  const projectIds = links
+    .map((link) => link.project_id)
+    .filter((id): id is string => Boolean(id));
+
+  const projectNames = new Map<string, string>();
+  if (projectIds.length > 0) {
+    const { data: projects } = await supabase.from("projects").select("id, name").in("id", projectIds);
+    for (const project of projects ?? []) projectNames.set(project.id, project.name);
+  }
+
+  for (const link of links) {
+    const withName: ProofExecutionLinkWithProjectName = {
+      ...link,
+      projectName: link.project_id ? projectNames.get(link.project_id) ?? null : null,
+    };
+    const existing = grouped.get(link.approach_id) ?? [];
+    existing.push(withName);
+    grouped.set(link.approach_id, existing);
   }
   return grouped;
 }

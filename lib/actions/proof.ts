@@ -172,3 +172,52 @@ export async function createProofApproach(data: {
 
   return { id: approach.id };
 }
+
+/**
+ * The SHOW UP step (BELONG_PROOF_LOOP.md V1 vertical slice, item 5): routes
+ * an Approach into an existing Project the caller owns or belongs to. RLS
+ * (proof_execution_links insert policy, can_access_proof_project) already
+ * rejects a project the caller can't access or an approach/challenge/claim
+ * that isn't active, so this only translates those failures into plain
+ * language and a unique-constraint hit into "already linked".
+ */
+export async function linkApproachToProject(data: {
+  approachId: string;
+  projectId: string;
+}): Promise<ActionResult> {
+  const supabase = await createClient();
+  await requireProfile();
+
+  const { data: link, error } = await supabase
+    .from("proof_execution_links")
+    .insert({ approach_id: data.approachId, project_id: data.projectId })
+    .select("id")
+    .single();
+
+  if (error) {
+    if (error.code === "23505") return { error: "This approach is already linked to that project" };
+    return {
+      error:
+        error.code === "42501"
+          ? "You can only show up with a project you own or belong to, on an active approach"
+          : error.message,
+    };
+  }
+
+  const { data: approach } = await supabase
+    .from("proof_approaches")
+    .select("challenge_id")
+    .eq("id", data.approachId)
+    .maybeSingle();
+
+  if (approach?.challenge_id) {
+    const { data: challenge } = await supabase
+      .from("proof_challenges")
+      .select("claim_id")
+      .eq("id", approach.challenge_id)
+      .maybeSingle();
+    if (challenge?.claim_id) revalidatePath(`/proof/${challenge.claim_id}`);
+  }
+
+  return { id: link.id };
+}

@@ -1,6 +1,8 @@
 import { CreateApproachModal } from "./create-approach-modal";
 import { CreateChallengeModal } from "./create-challenge-modal";
-import type { ProofClaimWithMeta } from "@/lib/core/proof";
+import { ShowUpModal } from "./show-up-modal";
+import type { ProjectWithMemberCount } from "@/lib/core";
+import type { ProofClaimWithMeta, ProofExecutionLinkWithProjectName } from "@/lib/core/proof";
 import {
   deriveProofClaimStage,
   PROOF_CHALLENGE_TYPE_LABELS,
@@ -9,12 +11,14 @@ import {
 } from "@/lib/core/proof";
 import type { ProofApproach, ProofChallenge } from "@/types/database.types";
 import { Badge, Card, CardContent, EmptyState, FeatureScreen } from "@/systems/design-system";
-import { Lightbulb, MessageSquare, Target } from "lucide-react";
+import { Lightbulb, MessageSquare, Rocket, Target } from "lucide-react";
 
 type ProofClaimDetailScreenProps = {
   claim: ProofClaimWithMeta;
   challenges: ProofChallenge[];
   approachesByChallenge: Map<string, ProofApproach[]>;
+  executionLinksByApproach: Map<string, ProofExecutionLinkWithProjectName[]>;
+  userProjects: ProjectWithMemberCount[];
 };
 
 const STAGE_BADGE_VARIANT: Record<
@@ -36,6 +40,8 @@ export function ProofClaimDetailScreen({
   claim,
   challenges,
   approachesByChallenge,
+  executionLinksByApproach,
+  userProjects,
 }: ProofClaimDetailScreenProps) {
   const stage = deriveProofClaimStage(claim);
   const successCriteria = successCriteriaOf(claim);
@@ -111,18 +117,34 @@ export function ProofClaimDetailScreen({
                         <p className="text-body text-fg-secondary">{challenge.body}</p>
 
                         {approaches.length > 0 && (
-                          <ul className="space-y-2 border-t border-border-subtle pt-3">
-                            {approaches.map((approach) => (
-                              <li key={approach.id} className="flex items-start gap-2">
-                                <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
-                                <div>
-                                  <p className="text-body font-medium text-fg-primary">{approach.title}</p>
-                                  {approach.body && (
-                                    <p className="mt-0.5 text-caption text-fg-faint">{approach.body}</p>
-                                  )}
-                                </div>
-                              </li>
-                            ))}
+                          <ul className="space-y-3 border-t border-border-subtle pt-3">
+                            {approaches.map((approach) => {
+                              const links = executionLinksByApproach.get(approach.id) ?? [];
+                              return (
+                                <li key={approach.id} className="flex items-start gap-2">
+                                  <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+                                  <div className="flex-1 space-y-2">
+                                    <p className="text-body font-medium text-fg-primary">{approach.title}</p>
+                                    {approach.body && (
+                                      <p className="text-caption text-fg-faint">{approach.body}</p>
+                                    )}
+                                    {links.length > 0 && (
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {links.map((link) => (
+                                          <Badge key={link.id} variant="success" className="gap-1">
+                                            <Rocket className="h-3 w-3" aria-hidden />
+                                            {link.projectName ?? "Linked project"}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    )}
+                                    {approach.status !== "withdrawn" && (
+                                      <ShowUpModal approachId={approach.id} projects={userProjects} />
+                                    )}
+                                  </div>
+                                </li>
+                              );
+                            })}
                           </ul>
                         )}
 

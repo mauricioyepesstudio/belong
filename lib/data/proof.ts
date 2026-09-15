@@ -2,12 +2,18 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import {
   getActiveProofClaims,
+  getExecutionLinksForApproaches,
   getProofApproachesForChallenges,
   getProofChallenges,
   getProofClaimWithMeta,
 } from "@/lib/core/proof";
 
-export type { ProofClaimDraftInput, ProofClaimStage, ProofClaimWithMeta } from "@/lib/core/proof";
+export type {
+  ProofClaimDraftInput,
+  ProofClaimStage,
+  ProofClaimWithMeta,
+  ProofExecutionLinkWithProjectName,
+} from "@/lib/core/proof";
 export {
   deriveProofClaimStage,
   PROOF_CHALLENGE_TYPE_LABELS,
@@ -33,4 +39,9 @@ export async function getChallengesForClaim(claimId: string) {
 export async function getApproachesForChallenges(challengeIds: string[]) {
   const supabase = await createClient();
   return getProofApproachesForChallenges(supabase, challengeIds);
+}
+
+export async function getExecutionLinksForApproachIds(approachIds: string[]) {
+  const supabase = await createClient();
+  return getExecutionLinksForApproaches(supabase, approachIds);
 }

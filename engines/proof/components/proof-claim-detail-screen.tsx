@@ -1,6 +1,7 @@
 import { CreateApproachModal } from "./create-approach-modal";
 import { CreateChallengeModal } from "./create-challenge-modal";
 import { ShowUpModal } from "./show-up-modal";
+import { SubmitEvidenceModal } from "./submit-evidence-modal";
 import type { ProjectWithMemberCount } from "@/lib/core";
 import type { ProofClaimWithMeta, ProofExecutionLinkWithProjectName } from "@/lib/core/proof";
 import {
@@ -8,10 +9,11 @@ import {
   PROOF_CHALLENGE_TYPE_LABELS,
   PROOF_CLAIM_STAGE_LABELS,
   PROOF_CLAIM_TYPE_LABELS,
+  PROOF_EVIDENCE_PROVENANCE_LABELS,
 } from "@/lib/core/proof";
-import type { ProofApproach, ProofChallenge } from "@/types/database.types";
+import type { ProofApproach, ProofChallenge, ProofEvidence } from "@/types/database.types";
 import { Badge, Card, CardContent, EmptyState, FeatureScreen } from "@/systems/design-system";
-import { Lightbulb, MessageSquare, Rocket, Target } from "lucide-react";
+import { FileCheck, Lightbulb, Link as LinkIcon, MessageSquare, Rocket, Target } from "lucide-react";
 
 type ProofClaimDetailScreenProps = {
   claim: ProofClaimWithMeta;
@@ -19,6 +21,7 @@ type ProofClaimDetailScreenProps = {
   approachesByChallenge: Map<string, ProofApproach[]>;
   executionLinksByApproach: Map<string, ProofExecutionLinkWithProjectName[]>;
   userProjects: ProjectWithMemberCount[];
+  evidence: ProofEvidence[];
 };
 
 const STAGE_BADGE_VARIANT: Record<
@@ -42,6 +45,7 @@ export function ProofClaimDetailScreen({
   approachesByChallenge,
   executionLinksByApproach,
   userProjects,
+  evidence,
 }: ProofClaimDetailScreenProps) {
   const stage = deriveProofClaimStage(claim);
   const successCriteria = successCriteriaOf(claim);
@@ -97,6 +101,51 @@ export function ProofClaimDetailScreen({
               )}
             </CardContent>
           </Card>
+
+          <div>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-heading text-fg-primary">Evidence ({evidence.length})</p>
+              <SubmitEvidenceModal claimId={claim.id} disabled={claim.status !== "active"} />
+            </div>
+            {evidence.length === 0 ? (
+              <EmptyState
+                icon={FileCheck}
+                title="No evidence yet"
+                description="Evidence toward the success criteria will show up here as it comes in."
+              />
+            ) : (
+              <div className="space-y-3">
+                {evidence.map((item) => (
+                  <Card key={item.id}>
+                    <CardContent className="space-y-2 pt-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant={item.status === "disputed" ? "warning" : "outline"}>
+                          {PROOF_EVIDENCE_PROVENANCE_LABELS[item.provenance]}
+                        </Badge>
+                        {item.status !== "active" && (
+                          <Badge variant="warning" className="capitalize">
+                            {item.status}
+                          </Badge>
+                        )}
+                      </div>
+                      {item.body && <p className="text-body text-fg-secondary">{item.body}</p>}
+                      {item.source_url && (
+                        <a
+                          href={item.source_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-caption text-brand hover:underline"
+                        >
+                          <LinkIcon className="h-3.5 w-3.5" aria-hidden />
+                          {item.source_url}
+                        </a>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div>
             <p className="text-heading mb-3 text-fg-primary">Challenges ({challenges.length})</p>

@@ -4,6 +4,8 @@ import type {
   ProofChallengeType,
   ProofClaim,
   ProofClaimType,
+  ProofEvidence,
+  ProofEvidenceProvenance,
   ProofExecutionLink,
   ProofOutcome,
   ProofStandard,
@@ -160,6 +162,47 @@ export async function getExecutionLinksForApproaches(
   }
   return grouped;
 }
+
+/**
+ * The EVIDENCE step (BELONG_PROOF_LOOP.md V1 vertical slice, item 6:
+ * "evidence timeline"), scoped to evidence attached directly to a Claim
+ * (approach- and outcome-scoped evidence are separate surfaces for a later
+ * slice). Follows claim visibility per RLS.
+ */
+export async function getEvidenceForClaim(
+  supabase: SupabaseServerClient,
+  claimId: string
+): Promise<ProofEvidence[]> {
+  const { data } = await supabase
+    .from("proof_evidence")
+    .select("*")
+    .eq("claim_id", claimId)
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+/**
+ * Excludes the three provenance states the DB trigger reserves for a
+ * privileged, non-client path (organization/multi-party/independent
+ * review — see is_privileged_provenance in the migration): offering them
+ * here would just let a submission fail with a raw Postgres exception.
+ */
+export const CLIENT_PROOF_EVIDENCE_PROVENANCE: ProofEvidenceProvenance[] = [
+  "self_reported",
+  "participant_recorded",
+  "owner_confirmed",
+  "external_source_linked",
+];
+
+export const PROOF_EVIDENCE_PROVENANCE_LABELS: Record<ProofEvidenceProvenance, string> = {
+  self_reported: "Self-reported",
+  participant_recorded: "Recorded by a participant",
+  owner_confirmed: "Confirmed by the claim owner",
+  organization_confirmed: "Confirmed by an organization",
+  multi_party_confirmed: "Confirmed by multiple parties",
+  external_source_linked: "Linked to an external source",
+  independently_reviewed: "Independently reviewed",
+};
 
 export type ProofClaimDraftInput = {
   title: string;

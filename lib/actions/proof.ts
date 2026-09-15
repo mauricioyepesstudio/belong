@@ -6,7 +6,7 @@ import { requireProfile } from "@/lib/auth/session";
 import type { ActionResult } from "@/lib/actions/types";
 import { validateProofClaimInput, type ProofClaimDraftInput } from "@/lib/core/proof";
 import { requireCommunityMembership } from "@/lib/actions/_shared";
-import type { ProofChallengeType } from "@/types/database.types";
+import type { ProofChallengeType, ProofEvidenceProvenance } from "@/types/database.types";
 
 export type { ProofClaimDraftInput };
 
@@ -220,4 +220,53 @@ export async function linkApproachToProject(data: {
   }
 
   return { id: link.id };
+}
+
+/**
+ * The EVIDENCE step (BELONG_PROOF_LOOP.md V1 vertical slice, item 6),
+ * scoped to a Claim. RLS (proof_evidence insert policy) already rejects
+ * evidence on a non-active or invisible claim and any of the three
+ * privileged provenance states; this validates the "body or a source"
+ * check constraint client-side (proof_evidence_body_or_media) so the
+ * error reads as guidance rather than a raw constraint-violation message.
+ */
+export async function submitProofEvidence(data: {
+  claimId: string;
+  body?: string;
+  sourceUrl?: string;
+  provenance: ProofEvidenceProvenance;
+}): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const body = data.body?.trim() || null;
+  const sourceUrl = data.sourceUrl?.trim() || null;
+  if (!body && !sourceUrl) {
+    return { error: "Add a description or a source link" };
+  }
+
+  const { data: evidence, error } = await supabase
+    .from("proof_evidence")
+    .insert({
+      claim_id: data.claimId,
+      author_id: profile.id,
+      body,
+      source_url: sourceUrl,
+      provenance: data.provenance,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return {
+      error:
+        error.code === "42501"
+          ? "This Proof isn't open to new evidence right now"
+          : error.message,
+    };
+  }
+
+  revalidatePath(`/proof/${data.claimId}`);
+
+  return { id: evidence.id };
 }

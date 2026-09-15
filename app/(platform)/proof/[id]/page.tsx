@@ -2,6 +2,7 @@ import { ProofClaimDetailScreen } from "@/engines/proof";
 import {
   getApproachesForChallenges,
   getChallengesForClaim,
+  getEvidenceForClaimId,
   getExecutionLinksForApproachIds,
   getProofClaim,
 } from "@/lib/data/proof";
@@ -27,9 +28,10 @@ export default async function ProofClaimPage({ params }: PageProps) {
   const challenges = await getChallengesForClaim(id);
   const approachesByChallenge = await getApproachesForChallenges(challenges.map((c) => c.id));
   const approachIds = [...approachesByChallenge.values()].flat().map((approach) => approach.id);
-  const [executionLinksByApproach, userProjects] = await Promise.all([
+  const [executionLinksByApproach, userProjects, evidence] = await Promise.all([
     getExecutionLinksForApproachIds(approachIds),
     getUserProjects(),
+    getEvidenceForClaimId(id),
   ]);
 
   return (
@@ -39,6 +41,7 @@ export default async function ProofClaimPage({ params }: PageProps) {
       approachesByChallenge={approachesByChallenge}
       executionLinksByApproach={executionLinksByApproach}
       userProjects={userProjects}
+      evidence={evidence}
     />
   );
 }

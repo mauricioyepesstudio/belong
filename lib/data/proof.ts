@@ -2,6 +2,7 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import {
   getActiveProofClaims,
+  getEvidenceForClaim,
   getExecutionLinksForApproaches,
   getProofApproachesForChallenges,
   getProofChallenges,
@@ -15,10 +16,12 @@ export type {
   ProofExecutionLinkWithProjectName,
 } from "@/lib/core/proof";
 export {
+  CLIENT_PROOF_EVIDENCE_PROVENANCE,
   deriveProofClaimStage,
   PROOF_CHALLENGE_TYPE_LABELS,
   PROOF_CLAIM_STAGE_LABELS,
   PROOF_CLAIM_TYPE_LABELS,
+  PROOF_EVIDENCE_PROVENANCE_LABELS,
 } from "@/lib/core/proof";
 
 export async function getActiveProofs(limit = 20) {
@@ -44,4 +47,9 @@ export async function getApproachesForChallenges(challengeIds: string[]) {
 export async function getExecutionLinksForApproachIds(approachIds: string[]) {
   const supabase = await createClient();
   return getExecutionLinksForApproaches(supabase, approachIds);
+}
+
+export async function getEvidenceForClaimId(claimId: string) {
+  const supabase = await createClient();
+  return getEvidenceForClaim(supabase, claimId);
 }

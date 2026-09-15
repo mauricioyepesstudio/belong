@@ -8,6 +8,7 @@ import {
   MIN_COMMUNITY_SUB_CENTS,
   MIN_DONATION_CENTS,
   MIN_FUNDING_CENTS,
+  platformFeeCents,
   STRIPE_PRICES,
 } from "@/lib/stripe/config";
 import { getOrCreateStripeCustomer } from "@/lib/stripe/customer";
@@ -197,7 +198,7 @@ export async function createProjectFundingCheckout(
 
   const stripe = getStripe();
   const { success, cancel } = checkoutUrls();
-  const fee = Math.floor(amountCents * 0.1);
+  const fee = platformFeeCents(amountCents);
 
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
@@ -273,7 +274,7 @@ export async function createDonationCheckout(
 
   const stripe = getStripe();
   const { success, cancel } = checkoutUrls();
-  const fee = Math.floor(amountCents * 0.1);
+  const fee = platformFeeCents(amountCents);
   const label =
     kind === "creator_tip"
       ? `Tip ${recipient.full_name ?? "creator"}`
@@ -347,7 +348,7 @@ export async function createMarketplaceCheckout(listingId: string): Promise<Acti
 
   const stripe = getStripe();
   const { success, cancel } = checkoutUrls();
-  const fee = Math.floor(listing.price_cents * 0.1);
+  const fee = platformFeeCents(listing.price_cents);
 
   const lineItem = listing.stripe_price_id
     ? { price: listing.stripe_price_id, quantity: 1 }

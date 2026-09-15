@@ -1,4 +1,11 @@
-import type { ProofClaim, ProofClaimType, ProofOutcome, ProofStandard } from "@/types/database.types";
+import type {
+  ProofChallenge,
+  ProofChallengeType,
+  ProofClaim,
+  ProofClaimType,
+  ProofOutcome,
+  ProofStandard,
+} from "@/types/database.types";
 import type { SupabaseServerClient } from "./types";
 
 export type ProofClaimWithMeta = ProofClaim & {
@@ -62,6 +69,22 @@ export async function getProofClaimWithMeta(
     challengeCount: challengeCount ?? 0,
     participantCount: participantCount ?? 0,
   };
+}
+
+/**
+ * Challenges follow claim visibility per RLS (can_view_proof_context), so
+ * this returns [] rather than erroring when the caller can't see the claim.
+ */
+export async function getProofChallenges(
+  supabase: SupabaseServerClient,
+  claimId: string
+): Promise<ProofChallenge[]> {
+  const { data } = await supabase
+    .from("proof_challenges")
+    .select("*")
+    .eq("claim_id", claimId)
+    .order("created_at", { ascending: false });
+  return data ?? [];
 }
 
 export type ProofClaimDraftInput = {
@@ -144,4 +167,17 @@ export const PROOF_CLAIM_STAGE_LABELS: Record<ProofClaimStage, string> = {
   seeking_evidence: "Seeking evidence",
   resolved: "Resolved",
   closed: "Closed",
+};
+
+/**
+ * Labels match the product verbs in BELONG_PROOF_LOOP.md ("CHALLENGE —
+ * propose a competing or stronger test/approach") rather than raw enum
+ * names, since these render directly in the Challenge form.
+ */
+export const PROOF_CHALLENGE_TYPE_LABELS: Record<ProofChallengeType, string> = {
+  test: "Test it",
+  support: "Support with evidence",
+  counter: "Counter it",
+  improve: "Propose an improvement",
+  execute: "Execute it",
 };

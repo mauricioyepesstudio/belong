@@ -6,6 +6,7 @@ import { requireProfile } from "@/lib/auth/session";
 import type { ActionResult } from "@/lib/actions/types";
 import { validateProofClaimInput, type ProofClaimDraftInput } from "@/lib/core/proof";
 import { requireCommunityMembership } from "@/lib/actions/_shared";
+import type { ProofChallengeType } from "@/types/database.types";
 
 export type { ProofClaimDraftInput };
 
@@ -78,4 +79,48 @@ export async function createProofClaim(data: ProofClaimDraftInput): Promise<Acti
   revalidatePath("/", "layout");
 
   return { id: claim.id };
+}
+
+/**
+ * The CHALLENGE step (BELONG_PROOF_LOOP.md V1 vertical slice, item 3-4):
+ * "invite other people or organizations to support, counter, improve, test,
+ * or execute" a claim. RLS (proof_challenges insert policy) already rejects
+ * this against a non-active claim or one the caller can't view, so this
+ * only validates what the database can't express as a constraint (a
+ * non-empty body).
+ */
+export async function createProofChallenge(data: {
+  claimId: string;
+  challengeType: ProofChallengeType;
+  body: string;
+}): Promise<ActionResult> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const body = data.body.trim();
+  if (!body) return { error: "Say what you're challenging and why" };
+
+  const { data: challenge, error } = await supabase
+    .from("proof_challenges")
+    .insert({
+      claim_id: data.claimId,
+      author_id: profile.id,
+      challenge_type: data.challengeType,
+      body,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return {
+      error:
+        error.code === "42501"
+          ? "This Proof isn't open to challenges right now"
+          : error.message,
+    };
+  }
+
+  revalidatePath(`/proof/${data.claimId}`);
+
+  return { id: challenge.id };
 }

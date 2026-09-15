@@ -45,6 +45,7 @@ export function ProofScreen({ claims, communities }: ProofScreenProps) {
             return (
               <EntityCard
                 key={claim.id}
+                href={`/proof/${claim.id}`}
                 title={claim.title}
                 description={claim.body || null}
                 icon={Target}

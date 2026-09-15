@@ -6,6 +6,7 @@ import { requireProfile } from "@/lib/auth/session";
 import type { ActionResult } from "@/lib/actions/types";
 import { validateProofClaimInput, type ProofClaimDraftInput } from "@/lib/core/proof";
 import { requireCommunityMembership } from "@/lib/actions/_shared";
+import { recordImpactAction } from "@/engines/impact/record-action.server";
 import type { ProofChallengeType, ProofEvidenceProvenance, ProofResolution } from "@/types/database.types";
 
 export type { ProofClaimDraftInput };
@@ -74,6 +75,14 @@ export async function createProofClaim(data: ProofClaimDraftInput): Promise<Acti
     await supabase.from("proof_claims").delete().eq("id", claim.id);
     return { error: activateError.message };
   }
+
+  await recordImpactAction(supabase, {
+    userId: profile.id,
+    module: "proof",
+    eventType: "proof_claim_created",
+    sourceId: claim.id,
+    metadata: { title: data.title.trim() },
+  });
 
   revalidatePath("/dashboard");
   revalidatePath("/", "layout");
@@ -326,6 +335,14 @@ export async function resolveProofClaim(data: {
           : error.message,
     };
   }
+
+  await recordImpactAction(supabase, {
+    userId: profile.id,
+    module: "proof",
+    eventType: "proof_resolved",
+    sourceId: data.claimId,
+    metadata: { resolution: data.resolution },
+  });
 
   revalidatePath(`/proof/${data.claimId}`);
 

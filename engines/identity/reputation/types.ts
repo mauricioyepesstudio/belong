@@ -6,7 +6,8 @@ export type ImpactEventModule =
   | "project"
   | "organization"
   | "event"
-  | "system";
+  | "system"
+  | "proof";
 
 export type ImpactEventType =
   | "mission_completed"
@@ -35,7 +36,9 @@ export type ImpactEventType =
   | "helpful_reaction_received"
   | "event_organized"
   | "profile_completed"
-  | "collaboration_started";
+  | "collaboration_started"
+  | "proof_claim_created"
+  | "proof_resolved";
 
 export type ImpactEvent = {
   id: string;

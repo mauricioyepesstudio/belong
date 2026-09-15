@@ -33,6 +33,8 @@ export const IMPACT_SCORE_POINTS: Record<ImpactEventType, number> = {
   ai_copilot_applied: 1,
   streak_activity: 1,
   connection_accepted: 3,
+  proof_claim_created: 4,
+  proof_resolved: 6,
 };
 
 export const IMPACT_ACTION_LABELS: Partial<Record<ImpactEventType, string>> = {
@@ -54,6 +56,8 @@ export const IMPACT_ACTION_LABELS: Partial<Record<ImpactEventType, string>> = {
   project_comment: "Commented on a project",
   project_completed: "Completed a project",
   connection_accepted: "Connected with someone",
+  proof_claim_created: "Opened a Proof",
+  proof_resolved: "Resolved a Proof",
 };
 
 export function getImpactPoints(eventType: ImpactEventType, override?: number): number {

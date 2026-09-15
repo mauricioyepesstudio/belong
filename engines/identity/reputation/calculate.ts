@@ -10,6 +10,7 @@ export const MODULE_LABELS: Record<ImpactEventModule, string> = {
   organization: "Organizations",
   event: "Events",
   system: "Platform",
+  proof: "Proof Loop",
 };
 
 export function defaultPointsForEvent(eventType: ImpactEventType, override?: number): number {

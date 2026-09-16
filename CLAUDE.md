@@ -190,6 +190,24 @@ Use specialized subagents whenever possible:
 
 
 
+\- code-reviewer
+
+&#x20; Reviews diffs for correctness, security and maintainability. Advisory only.
+
+
+
+\- technical-writer
+
+&#x20; Drafts and maintains docs/README from real shipped code.
+
+
+
+\- multi-agent-architect
+
+&#x20; Advises on agent routing and handoffs to prevent duplicate/conflicting work across sessions. Advisory only.
+
+
+
 Do not make the main agent perform every role itself.
 
 

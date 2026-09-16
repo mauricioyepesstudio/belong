@@ -1,9 +1,10 @@
 "use client";
 
 import type { SocialProfilePage } from "@/engines/social";
+import { PROOF_CLAIM_STAGE_LABELS } from "@/lib/core/proof";
 import { Avatar, Badge, Button, Card, CardContent, EmptyState } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
-import { FolderKanban, MapPin, Sparkles, Users } from "lucide-react";
+import { FolderKanban, MapPin, Sparkles, Target, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { SocialConnectionActions } from "./social-connection-actions";
@@ -159,31 +160,62 @@ export function SocialProfileView({
       )}
 
       {tab === "impact" && (
-        <Card>
-          <CardContent className="pt-6">
-            {page.impact.length === 0 ? (
-              <EmptyState
-                icon={Sparkles}
-                title="Impact is still taking shape"
-                description="Verified contributions and achievements will appear here."
-              />
-            ) : (
-              <div className="space-y-3">
-                {page.impact.map((item) => (
-                  <div key={item.id} className="rounded-xl border border-white/6 bg-white/[0.025] p-4">
+        <div className="space-y-5">
+          {page.proofs.length > 0 && (
+            <div>
+              <p className="text-label mb-2">Proofs</p>
+              <div className="space-y-2">
+                {page.proofs.map((claim) => (
+                  <Link
+                    key={claim.id}
+                    href={`/proof/${claim.id}`}
+                    className="block rounded-xl border border-white/6 bg-white/[0.025] p-4 transition-colors hover:border-brand/30"
+                  >
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-medium text-fg-primary">{item.title}</p>
-                        {item.description && <p className="mt-1 text-sm text-fg-muted">{item.description}</p>}
+                      <div className="flex items-start gap-2 min-w-0">
+                        <Target className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-fg-primary">{claim.title}</p>
+                          <p className="mt-0.5 text-sm text-fg-muted">{claim.claimType}</p>
+                        </div>
                       </div>
-                      <Badge variant="brand">+{item.points}</Badge>
+                      <Badge variant="outline" className="shrink-0">
+                        {PROOF_CLAIM_STAGE_LABELS[claim.stage]}
+                      </Badge>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          )}
+          <Card>
+            <CardContent className="pt-6">
+              {page.impact.length === 0 ? (
+                <EmptyState
+                  icon={Sparkles}
+                  title="Impact is still taking shape"
+                  description="Verified contributions and achievements will appear here."
+                />
+              ) : (
+                <div className="space-y-3">
+                  {page.impact.map((item) => (
+                    <div key={item.id} className="rounded-xl border border-white/6 bg-white/[0.025] p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-medium text-fg-primary">{item.title}</p>
+                          {item.description && (
+                            <p className="mt-1 text-sm text-fg-muted">{item.description}</p>
+                          )}
+                        </div>
+                        <Badge variant="brand">+{item.points}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

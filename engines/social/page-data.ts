@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/auth/session";
 import { resolveConnectionState } from "@/lib/core/connection-state";
+import { deriveProofClaimStage, PROOF_CLAIM_TYPE_LABELS } from "@/lib/core/proof";
 import { fetchGlobalSocialFeed, fetchProfileSocialFeed, fetchSocialPostById } from "./data";
 import type {
   SocialPost,
@@ -81,6 +82,7 @@ export async function getSocialProfilePage(
     { count: connectionCount },
     { count: postCount },
     { data: authoredPostIds },
+    { data: proofClaimRows },
   ] = await Promise.all([
     fetchProfileSocialFeed(supabase, profile.id, viewer.id, options),
     supabase.from("identity_profiles").select("interests").eq("user_id", profile.id).maybeSingle(),
@@ -107,6 +109,12 @@ export async function getSocialProfilePage(
       .select("id", { count: "exact", head: true })
       .eq("author_id", profile.id),
     supabase.from("social_posts").select("id").eq("author_id", profile.id),
+    supabase
+      .from("proof_claims")
+      .select("id, title, status, claim_type")
+      .eq("author_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(10),
   ]);
 
   const projectIds = (projectMemberships ?? []).map((row) => row.project_id);
@@ -137,6 +145,12 @@ export async function getSocialProfilePage(
         ? (row.metadata.description as string | undefined) ?? null
         : null,
     points: row.points,
+  }));
+  const proofs = (proofClaimRows ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    stage: deriveProofClaimStage(row),
+    claimType: PROOF_CLAIM_TYPE_LABELS[row.claim_type],
   }));
   const resolvedConnection = resolveConnectionState(viewer.id, connectionRows ?? []);
   const connectionState: SocialProfilePage["connectionState"] =
@@ -176,6 +190,7 @@ export async function getSocialProfilePage(
       role: communityRoleMap.get(row.id) ?? null,
     })),
     impact,
+    proofs,
     stats: {
       connectionCount: connectionCount ?? 0,
       projectCount: projects?.length ?? 0,

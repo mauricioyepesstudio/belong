@@ -81,7 +81,7 @@ export async function createProofClaim(data: ProofClaimDraftInput): Promise<Acti
     module: "proof",
     eventType: "proof_claim_created",
     sourceId: claim.id,
-    metadata: { title: data.title.trim() },
+    metadata: { title: data.title.trim(), description: data.title.trim() },
   });
 
   revalidatePath("/dashboard");
@@ -341,7 +341,7 @@ export async function resolveProofClaim(data: {
     module: "proof",
     eventType: "proof_resolved",
     sourceId: data.claimId,
-    metadata: { resolution: data.resolution },
+    metadata: { resolution: data.resolution, description: summary },
   });
 
   revalidatePath(`/proof/${data.claimId}`);

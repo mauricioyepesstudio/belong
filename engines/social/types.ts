@@ -4,6 +4,7 @@ import type {
   SocialPostType as DatabaseSocialPostType,
 } from "@/types/database.types";
 import type { UserConnectionState } from "@/lib/core/connection-state";
+import type { ProofClaimStage } from "@/lib/core/proof";
 
 export type SocialPublishingContext = {
   type: "community" | "project";
@@ -117,6 +118,7 @@ export type SocialProfilePage = {
   projects: Array<{ id: string; name: string; status: string | null }>;
   communities: Array<{ id: string; name: string; slug: string; role: string | null }>;
   impact: Array<{ id: string; title: string; description: string | null; points: number }>;
+  proofs: Array<{ id: string; title: string; stage: ProofClaimStage; claimType: string }>;
   stats: {
     connectionCount: number;
     projectCount: number;

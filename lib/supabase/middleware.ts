@@ -81,9 +81,20 @@ export async function updateSession(request: NextRequest) {
 
   const protectedPrefixes = [...platformRoutes];
 
-  const isProtected = protectedPrefixes.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`)
-  );
+  // The SHARE step of the Proof Loop (BELONG_PROOF_LOOP.md V1 item 10-11)
+  // deep-links to /proof/[id] so a Proof can be "exported to the wider
+  // internet." A logged-out visitor -- and every link-preview crawler --
+  // needs to actually reach that page rather than bounce to /login. Only
+  // the exact claim-detail path is opened; /proof itself (the discovery
+  // feed) and everything else stays behind auth. See
+  // PROOF_LOOP_SHARE_GAP.md for the read-access half of this fix, which
+  // is a separate, not-yet-applied migration.
+  const isPublicProofDetail =
+    /^\/proof\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pathname);
+
+  const isProtected =
+    protectedPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`)) &&
+    !isPublicProofDetail;
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();

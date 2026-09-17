@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { deriveProofClaimStage, validateProofClaimInput, type ProofClaimDraftInput } from "../proof";
+import {
+  deriveProofClaimStage,
+  proofShareDescription,
+  validateProofClaimInput,
+  type ProofClaimDraftInput,
+} from "../proof";
 
 describe("deriveProofClaimStage", () => {
   it("maps each proof_claim_status to its loop stage", () => {
@@ -63,5 +68,26 @@ describe("validateProofClaimInput", () => {
       standard: { successCriteria: ["ship it"], deadline: "2999-01-01" },
     });
     expect(validateProofClaimInput(input)).toBeNull();
+  });
+});
+
+describe("proofShareDescription", () => {
+  it("uses the claim body when there is one", () => {
+    expect(
+      proofShareDescription({ body: "20 founders, 100 jobs, 30 days.", claim_type: "goal", status: "active" })
+    ).toBe("20 founders, 100 jobs, 30 days.");
+  });
+
+  it("truncates a long body to a preview-card-friendly length", () => {
+    const body = "a".repeat(250);
+    const result = proofShareDescription({ body, claim_type: "goal", status: "active" });
+    expect(result.length).toBe(200);
+    expect(result.endsWith("...")).toBe(true);
+  });
+
+  it("falls back to a type/stage description when the body is empty", () => {
+    expect(proofShareDescription({ body: "", claim_type: "capability", status: "active" })).toBe(
+      "A capability on BELONG, seeking evidence. See the evidence and show up."
+    );
   });
 });

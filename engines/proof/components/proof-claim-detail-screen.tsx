@@ -15,16 +15,18 @@ import {
   PROOF_RESOLUTION_LABELS,
 } from "@/lib/core/proof";
 import type { ProofApproach, ProofChallenge, ProofEvidence } from "@/types/database.types";
-import { Badge, Card, CardContent, EmptyState, FeatureScreen } from "@/systems/design-system";
+import { Badge, Button, Card, CardContent, EmptyState, FeatureScreen } from "@/systems/design-system";
 import {
   CheckCircle2,
   FileCheck,
   Lightbulb,
   Link as LinkIcon,
+  LogIn,
   MessageSquare,
   Rocket,
   Target,
 } from "lucide-react";
+import Link from "next/link";
 
 type ProofClaimDetailScreenProps = {
   claim: ProofClaimWithMeta;
@@ -33,8 +35,26 @@ type ProofClaimDetailScreenProps = {
   executionLinksByApproach: Map<string, ProofExecutionLinkWithProjectName[]>;
   userProjects: ProjectWithMemberCount[];
   evidence: ProofEvidence[];
-  currentUserId: string;
+  /**
+   * Null for the anonymous visitor a shared /proof/[id] link is meant to
+   * reach (see PROOF_LOOP_SHARE_GAP.md) -- this screen renders the same
+   * read-only content either way and swaps every action control for a
+   * single sign-in prompt rather than letting an anonymous submit hit
+   * requireProfile()'s "Unauthorized" in lib/actions/proof.ts.
+   */
+  currentUserId: string | null;
 };
+
+function SignInToParticipate({ claimId }: { claimId: string }) {
+  return (
+    <Link href={`/login?next=/proof/${claimId}`}>
+      <Button variant="outline" size="sm" className="gap-1.5 rounded-xl">
+        <LogIn className="h-3.5 w-3.5" aria-hidden />
+        Sign in to participate
+      </Button>
+    </Link>
+  );
+}
 
 const STAGE_BADGE_VARIANT: Record<
   ReturnType<typeof deriveProofClaimStage>,
@@ -72,8 +92,14 @@ export function ProofClaimDetailScreen({
       action={
         <div className="flex flex-wrap gap-2">
           <ShareProofButton claimId={claim.id} />
-          <CreateChallengeModal claimId={claim.id} disabled={claim.status !== "active"} />
-          {isAuthor && claim.status === "active" && <ResolveProofModal claimId={claim.id} />}
+          {currentUserId ? (
+            <>
+              <CreateChallengeModal claimId={claim.id} disabled={claim.status !== "active"} />
+              {isAuthor && claim.status === "active" && <ResolveProofModal claimId={claim.id} />}
+            </>
+          ) : (
+            <SignInToParticipate claimId={claim.id} />
+          )}
         </div>
       }
     >
@@ -149,7 +175,9 @@ export function ProofClaimDetailScreen({
           <div>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <p className="text-heading text-fg-primary">Evidence ({evidence.length})</p>
-              <SubmitEvidenceModal claimId={claim.id} disabled={claim.status !== "active"} />
+              {currentUserId && (
+                <SubmitEvidenceModal claimId={claim.id} disabled={claim.status !== "active"} />
+              )}
             </div>
             {evidence.length === 0 ? (
               <EmptyState
@@ -231,7 +259,7 @@ export function ProofClaimDetailScreen({
                                         ))}
                                       </div>
                                     )}
-                                    {approach.status !== "withdrawn" && (
+                                    {currentUserId && approach.status !== "withdrawn" && (
                                       <ShowUpModal approachId={approach.id} projects={userProjects} />
                                     )}
                                   </div>
@@ -241,7 +269,7 @@ export function ProofClaimDetailScreen({
                           </ul>
                         )}
 
-                        {challenge.status === "active" && (
+                        {currentUserId && challenge.status === "active" && (
                           <CreateApproachModal challengeId={challenge.id} />
                         )}
                       </CardContent>

@@ -304,6 +304,22 @@ export const PROOF_CLAIM_STAGE_LABELS: Record<ProofClaimStage, string> = {
 };
 
 /**
+ * The SHARE step's social-preview copy (BELONG_PROOF_LOOP.md V1 item 10):
+ * what a /proof/[id] link should say once it unfurls outside the app,
+ * where there's no surrounding UI to give the claim context.
+ */
+export function proofShareDescription(
+  claim: Pick<ProofClaimWithMeta, "body" | "claim_type" | "status">
+): string {
+  const body = claim.body?.trim();
+  if (body) return body.length > 200 ? `${body.slice(0, 197)}...` : body;
+
+  const typeLabel = PROOF_CLAIM_TYPE_LABELS[claim.claim_type].toLowerCase();
+  const stageLabel = PROOF_CLAIM_STAGE_LABELS[deriveProofClaimStage(claim)].toLowerCase();
+  return `A ${typeLabel} on BELONG, ${stageLabel}. See the evidence and show up.`;
+}
+
+/**
  * Labels match the product verbs in BELONG_PROOF_LOOP.md ("CHALLENGE —
  * propose a competing or stronger test/approach") rather than raw enum
  * names, since these render directly in the Challenge form.

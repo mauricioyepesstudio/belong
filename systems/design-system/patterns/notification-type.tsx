@@ -6,6 +6,7 @@ import {
   CreditCard,
   FolderKanban,
   MessageSquare,
+  Target,
   UserPlus,
   Users,
 } from "lucide-react";
@@ -18,6 +19,7 @@ export const notificationTypeIcons = {
   message: MessageSquare,
   system: Bell,
   payment: CreditCard,
+  circle: Target,
 } as const satisfies Record<NotificationType, typeof Bell>;
 
 export const notificationTypeHrefs: Record<NotificationType, string> = {
@@ -28,6 +30,7 @@ export const notificationTypeHrefs: Record<NotificationType, string> = {
   message: "/messages",
   system: "/notifications",
   payment: "/creator",
+  circle: "/circles",
 };
 
 export function getNotificationIcon(type: NotificationType) {
@@ -48,6 +51,7 @@ export function getNotificationHref(type: NotificationType, metadata?: Json): st
   const taskId = metaString(metadata, "task_id");
   const listingId = metaString(metadata, "listing_id");
   const missionId = metaString(metadata, "mission_id");
+  const circleId = metaString(metadata, "circle_id");
   const kind = metaString(metadata, "kind");
   const targetType = metaString(metadata, "target_type");
   const connectionActorId =
@@ -56,6 +60,7 @@ export function getNotificationHref(type: NotificationType, metadata?: Json): st
     metaString(metadata, "actor_id");
 
   if (missionId) return `/missions/${missionId}`;
+  if (type === "circle" && circleId) return `/circles/${circleId}`;
   if (type === "connection" && connectionActorId) {
     return `/people/${encodeURIComponent(connectionActorId)}`;
   }

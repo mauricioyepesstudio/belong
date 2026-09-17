@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { createNotification } from "@/lib/supabase/notify";
 import type { ActionResult } from "@/lib/actions/types";
 import { toUserErrorMessage } from "@/lib/errors/user-message";
 import {
@@ -95,6 +96,19 @@ export async function createCircle({
         error: toUserErrorMessage(inviteError, "Could not invite everyone to this circle."),
       };
     }
+
+    await createNotification(supabase, {
+      userId: inviteeId,
+      title: "Circle invite",
+      body: `${profile.full_name ?? "Someone"} invited you to join "${trimmedName}"`,
+      type: "circle",
+      metadata: {
+        circle_id: circle.id,
+        actor_id: profile.id,
+        actor_name: profile.full_name,
+        actor_avatar_url: profile.avatar_url,
+      },
+    });
   }
 
   revalidateCircleSurfaces();
@@ -155,7 +169,7 @@ export async function inviteToCircle(circleId: string, userId: string): Promise<
 
   const { data: circle } = await supabase
     .from("accountability_circles")
-    .select("id, creator_id")
+    .select("id, creator_id, name")
     .eq("id", circleId)
     .maybeSingle();
   if (!circle) return { error: "Circle not found" };
@@ -202,6 +216,20 @@ export async function inviteToCircle(circleId: string, userId: string): Promise<
   if (error) {
     return { error: toUserErrorMessage(error, "Could not send this invite. Please try again.") };
   }
+
+  await createNotification(supabase, {
+    userId,
+    title: "Circle invite",
+    body: `${profile.full_name ?? "Someone"} invited you to join "${circle.name}"`,
+    type: "circle",
+    metadata: {
+      circle_id: circle.id,
+      actor_id: profile.id,
+      actor_name: profile.full_name,
+      actor_avatar_url: profile.avatar_url,
+    },
+  });
+
   revalidateCircleSurfaces();
   return {};
 }

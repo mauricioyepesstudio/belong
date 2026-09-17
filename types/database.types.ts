@@ -14,7 +14,7 @@ export type AICopilotActionType =
   | "weekly_summary";
 export type AICopilotActionStatus = "completed" | "failed" | "applied";
 export type ProjectStatus = "planning" | "active" | "completed" | "archived";
-export type NotificationType = "connection" | "project" | "event" | "community" | "message" | "system" | "payment";
+export type NotificationType = "connection" | "project" | "event" | "community" | "message" | "system" | "payment" | "circle";
 export type SocialPostType =
   | "text"
   | "photo"

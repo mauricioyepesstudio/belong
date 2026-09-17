@@ -4,6 +4,8 @@ Status: DRAFT. Not posted.
 
 Format notes: X thread, 7 tweets, each under ~280 chars. No fabricated stats or handles pinged. Hashtags kept minimal (0-1 per tweet, only where natural).
 
+Attached image (tweet 1): `assets/hero-find-your-people.png` — real brand photography provided by the founder, not a product screenshot. Used as a general launch visual on the opening tweet only.
+
 ---
 
 **1/**

@@ -1,12 +1,12 @@
 # Instagram — Launch Carousel (Day 1)
 
-Status: DRAFT. Not posted. Requires real screenshots/screen recordings of the shipped `/proof` flow — none are assumed or fabricated here; a human must supply approved visuals before this can be built.
+Status: DRAFT. Not posted. Slides 3-5 require real screenshots/screen recordings of the shipped `/proof` flow — none are assumed or fabricated here; a human must supply approved visuals for those before this carousel can be built. Slide 1 now has a real brand asset (see below), since that slot was always a brand/wordmark cover, not a product screenshot.
 
 Format notes: 5-slide carousel. Slide copy below is short (Instagram slides should read in under ~3 seconds each). Caption is longer-form underneath, with line breaks for readability and a small hashtag block at the end (Instagram tolerates more tags than X/LinkedIn, but kept relevant here — no generic growth-hashtag spam).
 
 ## Carousel slide outline
 
-- **Slide 1 (cover):** "Aura is what people think you are. Proof is what you've actually done." — BELONG wordmark/logo. [needs real approved visual asset]
+- **Slide 1 (cover):** "Aura is what people think you are. Proof is what you've actually done." — BELONG wordmark/logo. Asset: `assets/cover-people-purpose-proof.png` (same image used on the live marketing site hero, for cross-surface consistency).
 - **Slide 2:** "Introducing Proof Loop." Show the loop: PROVE IT -> SHOW UP -> BUILD -> IMPACT -> BELONG. [needs real approved visual asset]
 - **Slide 3:** "PROVE IT: post a claim, prediction, or goal — success criteria set before the outcome." [screenshot of actual create-proof flow]
 - **Slide 4:** "SHOW UP: it becomes a real Project. People join real roles, log real evidence." [screenshot of actual Show Up / evidence timeline]

@@ -23,8 +23,18 @@ Nav entry point: "Proof" at `/proof` (`systems/navigation/config.ts`).
 
 - No user counts, download numbers, or engagement metrics (none exist yet / none are used).
 - No testimonials or user quotes (none exist).
-- No screenshots included in these drafts — screenshots must come from an actual approved UI capture, added by a human, not fabricated by this agent.
+- No product-UI screenshots included in these drafts — those must come from an actual approved UI capture, added by a human, not fabricated by this agent.
 - The three demo scenarios (creator mobilization, entrepreneurship jobs challenge, political bridge) are the product's own V1 demo framing from `BELONG_PROOF_LOOP.md`, used here as explanatory story hooks for what the feature enables — they are NOT reported as real completed outcomes, real user counts, or real dollar/job/meal totals. Copy is written to make clear these are example Proofs you can open in the product, not case studies of things that already happened.
+
+## Visual assets
+
+`assets/` holds real brand photography the founder provided directly (not AI-fabricated, not product screenshots). Wired into the three slots that were always brand/cover art rather than app UI:
+
+- `assets/hero-find-your-people.png` — X launch thread, tweet 1
+- `assets/hero-we-all-belong.png` — LinkedIn launch post
+- `assets/cover-people-purpose-proof.png` — Instagram carousel Slide 1 (cover); same image used on the live marketing site hero
+
+Slides/posts that explicitly need real `/proof` UI captures (Instagram Slides 3-5, all of `06-instagram-followups.md`, Slide 2 of the carousel) are untouched — substituting brand art there would misrepresent it as a product screenshot.
 
 ## Files in this set
 
@@ -40,7 +50,7 @@ Nav entry point: "Proof" at `/proof` (`systems/navigation/config.ts`).
 
 - [ ] Confirm which account/handle posts each platform (BELONG's official X, LinkedIn company page, Instagram handle) — not specified anywhere in this repo, must be supplied by a human.
 - [ ] Approve final copy per post (edits welcome).
-- [ ] Supply or approve real visual assets (screenshots/screen recordings of the actual shipped `/proof` flow) — none are fabricated or assumed here.
+- [ ] Approve the three brand-art placements already made (see Visual assets above), and supply real `/proof` UI screenshots/recordings for the remaining slots — none are fabricated or assumed here.
 - [ ] Confirm scheduling tool/process (Buffer, native scheduler, manual) and who executes it.
 - [ ] Legal/compliance pass on the political-bridge scenario post specifically, given BELONG's epistemic-neutrality rules in `BELONG_PROOF_LOOP.md` (never implies BELONG adjudicated ideology or that a participant changed political identity).
 - [ ] No tool in this agent's scope posts, publishes, schedules, or sends anything externally. That action requires a human or a separate explicitly-authorized step.

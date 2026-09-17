@@ -4,6 +4,8 @@ Status: DRAFT. Not posted.
 
 Format notes: LinkedIn favors a short opening hook, whitespace, and a professional but warm register. No hashtag stuffing — 3-4 relevant tags at the end. No emojis.
 
+Attached image: `assets/hero-we-all-belong.png` — real brand photography provided by the founder, not a product screenshot.
+
 ---
 
 Aura is what people think you are. Proof is what you've actually done.

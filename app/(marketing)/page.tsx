@@ -1,6 +1,7 @@
 import { siteConfig } from "@/config/site";
 import { Button, Card, CardContent } from "@/systems/design-system";
 import { Calendar, FolderKanban, ShoppingBag, Sparkles, Users, Zap } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -35,23 +36,27 @@ const pillars = [
 export default function LandingPage() {
   return (
     <>
-      <section className="relative overflow-hidden px-4 py-24 md:px-6 md:py-32">
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand/10 via-transparent to-transparent"
-          aria-hidden
-        />
-        <div className="relative mx-auto max-w-4xl text-center">
+      <section className="relative overflow-hidden">
+        <h1 className="sr-only">
+          BELONG — Different stories, shared humanity. People. Purpose. Proof.
+        </h1>
+        <div className="relative aspect-[2034/773] w-full">
+          <Image
+            src="/marketing/hero-people-purpose-proof.png"
+            alt="BELONG — Different stories. Shared humanity. People. Purpose. Proof. Two profiles formed of glass shards face each other across a glowing star."
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+        </div>
+        <div className="relative px-4 py-12 text-center md:px-6 md:py-16">
           <p className="text-label text-brand">{siteConfig.tagline}</p>
-          <h1 className="mt-4 text-display text-fg-primary md:text-5xl lg:text-6xl">
-            Build your future.
-            <br />
-            Help build the future of others.
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-fg-secondary">
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-fg-secondary">
             BELONG helps people connect, collaborate, and create measurable impact through
             communities, projects, and meaningful relationships.
           </p>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href="/register">
               <Button size="lg" variant="brand">
                 Join BELONG

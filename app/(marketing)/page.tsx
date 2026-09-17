@@ -52,6 +52,11 @@ export default function LandingPage() {
         </div>
         <div className="relative px-4 py-12 text-center md:px-6 md:py-16">
           <p className="text-label text-brand">{siteConfig.tagline}</p>
+          <p className="mx-auto mt-3 max-w-sm text-xl font-semibold text-fg-primary md:hidden">
+            Different stories. Shared humanity.
+            <br />
+            People. Purpose. Proof.
+          </p>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-fg-secondary">
             BELONG helps people connect, collaborate, and create measurable impact through
             communities, projects, and meaningful relationships.

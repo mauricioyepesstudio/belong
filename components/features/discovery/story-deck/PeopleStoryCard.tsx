@@ -5,7 +5,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { DiscoveryPerson } from "@/engines/opportunity/discovery";
 import { PeopleStoryMedia } from "./PeopleStoryMedia";
 import { Button } from "@/systems/design-system";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, type PanInfo } from "framer-motion";
 import { createPeopleStoryProfile } from "@/engines/people/people-story-adapter";
 
 interface PeopleStoryCardProps {
@@ -21,7 +21,7 @@ export function PeopleStoryCard({ person, onNext, onPrevious, onClose, onInteres
   const [sectionIndex, setSectionIndex] = useState(0);
   const profile = createPeopleStoryProfile(person, []);
 
-  const handleDragEnd = (_: any, info: any) => {
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (info.offset.x > 100) onInterested();
     else if (info.offset.x < -100) onNext();
   };

@@ -5,8 +5,8 @@ import { formatInitials } from "@/lib/format";
 import { mainNav, homeTopNav, isNavActive } from "@/systems/navigation";
 import type { UserProfile } from "@/types/database.types";
 import { MessageSquare, Search } from "lucide-react";
-import { NotificationBell } from "@/components/features/notifications/notification-bell";
-import { SoundToggle } from "@/components/features/notifications/sound-toggle";
+import { NotificationBell } from "@/engines/notifications/components/notification-bell";
+import { SoundToggle } from "@/engines/notifications/components/sound-toggle";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 

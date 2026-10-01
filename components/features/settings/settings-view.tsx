@@ -4,7 +4,7 @@ import { updateProfile, uploadAvatar } from "@/lib/actions/platform";
 import { updateCompatibilityMetadata } from "@/lib/actions/identity";
 import { updatePassword } from "@/lib/actions/auth";
 import { BillingSettings } from "@/engines/billing";
-import { NotificationPreferencesPanel } from "@/components/features/notifications/notification-preferences";
+import { NotificationPreferencesPanel } from "@/engines/notifications/components/notification-preferences";
 import type { BillingSummary } from "@/lib/actions/billing";
 import {
   Avatar,

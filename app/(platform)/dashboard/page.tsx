@@ -1,4 +1,4 @@
-import { StreakBadge } from "@/components/features/impact/streak-badge";
+import { StreakBadge } from "@/engines/impact/components/streak-badge";
 import { DashboardScreen, getDashboardData } from "@/engines/dashboard";
 import { fetchStreakInputs } from "@/engines/impact/streak-data";
 import { requireProfile } from "@/lib/auth/session";

@@ -6,16 +6,18 @@ _Actualizado: 2026-10-01 (revisión inicial del cerebro)_
 Llevar BELONG a beta pública estable: producto social con impacto medible, datos reales y calidad verificable (CI + pruebas).
 
 ## Siguiente (máx. 5; una tarea = un PR)
-1. **CI mínimo**: GitHub Actions con lint + `tsc` + `vitest` (hoy no existe `.github/`; ROADMAP Fase 3 P0).
-2. **Verificar OAuth Google/Apple** en Supabase Auth (commit 87ac6d5 sin validar credenciales; handoff 2026-09-04).
-3. **Aplicar/confirmar migración pendiente** `20260916000001_circle_invite_notifications.sql` en el entorno enlazado (commit 4a0d5d2 la dejó "pending").
-4. **Migrar `components/features/notifications` → engine** (primer corte de Fase 2; 5 imports, el más usado).
-5. **Decidir esquema de imágenes** para proyectos/comunidades/eventos (bloquea Live Builders/Missions al nivel de referencia; requiere decisión humana).
+1. **Fase 2 — cerrar migración a engines**: pasar las 9 carpetas con imports de `components/features/` (circles, collaboration, events, impact, messages, notifications, recommendations, settings, social; 25 imports, 19 archivos) a `engines/<dominio>` y borrar `components/features/profile` (ya sin imports). Se puede dividir en PRs por carpeta; criterio de salida: cero imports de `components/features`.
+2. **Fase 3 — GitHub Actions**: lint + `tsc` + `vitest` (+ build) en cada PR (hoy no existe `.github/`).
+3. Decidir esquema de imágenes para proyectos/comunidades/eventos (requiere decisión humana).
+4. Fase 3 P1: type-gen de Supabase en CI y rate limiting en acciones de auth.
+5. Fase 3 P0: Playwright E2E (auth, onboarding, dashboard).
 
 ## En curso / Bloqueado
+- **Bloqueado — requiere al dueño**: migración `20260916000001_circle_invite_notifications.sql` NO aplicada; aplicar con `supabase db push` en el proyecto de BELONG Labs.
+- **Bloqueado — requiere al dueño**: OAuth Google/Apple (commit 87ac6d5) no verificado; probar en producción.
 - **Rebuild Fase 2 (ROADMAP: Engine Migration) — parcial**: aún existen 10 carpetas en `components/features/` (circles, collaboration, events, impact, messages, notifications, recommendations, settings, social con imports; `profile` sin imports, borrable) con 25 imports desde 19 archivos. Criterio de salida ("cero imports de components/features") NO cumplido. Existen engines nuevos (circles, social, impact, billing, marketplace) que sí siguen el patrón, pero los legados de la lista de la Fase 2 (events, messages, notifications, settings) no migraron.
 - **Rebuild Fase 3 (Calidad) — parcial**: hay 23 archivos de test Vitest (engines ai, impact, identity, opportunity, circles, social…); faltan CI/GitHub Actions, Playwright E2E, Sentry, rate limiting en auth, type-gen en CI. `lib/env.ts` ya se usa (TD-07 parcialmente resuelto). Criterio de salida ("CI verde en cada PR") NO cumplido.
-- Nota de ambigüedad: `BELONG_ROADMAP.md` usa otras "Fase 2 Purpose / Fase 3 Vision" (Purpose Engine y Vision Engine): sin código ni migraciones → no iniciadas. Pendiente confirmar a cuál se refiere "rebuild fases 2 y 3".
+- Aclarado: "fases 2 y 3" = `docs/ROADMAP.md`. `BELONG_ROADMAP.md` (Purpose/Vision) es visión de producto futura, no compite.
 - Bloqueado: 5 imágenes/arte de misiones (mission-startup, portfolio, community, growth, default) `public/images/missions/mission-*.webp` faltantes (handoff 2026-08-17); aprobación visual humana de secciones del dashboard sin confirmar.
 - Bloqueado: de-boxing del hero (handoff 2026-08-17) sin evidencia de cierre en el git log.
 
@@ -30,4 +32,5 @@ Llevar BELONG a beta pública estable: producto social con impacto medible, dato
 - Subagentes de marketing/growth; primera imagen de Instagram alojada (PR #5 mergeado).
 
 ## Registro
+- 2026-10-01 — Respuestas del dueño: roadmap técnico vigente = docs/ROADMAP.md; prioridades reordenadas; bloqueos de migración y OAuth registrados.
 - 2026-10-01 — Cerebro creado: CLAUDE.md ampliado, ESTADO.md, docs/cerebro/, 2 subagentes. Sin cambios de código.

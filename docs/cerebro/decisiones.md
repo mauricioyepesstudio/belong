@@ -8,9 +8,9 @@ Registro de decisiones (fecha · decisión · motivo). Fuente: docs/ARCHITECTURE
 - 2026-08 · Métricas honestas: sin datos fabricados; huecos de datos se señalan, no se simulan.
 - 2026-09 · Impact v1 "compute-on-read" (streak, Belong Score) en vez de tablas precalculadas.
 - 2026-09 · Migraciones nuevas = archivo nuevo; las aplicadas no se editan (fix de RLS circles fue migración aparte).
+- 2026-10-01 · Roadmap vigente para lo técnico: `docs/ROADMAP.md`. `BELONG_ROADMAP.md` (Purpose, Vision…) es la visión de producto a futuro y no compite con él · aclarado por el dueño.
 - Flujo: commits solo tras aprobación humana; cambios pequeños, ~15–20 archivos máx.
 
 ## Pendiente de completar
 - Fecha y motivo de elegir Stripe/modelo de precios.
 - Decisión sobre esquema de imágenes (proyectos/comunidades/eventos).
-- Cuál de los dos roadmaps (docs/ROADMAP.md vs BELONG_ROADMAP.md) es el vigente.

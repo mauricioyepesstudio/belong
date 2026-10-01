@@ -306,3 +306,33 @@ Always leave enough information for another session/computer to continue without
 
 Keep handoffs concise and never include secrets.
 
+
+
+
+---
+
+## Cerebro (segundo cerebro del proyecto)
+
+Este proyecto lo resume el cerebro central (AI-Projects-Control-Plane) cada lunes; mantener ESTADO.md al día.
+
+Estado y prioridades: `ESTADO.md`. Contexto de negocio/marca/decisiones: `docs/cerebro/`.
+
+### Qué es y para quién
+BELONG es una plataforma social y de colaboración con propósito ("Build a life that matters"): conecta constructores, convierte ideas en proyectos y mide impacto real. Público: personas y organizaciones orientadas a misión (builders, comunidades, creadores). Detalle: `docs/PRODUCT_VISION.md`.
+
+### Stack
+Next.js 16 · React 19 · TypeScript · Supabase (Auth, Postgres, RLS, Realtime) · Tailwind v4 · Framer Motion · Stripe (billing) · Vitest. Despliegue en Vercel.
+
+### Capacidades (solo lo que el código justifica)
+- Auth email + Google/Apple (UI cableada; credenciales de proveedor sin verificar → propuesta de validación).
+- Comunidades, proyectos, eventos, mensajes, notificaciones, conexiones (`lib/actions`, `lib/data`).
+- Mission Engine, Impact Engine (Belong Score, Impact Passport, Momento Belong streak), Opportunity Graph.
+- Accountability Circles (membresía, check-ins, invitaciones con notificación).
+- Marketplace (listados con imagen y categoría), Organizaciones, Billing/Stripe (`engines/billing`, `app/api/webhook`).
+- Social Core V1, feed global, Home/dashboard con "universo", Live Builders, Impact Ripple.
+- AI Copilot basado en reglas (`engines/ai`); LLM real = **propuesta** (ROADMAP Fase 5).
+- Engines Purpose y Vision (BELONG_ROADMAP fases 2–3): **propuesta**, no hay código.
+- App móvil, API REST `/api/v1`: **propuesta**, no existen.
+
+### Lo que no se toca
+Ver "Critical safety rules" arriba (.env*, credenciales Supabase/Vercel, remotes, secretos) y no modificar migraciones ya aplicadas; las nuevas van como archivo nuevo.

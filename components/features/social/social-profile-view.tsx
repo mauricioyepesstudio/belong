@@ -3,7 +3,7 @@
 import type { SocialProfilePage } from "@/engines/social";
 import { Avatar, Badge, Button, Card, CardContent, EmptyState } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
-import { CollaborationProposeDialog } from "@/components/features/collaboration/collaboration-propose-dialog";
+import { CollaborationProposeDialog } from "@/engines/collaboration/components/collaboration-propose-dialog";
 import { FolderKanban, Handshake, MapPin, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";

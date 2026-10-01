@@ -10,9 +10,9 @@ import {
   CircleInviteMemberDialog,
   CircleLeaveButton,
   CircleRemoveMemberButton,
-} from "@/components/features/circles/circle-detail-actions";
-import { CheckinComposer } from "@/components/features/circles/checkin-composer";
-import { CheckinFeed } from "@/components/features/circles/checkin-feed";
+} from "@/engines/circles/components/circle-detail-actions";
+import { CheckinComposer } from "@/engines/circles/components/checkin-composer";
+import { CheckinFeed } from "@/engines/circles/components/checkin-feed";
 import { Avatar, Badge, Button, Card, CardContent, EmptyState } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 

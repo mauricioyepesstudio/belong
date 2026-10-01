@@ -6,8 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { SupabaseServerClient } from "@/lib/core/types";
 import { getAcceptedConnections } from "@/lib/data/connections";
 import { CIRCLE_MAX_MEMBERS, listMyCircles, type AccountabilityCircle } from "@/engines/circles";
-import { CreateCircleDialog } from "@/components/features/circles/create-circle-dialog";
-import { CircleInviteActions } from "@/components/features/circles/circle-invite-actions";
+import { CreateCircleDialog } from "@/engines/circles/components/create-circle-dialog";
+import { CircleInviteActions } from "@/engines/circles/components/circle-invite-actions";
 import { Avatar, Badge, Card, CardContent, EmptyState, FeatureScreen } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 

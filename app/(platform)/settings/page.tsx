@@ -1,4 +1,4 @@
-import { SettingsView } from "@/components/features/settings/settings-view";
+import { SettingsView } from "@/engines/settings/components/settings-view";
 import { Spinner } from "@/components/ui";
 import { getCurrentProfile } from "@/lib/auth/session";
 import { getBillingSummary } from "@/lib/data/billing";

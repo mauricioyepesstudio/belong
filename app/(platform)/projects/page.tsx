@@ -1,5 +1,5 @@
 import { ProjectScreen } from "@/engines/project";
-import { getUserProjects, getDiscoverProjects } from "@/lib/data/projects";
+import { getUserProjects, getDiscoverProjects } from "@/engines/project";
 import { getUserCommunities } from "@/lib/data/communities";
 import { getCurrentProfile } from "@/lib/auth/session";
 import { redirect } from "next/navigation";

@@ -1,5 +1,5 @@
 import { ProjectDetailScreen } from "@/engines/project";
-import { getProjectDetail } from "@/lib/data/projects";
+import { getProjectDetail } from "@/engines/project";
 import { getCopilotPanelData } from "@/lib/data/ai-copilot";
 import { requireProfile } from "@/lib/auth/session";
 import { notFound } from "next/navigation";

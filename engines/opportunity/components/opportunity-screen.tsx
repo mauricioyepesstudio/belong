@@ -4,7 +4,7 @@ import { HomeRecommendations } from "@/engines/belong/components/home";
 import type { OpportunityRecommendations } from "@/engines/opportunity/types";
 import { Badge, FeatureScreen } from "@/systems/design-system";
 import { AnalyticsScreen, AnalyticsSource, trackClientEvent } from "@/systems/analytics";
-import { recommendationActionLabel } from "@/components/features/recommendations/recommendation-action";
+import { recommendationActionLabel } from "@/engines/opportunity/components/recommendation-action";
 import { ArrowRight, Compass, HeartHandshake, Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
 

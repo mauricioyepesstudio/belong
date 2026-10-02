@@ -5,7 +5,7 @@ import type { SocialPublishingContext } from "@/engines/social";
 import { applyImpactScoreInsert } from "@/engines/impact";
 import { useDashboardRealtime } from "@/engines/core/realtime";
 import { Modal } from "@/components/ui/modal";
-import { SocialComposer } from "@/components/features/social/social-composer";
+import { SocialComposer } from "@/engines/social/components/social-composer";
 import { useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DashboardActions } from "../dashboard/dashboard-actions";

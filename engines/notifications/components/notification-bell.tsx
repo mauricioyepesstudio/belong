@@ -5,7 +5,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "@/lib/actions/notifications";
-import { SoundToggle } from "@/components/features/notifications/sound-toggle";
+import { SoundToggle } from "@/engines/notifications/components/sound-toggle";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { getNotificationPreferences, playSound, type SoundEvent } from "@/lib/sound";
 import { getNotificationHref, NotificationRow, useToast } from "@/systems/design-system";

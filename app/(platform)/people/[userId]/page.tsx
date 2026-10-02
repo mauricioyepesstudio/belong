@@ -1,4 +1,4 @@
-import { SocialProfileView } from "@/components/features/social/social-profile-view";
+import { SocialProfileView } from "@/engines/social/components/social-profile-view";
 import { getSocialProfilePage } from "@/engines/social";
 import { notFound } from "next/navigation";
 

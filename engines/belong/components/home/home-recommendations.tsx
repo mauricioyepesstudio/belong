@@ -2,9 +2,9 @@
 
 import type { OpportunityRecommendations, ScoredRecommendation } from "@/engines/opportunity";
 import { confidenceVariant } from "@/engines/opportunity";
-import { RecommendationDetailsDrawer } from "@/components/features/recommendations/recommendation-details-drawer";
-import { RecommendationExplanation } from "@/components/features/recommendations/recommendation-explanation";
-import { recommendationActionLabel } from "@/components/features/recommendations/recommendation-action";
+import { RecommendationDetailsDrawer } from "@/engines/opportunity/components/recommendation-details-drawer";
+import { RecommendationExplanation } from "@/engines/opportunity/components/recommendation-explanation";
+import { recommendationActionLabel } from "@/engines/opportunity/components/recommendation-action";
 import { Avatar, Badge, Button } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import {

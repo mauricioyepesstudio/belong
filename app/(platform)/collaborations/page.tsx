@@ -1,4 +1,4 @@
-import { CollaborationRecordActions } from "@/components/features/collaboration/collaboration-record-actions";
+import { CollaborationRecordActions } from "@/engines/collaboration/components/collaboration-record-actions";
 import { listMyCollaborations } from "@/engines/impact/passport/data";
 import type { CollaborationRecord } from "@/engines/impact/passport/types";
 import { requireProfile } from "@/lib/auth/session";

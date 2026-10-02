@@ -1,4 +1,4 @@
-import { SocialFeed } from "@/components/features/social/social-feed";
+import { SocialFeed } from "@/engines/social/components/social-feed";
 import { fetchSocialFeedPage } from "@/lib/actions/social";
 import { getGlobalSocialFeed, getSocialPostById } from "@/engines/social";
 import { FeatureScreen } from "@/systems/design-system";

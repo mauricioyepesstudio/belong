@@ -1,4 +1,4 @@
-import { MessagesView } from "@/components/features/messages/messages-view";
+import { MessagesView } from "@/engines/messages/components/messages-view";
 import { getConversationMessages, getConversations } from "@/lib/data/messages";
 import { requireProfile } from "@/lib/auth/session";
 import type { Metadata } from "next";

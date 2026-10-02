@@ -1,4 +1,4 @@
-import { SocialProfileView } from "@/components/features/social/social-profile-view";
+import { SocialProfileView } from "@/engines/social/components/social-profile-view";
 import { getOwnSocialProfilePage } from "@/engines/social";
 import type { Metadata } from "next";
 

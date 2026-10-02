@@ -1,4 +1,4 @@
-import { EventsView } from "@/components/features/events/events-view";
+import { EventsView } from "@/engines/events/components/events-view";
 import { getPastEvents, getUpcomingEvents } from "@/lib/data/events";
 import type { Metadata } from "next";
 

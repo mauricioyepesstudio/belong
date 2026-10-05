@@ -7,7 +7,7 @@ import {
 import type { OrganizationDetail } from "@/lib/core/organizations";
 import type { OrganizationInviteCandidate } from "@/lib/data/organizations";
 import { canAdminOrganization, canManageOrganization } from "@/lib/core/organizations";
-import type { CopilotPanelData } from "@/lib/data/ai-copilot";
+import type { CopilotPanelData } from "@/engines/ai/data";
 import { CopilotPanel } from "@/engines/ai/components/copilot-panel";
 import {
   OrganizationAnalyticsTab,

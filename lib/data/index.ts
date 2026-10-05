@@ -5,7 +5,7 @@ export * from "@/engines/events/data";
 export * from "@/engines/messages/data";
 export * from "@/engines/notifications/data";
 export * from "@/engines/settings/data";
-export * from "./ai-copilot";
+export * from "@/engines/ai/data";
 export * from "./connections";
 export * from "./organizations";
 export * from "./billing";

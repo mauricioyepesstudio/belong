@@ -1,6 +1,6 @@
 import { OrganizationDetailScreen } from "@/engines/organization";
 import { getOrganizationDetail, getOrganizationInviteCandidates } from "@/lib/data/organizations";
-import { getCopilotPanelData } from "@/lib/data/ai-copilot";
+import { getCopilotPanelData } from "@/engines/ai/data";
 import { requireProfile } from "@/lib/auth/session";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";

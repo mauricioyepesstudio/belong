@@ -6,7 +6,7 @@ _Actualizado: 2026-10-01 (revisión inicial del cerebro)_
 Llevar BELONG a beta pública estable: producto social con impacto medible, datos reales y calidad verificable (CI + pruebas).
 
 ## Siguiente (máx. 5; una tarea = un PR)
-1. **Fase 2 — resto de la migración**: PR #8 (rama `fase2-resto`) mueve projects, communities, events, messages, notifications y profile (→ `engines/settings`) de `lib/data` a `engines/<dominio>/data.ts`. Quedan en `lib/data`: ai-copilot, connections, organizations, billing, marketplace, resource-category.
+1. **Fase 2 — cierre**: PR #8 (rama `fase2-resto`) mueve todo `lib/data` a `engines/<dominio>` (project, community, events, messages, notifications, settings [ex profile], ai, social/connections, organization, billing, marketplace) y elimina `lib/data` (el barrel no tenía usos). Tras el merge, solo queda revisar "un patrón por ruta" (vistas a `FeatureScreen`) y actualizar `docs/COMPONENT_LIBRARY.md`.
 2. **Fase 3 — GitHub Actions**: lint + `tsc` + `vitest` (+ build) en cada PR (hoy no existe `.github/`).
 3. Decidir esquema de imágenes para proyectos/comunidades/eventos (requiere decisión humana).
 4. Fase 3 P1: type-gen de Supabase en CI y rate limiting en acciones de auth.
@@ -35,4 +35,4 @@ Llevar BELONG a beta pública estable: producto social con impacto medible, dato
 - 2026-10-01 — Respuestas del dueño: roadmap técnico vigente = docs/ROADMAP.md; prioridades reordenadas; bloqueos de migración y OAuth registrados.
 - 2026-10-01 — Cerebro creado: CLAUDE.md ampliado, ESTADO.md, docs/cerebro/, 2 subagentes. Sin cambios de código.
 - 2026-10-01 — Fase 2: migración components/features → engines (un commit por carpeta; solo mover y reimportar). Rama `fase2-engines`, PR #7.
-- 2026-10-02 — PR #7 fusionado. Google OAuth funcionando (Site URL + secreto nuevo); Apple sin probar. Fase 2: 6 módulos de `lib/data` → `engines/<dominio>/data.ts` (rama `fase2-resto`, PR #8; solo mover y reimportar).
+- 2026-10-02 — PR #7 fusionado. Google OAuth funcionando (Site URL + secreto nuevo); Apple sin probar. Fase 2: todo `lib/data` → engines y `lib/data` eliminado (rama `fase2-resto`, PR #8; un commit por módulo, solo mover y reimportar).

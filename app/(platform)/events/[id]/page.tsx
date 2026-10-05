@@ -1,5 +1,5 @@
 import { EventDetailView } from "@/engines/events/components/event-detail-view";
-import { getEventById } from "@/lib/data/events";
+import { getEventById } from "@/engines/events/data";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 

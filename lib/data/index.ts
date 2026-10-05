@@ -3,7 +3,7 @@ export * from "@/engines/community/data";
 export * from "@/engines/project/data";
 export * from "@/engines/events/data";
 export * from "@/engines/messages/data";
-export * from "./notifications";
+export * from "@/engines/notifications/data";
 export * from "./profile";
 export * from "./ai-copilot";
 export * from "./connections";

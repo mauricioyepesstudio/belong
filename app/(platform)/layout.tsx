@@ -1,6 +1,6 @@
 import { PlatformShell } from "@/systems/layout";
 import { getCurrentProfile } from "@/lib/auth/session";
-import { getUnreadNotificationCount } from "@/lib/data/notifications";
+import { getUnreadNotificationCount } from "@/engines/notifications/data";
 import { createClient } from "@/lib/supabase/server";
 import { fetchUserStats } from "@/lib/core/stats";
 

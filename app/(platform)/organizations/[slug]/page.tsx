@@ -1,5 +1,5 @@
 import { OrganizationDetailScreen } from "@/engines/organization";
-import { getOrganizationDetail, getOrganizationInviteCandidates } from "@/lib/data/organizations";
+import { getOrganizationDetail, getOrganizationInviteCandidates } from "@/engines/organization/data";
 import { getCopilotPanelData } from "@/engines/ai/data";
 import { requireProfile } from "@/lib/auth/session";
 import { notFound } from "next/navigation";

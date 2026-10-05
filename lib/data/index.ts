@@ -7,6 +7,6 @@ export * from "@/engines/notifications/data";
 export * from "@/engines/settings/data";
 export * from "@/engines/ai/data";
 export * from "@/engines/social/connections";
-export * from "./organizations";
+export * from "@/engines/organization/data";
 export * from "./billing";
 export * from "./marketplace";

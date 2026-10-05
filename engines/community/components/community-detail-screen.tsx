@@ -29,7 +29,7 @@ import {
 import { formatCents } from "@/engines/billing";
 import { formatInitials } from "@/lib/format";
 import type { CopilotPanelData } from "@/engines/ai/data";
-import type { ConnectedUser } from "@/lib/data/connections";
+import type { ConnectedUser } from "@/engines/social/connections";
 import { SegmentErrorBoundary } from "@/components/error/segment-error-boundary";
 import { CopilotPanel } from "@/engines/ai/components/copilot-panel";
 import {

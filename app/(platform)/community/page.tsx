@@ -2,7 +2,7 @@ import { CommunityScreen } from "@/engines/community";
 import {
   getDiscoverCommunities,
   getUserCommunities,
-} from "@/lib/data/communities";
+} from "@/engines/community/data";
 import { getDiscoverUsers, getPendingConnections } from "@/lib/data/connections";
 import type { Metadata } from "next";
 

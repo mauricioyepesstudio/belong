@@ -1,6 +1,6 @@
 import { ProjectScreen } from "@/engines/project";
 import { getUserProjects, getDiscoverProjects } from "@/engines/project";
-import { getUserCommunities } from "@/lib/data/communities";
+import { getUserCommunities } from "@/engines/community/data";
 import { getCurrentProfile } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";

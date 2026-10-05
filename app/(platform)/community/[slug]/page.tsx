@@ -1,5 +1,5 @@
 import { CommunityDetailScreen } from "@/engines/community/components/community-detail-screen";
-import { getCommunityDetail } from "@/lib/data/communities";
+import { getCommunityDetail } from "@/engines/community/data";
 import { getCopilotPanelData } from "@/lib/data/ai-copilot";
 import { getAcceptedConnections } from "@/lib/data/connections";
 import { requireProfile } from "@/lib/auth/session";

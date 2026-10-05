@@ -1,5 +1,5 @@
 export { getDashboardData, type DashboardData, type DashboardStats } from "@/engines/dashboard/data";
-export * from "./communities";
+export * from "@/engines/community/data";
 export * from "@/engines/project/data";
 export * from "./events";
 export * from "./messages";

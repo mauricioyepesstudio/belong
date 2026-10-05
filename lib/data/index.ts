@@ -2,7 +2,7 @@ export { getDashboardData, type DashboardData, type DashboardStats } from "@/eng
 export * from "@/engines/community/data";
 export * from "@/engines/project/data";
 export * from "@/engines/events/data";
-export * from "./messages";
+export * from "@/engines/messages/data";
 export * from "./notifications";
 export * from "./profile";
 export * from "./ai-copilot";

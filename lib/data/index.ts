@@ -9,4 +9,4 @@ export * from "@/engines/ai/data";
 export * from "@/engines/social/connections";
 export * from "@/engines/organization/data";
 export * from "@/engines/billing/data";
-export * from "./marketplace";
+export * from "@/engines/marketplace/data";

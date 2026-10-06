@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile, getCurrentProfile } from "@/lib/auth/session";
-import { getAcceptedConnectionIds } from "@/lib/data/connections";
+import { getAcceptedConnectionIds } from "@/engines/social/connections";
 import {
   fetchDiscoverOrganizations,
   fetchOrganizationDetail,

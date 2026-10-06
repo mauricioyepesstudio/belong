@@ -8,7 +8,7 @@ import { CIRCLE_MAX_MEMBERS } from "@/engines/circles";
 import { Avatar, Badge, Button, Input, Label, Modal, Textarea, useToast } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { ConnectedUser } from "@/lib/data/connections";
+import type { ConnectedUser } from "@/engines/social/connections";
 
 type CreateCircleDialogProps = {
   connections: ConnectedUser[];

@@ -1,7 +1,7 @@
 "use client";
 
 import { registerForEvent, unregisterFromEvent } from "@/lib/actions/events";
-import type { EventWithMeta } from "@/lib/data/events";
+import type { EventWithMeta } from "@/engines/events/data";
 import { formatEventDate } from "@/lib/format";
 import {
   Badge,

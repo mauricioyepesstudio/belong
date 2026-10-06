@@ -6,7 +6,7 @@ export {
   type UserCommunity,
   type DiscoverCommunity,
   type CommunityDetail,
-} from "@/lib/data/communities";
+} from "./data";
 
 export { CommunityScreen } from "./components/community-screen";
 export { CommunityDetailScreen } from "./components/community-detail-screen";

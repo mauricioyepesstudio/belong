@@ -1,7 +1,7 @@
 import { CommunityDetailScreen } from "@/engines/community/components/community-detail-screen";
-import { getCommunityDetail } from "@/lib/data/communities";
-import { getCopilotPanelData } from "@/lib/data/ai-copilot";
-import { getAcceptedConnections } from "@/lib/data/connections";
+import { getCommunityDetail } from "@/engines/community/data";
+import { getCopilotPanelData } from "@/engines/ai/data";
+import { getAcceptedConnections } from "@/engines/social/connections";
 import { requireProfile } from "@/lib/auth/session";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";

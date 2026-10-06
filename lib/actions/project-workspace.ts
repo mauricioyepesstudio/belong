@@ -310,10 +310,15 @@ export async function completeProjectMilestone(milestoneId: string): Promise<Act
   const err = await requireProjectMember(supabase, milestone.project_id, profile.id);
   if (err) return err;
 
-  await supabase
+  const { data: updatedMilestone, error } = await supabase
     .from("project_milestones")
     .update({ completed_at: new Date().toISOString() })
-    .eq("id", milestoneId);
+    .eq("id", milestoneId)
+    .select("id")
+    .maybeSingle();
+
+  if (error) return { error: error.message };
+  if (!updatedMilestone) return { error: "Milestone could not be updated" };
 
   await logProjectActivity(supabase, {
     projectId: milestone.project_id,
@@ -546,14 +551,19 @@ export async function updateProjectGoalProgress(
   const next = Math.min(100, Math.max(0, progressPercent));
   const completed = next >= 100;
 
-  await supabase
+  const { data: updatedGoal, error } = await supabase
     .from("project_goals")
     .update({
       progress_percent: next,
       status: completed ? "completed" : "active",
       completed_at: completed ? new Date().toISOString() : null,
     })
-    .eq("id", goalId);
+    .eq("id", goalId)
+    .select("id")
+    .maybeSingle();
+
+  if (error) return { error: error.message };
+  if (!updatedGoal) return { error: "Goal could not be updated" };
 
   if (completed && goal.progress_percent < 100) {
     await logProjectActivity(supabase, {

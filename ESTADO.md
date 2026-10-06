@@ -35,3 +35,11 @@ Llevar BELONG a beta pública estable: producto social con impacto medible, dato
 - 2026-10-01 — Respuestas del dueño: roadmap técnico vigente = docs/ROADMAP.md; prioridades reordenadas; bloqueos de migración y OAuth registrados.
 - 2026-10-01 — Cerebro creado: CLAUDE.md ampliado, ESTADO.md, docs/cerebro/, 2 subagentes. Sin cambios de código.
 - 2026-10-01 — Fase 2: migración components/features → engines (un commit por carpeta; solo mover y reimportar). Rama `fase2-engines`, PR #7.
+
+## Evidencia de entrega — 2026-10-06, sincronización de metas
+- Base verificada: `f29573d882e0001dc2d868834f7b108d08c85637` en `2026-07-16-gbly`. La corrección previa del servidor exige persistencia antes de registrar finalización/impacto.
+- Slice local `fix/goal-progress-ui-sync-20261006`: `/projects/[id]`, pestaña Goals, conserva el porcentaje guardado mientras espera la respuesta y si el guardado falla; solo confirma el incremento al guardar y marca 100% como completado. Sin rediseño ni cambios de permisos/esquema.
+- Validación local: ESLint focalizado, TypeScript, build y `git diff --check` PASS. Vitest: **129 PASS, 8 SKIP**; 3 regresiones nuevas verifican espera/error, finalización y progreso parcial. Revisión independiente sin hallazgos.
+- Límite de evidencia: los tests de UI usan un harness del manejador, no un navegador. Las 8 pruebas Supabase requieren cuentas E2E configuradas y se omiten; el recorrido autenticado real continúa pendiente. Este registro no acredita despliegue de este slice.
+- Coordinación: PRs abiertos #8 (migración de loaders), #9 (CI), #11 (E2E) y #12 (rate limiting) pertenecen a Claude; no se duplican aquí. #8 también modifica este documento: preservar sus cambios y este registro al integrar.
+- Siguiente objetivo: comprobar en `/projects/[id]` con usuario de prueba autorizado que un guardado rechazado conserva el porcentaje y muestra el error, y que 75→100 confirmado oculta el botón de incremento; completar el recorrido E2E autenticado sin declarar pruebas omitidas como exitosas.

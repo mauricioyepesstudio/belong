@@ -97,12 +97,19 @@ export function ProjectGoalsTab({
 
   const bumpProgress = (goalId: string, current: number) => {
     const next = Math.min(100, current + 25);
-    setGoals((prev) =>
-      prev.map((g) => (g.id === goalId ? { ...g, progressPercent: next } : g))
-    );
     startTransition(async () => {
       const result = await updateProjectGoalProgress(goalId, next);
-      if (result.error) toast(result.error, "error");
+      if (result.error) {
+        toast(result.error, "error");
+        return;
+      }
+      setGoals((prev) =>
+        prev.map((g) =>
+          g.id === goalId
+            ? { ...g, progressPercent: next, status: next === 100 ? "completed" : "active" }
+            : g
+        )
+      );
     });
   };
 

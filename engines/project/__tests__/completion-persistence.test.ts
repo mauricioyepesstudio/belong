@@ -19,7 +19,11 @@ vi.mock("@/lib/actions/_shared", () => ({
 vi.mock("@/engines/impact/record-action.server", () => ({ recordImpactAction: mocks.impact }));
 vi.mock("@/lib/supabase/notify", () => ({ createNotification: vi.fn() }));
 
-import { completeProjectMilestone, updateProjectGoalProgress } from "@/lib/actions/project-workspace";
+import {
+  completeProjectMilestone,
+  updateProjectGoalProgress,
+  updateProjectTask,
+} from "@/lib/actions/project-workspace";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -83,5 +87,39 @@ it("keeps partial goal progress free of completion events", async () => {
   expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({ progress_percent: 50, status: "active", completed_at: null }));
   expect(mocks.insert).not.toHaveBeenCalled();
   expect(mocks.impact).not.toHaveBeenCalled();
+  expect(mocks.revalidate).toHaveBeenCalledWith("project-1");
+});
+
+it("recalculates project progress when a completed task is reopened", async () => {
+  let countQuery = 0;
+  mocks.from.mockImplementation((table: string) => {
+    let isCount = false;
+    const query = {
+      select: vi.fn((_columns?: string, options?: { count?: string; head?: boolean }) => {
+        isCount = options?.count === "exact";
+        return query;
+      }),
+      eq: vi.fn(() => query),
+      maybeSingle: vi.fn(async () => ({ data: { user_id: "member-1" }, error: null })),
+      single: vi.fn(async () => table === "project_tasks"
+        ? { data: { project_id: "project-1", title: "Ship prototype", status: "done", assignee_id: "member-1" } }
+        : { data: { owner_id: "member-1" } }),
+      update: mocks.update.mockImplementation(() => query),
+      insert: mocks.insert.mockResolvedValue({ error: null }),
+      then: (resolve: (value: { count?: number; error: null }) => void) => {
+        if (isCount) {
+          countQuery += 1;
+          resolve({ count: countQuery === 1 ? 4 : 2, error: null });
+        } else {
+          resolve({ error: null });
+        }
+      },
+    };
+    return query;
+  });
+
+  expect(await updateProjectTask("task-1", { status: "review" })).toEqual({});
+  expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({ status: "review", completed_at: null }));
+  expect(mocks.update).toHaveBeenCalledWith({ progress: 50 });
   expect(mocks.revalidate).toHaveBeenCalledWith("project-1");
 });

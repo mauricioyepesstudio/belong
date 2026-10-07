@@ -213,6 +213,21 @@ export async function updateProjectTask(
       });
     }
 
+  } else if (data.status !== undefined && data.status !== task.status) {
+    const statusLabel = data.status.replace(/_/g, " ");
+    await logProjectActivity(supabase, {
+      projectId: task.project_id,
+      actorId: profile.id,
+      activityType: "task_moved",
+      title: `Moved task "${task.title}" to ${statusLabel}`,
+      metadata: { task_id: taskId, from_status: task.status, to_status: data.status },
+    });
+  }
+
+  if (
+    data.status !== undefined &&
+    (task.status === "done") !== (data.status === "done")
+  ) {
     const [{ count: totalTasks }, { count: completedTasks }] = await Promise.all([
       supabase
         .from("project_tasks")
@@ -229,15 +244,6 @@ export async function updateProjectTask(
       ? Math.round(((completedTasks ?? 0) / totalTasks) * 100)
       : 0;
     await supabase.from("projects").update({ progress }).eq("id", task.project_id);
-  } else if (data.status !== undefined && data.status !== task.status) {
-    const statusLabel = data.status.replace(/_/g, " ");
-    await logProjectActivity(supabase, {
-      projectId: task.project_id,
-      actorId: profile.id,
-      activityType: "task_moved",
-      title: `Moved task "${task.title}" to ${statusLabel}`,
-      metadata: { task_id: taskId, from_status: task.status, to_status: data.status },
-    });
   }
 
   if (data.assigneeId !== undefined && data.assigneeId !== task.assignee_id) {

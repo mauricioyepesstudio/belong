@@ -123,3 +123,76 @@ it("recalculates project progress when a completed task is reopened", async () =
   expect(mocks.update).toHaveBeenCalledWith({ progress: 50 });
   expect(mocks.revalidate).toHaveBeenCalledWith("project-1");
 });
+
+function mockTaskReopenWithAggregateResults({
+  countResults = [
+    { count: 4, error: null },
+    { count: 2, error: null },
+  ],
+  progressError = null,
+}: {
+  countResults?: Array<{ count: number | null; error: { message: string } | null }>;
+  progressError?: { message: string } | null;
+}) {
+  let countQuery = 0;
+
+  mocks.from.mockImplementation((table: string) => {
+    let isCount = false;
+    const query = {
+      select: vi.fn((_columns?: string, options?: { count?: string; head?: boolean }) => {
+        isCount = options?.count === "exact";
+        return query;
+      }),
+      eq: vi.fn(() => query),
+      maybeSingle: vi.fn(async () => ({ data: { user_id: "member-1" }, error: null })),
+      single: vi.fn(async () => table === "project_tasks"
+        ? { data: { project_id: "project-1", title: "Ship prototype", status: "done", assignee_id: "member-1" } }
+        : { data: { owner_id: "member-1" } }),
+      update: mocks.update.mockImplementation(() => query),
+      insert: mocks.insert.mockResolvedValue({ error: null }),
+      then: (resolve: (value: { count?: number | null; error: { message: string } | null }) => void) => {
+        if (isCount) {
+          resolve(countResults[countQuery++] ?? { count: null, error: null });
+        } else {
+          resolve({ error: table === "projects" ? progressError : null });
+        }
+      },
+    };
+    return query;
+  });
+}
+
+it.each([
+  {
+    name: "total task count",
+    countResults: [
+      { count: null, error: { message: "Total count unavailable" } },
+      { count: 2, error: null },
+    ],
+    message: "Task saved, but project progress could not be recalculated: Total count unavailable",
+  },
+  {
+    name: "completed task count",
+    countResults: [
+      { count: 4, error: null },
+      { count: null, error: { message: "Completed count unavailable" } },
+    ],
+    message: "Task saved, but project progress could not be recalculated: Completed count unavailable",
+  },
+])("reports a $name warning without writing aggregate progress", async ({ countResults, message }) => {
+  mockTaskReopenWithAggregateResults({ countResults });
+
+  expect(await updateProjectTask("task-1", { status: "review" })).toEqual({ warning: message });
+  expect(mocks.update).not.toHaveBeenCalledWith(expect.objectContaining({ progress: expect.any(Number) }));
+  expect(mocks.revalidate).toHaveBeenCalledWith("project-1");
+});
+
+it("reports a project progress write failure after preserving the task change", async () => {
+  mockTaskReopenWithAggregateResults({ progressError: { message: "Project update unavailable" } });
+
+  expect(await updateProjectTask("task-1", { status: "review" })).toEqual({
+    warning: "Task saved, but project progress could not be updated: Project update unavailable",
+  });
+  expect(mocks.update).toHaveBeenCalledWith({ progress: 50 });
+  expect(mocks.revalidate).toHaveBeenCalledWith("project-1");
+});

@@ -123,7 +123,10 @@ export function ProjectTasksTab({
     startTransition(async () => {
       const result = await moveProjectTask(task.id, status, index);
       if (result.error) toast(result.error, "error");
-      else onActivityCommitted?.();
+      else {
+        if (result.warning) toast(result.warning, "info");
+        onActivityCommitted?.();
+      }
     });
   };
 
@@ -152,7 +155,7 @@ export function ProjectTasksTab({
         setTasks(previousTasks);
         toast(result.error, "error");
       } else {
-        toast("Contribution approved", "success");
+        toast(result.warning ?? "Contribution approved", result.warning ? "info" : "success");
         onActivityCommitted?.();
       }
     });

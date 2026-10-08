@@ -142,6 +142,7 @@ export async function updateProjectTask(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   const profile = await requireProfile();
+  let aggregateWarning: string | undefined;
 
   const { data: task } = await supabase
     .from("project_tasks")
@@ -228,7 +229,7 @@ export async function updateProjectTask(
     data.status !== undefined &&
     (task.status === "done") !== (data.status === "done")
   ) {
-    const [{ count: totalTasks }, { count: completedTasks }] = await Promise.all([
+    const [totalResult, completedResult] = await Promise.all([
       supabase
         .from("project_tasks")
         .select("*", { count: "exact", head: true })
@@ -240,10 +241,21 @@ export async function updateProjectTask(
         .eq("status", "done"),
     ]);
 
-    const progress = totalTasks
-      ? Math.round(((completedTasks ?? 0) / totalTasks) * 100)
-      : 0;
-    await supabase.from("projects").update({ progress }).eq("id", task.project_id);
+    const countError = totalResult.error ?? completedResult.error;
+    if (countError) {
+      aggregateWarning = `Task saved, but project progress could not be recalculated: ${countError.message}`;
+    } else {
+      const progress = totalResult.count
+        ? Math.round(((completedResult.count ?? 0) / totalResult.count) * 100)
+        : 0;
+      const { error: progressError } = await supabase
+        .from("projects")
+        .update({ progress })
+        .eq("id", task.project_id);
+      if (progressError) {
+        aggregateWarning = `Task saved, but project progress could not be updated: ${progressError.message}`;
+      }
+    }
   }
 
   if (data.assigneeId !== undefined && data.assigneeId !== task.assignee_id) {
@@ -260,7 +272,7 @@ export async function updateProjectTask(
   }
 
   revalidateProject(task.project_id);
-  return {};
+  return aggregateWarning ? { warning: aggregateWarning } : {};
 }
 
 export async function moveProjectTask(

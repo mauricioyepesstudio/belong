@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   member: vi.fn(),
   impact: vi.fn(),
   revalidate: vi.fn(),
+  notify: vi.fn(),
   mutationResult: { data: { id: "item-1" } as { id: string } | null, error: null as { message: string } | null },
 }));
 
@@ -17,7 +18,7 @@ vi.mock("@/lib/actions/_shared", () => ({
   revalidateProject: mocks.revalidate,
 }));
 vi.mock("@/engines/impact/record-action.server", () => ({ recordImpactAction: mocks.impact }));
-vi.mock("@/lib/supabase/notify", () => ({ createNotification: vi.fn() }));
+vi.mock("@/lib/supabase/notify", () => ({ createNotification: mocks.notify }));
 
 import {
   completeProjectMilestone,
@@ -194,5 +195,58 @@ it("reports a project progress write failure after preserving the task change", 
     warning: "Task saved, but project progress could not be updated: Project update unavailable",
   });
   expect(mocks.update).toHaveBeenCalledWith({ progress: 50 });
+  expect(mocks.revalidate).toHaveBeenCalledWith("project-1");
+});
+
+function mockTaskCompletionPersistence(result: typeof mocks.mutationResult) {
+  let countQuery = 0;
+  mocks.from.mockImplementation((table: string) => {
+    let isCount = false;
+    const query = {
+      select: vi.fn((_columns?: string, options?: { count?: string }) => {
+        isCount = options?.count === "exact";
+        return query;
+      }),
+      eq: vi.fn(() => query),
+      neq: vi.fn(() => query),
+      single: vi.fn(async () => table === "project_tasks"
+        ? { data: { project_id: "project-1", title: "Ship prototype", status: "review", assignee_id: "member-2" } }
+        : { data: { owner_id: "member-1" } }),
+      maybeSingle: vi.fn(async () => result),
+      update: mocks.update.mockImplementation(() => query),
+      insert: mocks.insert.mockResolvedValue({ error: null }),
+      then: (resolve: (value: { count?: number; error: null }) => void) => {
+        if (isCount) {
+          countQuery += 1;
+          resolve({ count: countQuery === 1 ? 4 : 3, error: null });
+        } else resolve({ error: null });
+      },
+    };
+    return query;
+  });
+  return { getCountQueries: () => countQuery };
+}
+
+it.each([
+  { name: "database error", result: { data: null, error: { message: "Task update unavailable" } }, message: "Task update unavailable" },
+  { name: "zero-row update", result: { data: null, error: null }, message: "Task could not be updated" },
+])("stops task completion after a $name without recording any success", async ({ result, message }) => {
+  const queries = mockTaskCompletionPersistence(result);
+  expect(await updateProjectTask("task-1", { status: "done" })).toEqual({ error: message });
+  expect(mocks.update).toHaveBeenCalledTimes(1);
+  expect(mocks.insert).not.toHaveBeenCalled();
+  expect(mocks.impact).not.toHaveBeenCalled();
+  expect(mocks.revalidate).not.toHaveBeenCalled();
+  expect(queries.getCountQueries()).toBe(0);
+  expect(mocks.notify).not.toHaveBeenCalled();
+});
+
+it("records task completion and aggregate progress after persistence", async () => {
+  const queries = mockTaskCompletionPersistence({ data: { id: "task-1" }, error: null });
+  expect(await updateProjectTask("task-1", { status: "done" })).toEqual({});
+  expect(mocks.impact).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ eventType: "project_task_completed", userId: "member-2" }));
+  expect(mocks.update).toHaveBeenCalledWith({ progress: 75 });
+  expect(queries.getCountQueries()).toBe(2);
+  expect(mocks.notify).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ userId: "member-2", title: "Contribution approved" }));
   expect(mocks.revalidate).toHaveBeenCalledWith("project-1");
 });

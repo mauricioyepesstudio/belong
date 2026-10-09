@@ -184,8 +184,14 @@ export async function updateProjectTask(
     updates.completed_at = data.status === "done" ? new Date().toISOString() : null;
   }
 
-  const { error } = await supabase.from("project_tasks").update(updates).eq("id", taskId);
+  const { data: updatedTask, error } = await supabase
+    .from("project_tasks")
+    .update(updates)
+    .eq("id", taskId)
+    .select("id")
+    .maybeSingle();
   if (error) return { error: error.message };
+  if (!updatedTask) return { error: "Task could not be updated" };
 
   if (data.status === "done" && task.status !== "done") {
     await logProjectActivity(supabase, {

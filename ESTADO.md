@@ -1,6 +1,6 @@
 # ESTADO — BELONG
 
-_Actualizado: 2026-10-01 (revisión inicial del cerebro)_
+_Actualizado: 2026-10-09 (entrega focalizada; prioridades históricas de 2026-10-01 conservadas)_
 
 ## Objetivo
 Llevar BELONG a beta pública estable: producto social con impacto medible, datos reales y calidad verificable (CI + pruebas).
@@ -43,3 +43,13 @@ Llevar BELONG a beta pública estable: producto social con impacto medible, dato
 - Límite de evidencia: los tests de UI usan un harness del manejador, no un navegador. Las 8 pruebas Supabase requieren cuentas E2E configuradas y se omiten; el recorrido autenticado real continúa pendiente. Este registro no acredita despliegue de este slice.
 - Coordinación: PRs abiertos #8 (migración de loaders), #9 (CI), #11 (E2E) y #12 (rate limiting) pertenecen a Claude; no se duplican aquí. #8 también modifica este documento: preservar sus cambios y este registro al integrar.
 - Siguiente objetivo: comprobar en `/projects/[id]` con usuario de prueba autorizado que un guardado rechazado conserva el porcentaje y muestra el error, y que 75→100 confirmado oculta el botón de incremento; completar el recorrido E2E autenticado sin declarar pruebas omitidas como exitosas.
+
+
+## Evidencia de entrega — 2026-10-09, persistencia de tareas
+- Base: `0af8ed55fdabdc9a405ed37c074febfb72f3d91f`, con correcciones previas de persistencia, metas, reapertura de tareas y avisos de progreso preservadas.
+- Cambio preparado en `fix/belong-delivery-20261009`: `updateProjectTask` confirma una fila guardada antes de registrar actividad, impacto, notificaciones o recalcular progreso. Un update sin fila ahora devuelve error; no representa trabajo completado. Sin rediseño, esquema, permisos o secretos.
+- Evidencia local: lint focalizado, TypeScript, build y diff PASS; Vitest **136 PASS, 8 SKIP**, suite de persistencia **16/16 PASS**. Revisión independiente sin bloqueos. No commit, push ni despliegue desde esta implementación.
+- Límite: no hay cuenta de prueba autorizada ni acceso al proyecto Supabase disponibles en este checkout para acreditar el recorrido real; las 8 pruebas de integración se omiten. La compilación no acredita autenticación, RLS o funcionamiento completo en producción.
+- Estado vigente de calidad: existe `.github/workflows/ci.yml`; las referencias anteriores a falta de CI son históricas. No se duplica el trabajo de Claude en PRs #8/#11/#12.
+- Contenido producido y listo para compartir aquí: `exec-472fef38-f5c2-43ec-900e-4e9599ed3099.png` (2026-10-09), tareas colaborativas y trabajo guardado; no publicado externamente ni incorporado a la app. Caption y evidencia: `docs/cerebro/2026-10-09-task-persistence-gate.md`.
+- Siguiente slice: validar que el responsable elegido al crear una tarea pertenece al proyecto, como ya exige la actualización de tareas; no implementado en esta entrega. Siguiente prueba real: usuario autorizado, proyecto de prueba, update rechazado o tarea eliminada, sin impacto/notificación de éxito; confirmar guardado y reapertura con progreso veraz.

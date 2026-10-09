@@ -3,7 +3,7 @@
 ## Objetivo y resultado
 Evitar que una actualización sin fila guardada parezca trabajo completado. `updateProjectTask` ahora solicita el ID persistido con `.select("id").maybeSingle()` y devuelve el error de base de datos, o `Task could not be updated` si no vuelve una fila, antes de actividad, impacto, notificación, recálculo de progreso y revalidación.
 
-Base `0af8ed55fdabdc9a405ed37c074febfb72f3d91f`; rama `fix/belong-delivery-20261009`. Cambio preparado, sin commit/push/despliegue desde esta implementación. Se conservan los recorridos de reapertura y las advertencias de sincronización de progreso anteriores. No hay cambios visuales, migraciones, grants, secretos ni billing.
+Base `0af8ed55fdabdc9a405ed37c074febfb72f3d91f`; rama `fix/belong-delivery-20261009`. Cambio preparado en [PR #16](https://github.com/mauricioyepesstudio/belong/pull/16). Integración y despliegue pendientes en este registro; el cierre con commit real, controles y límites se conserva en la [tarea central](https://github.com/mauricioyepesstudio/AI-Projects-Control-Plane/blob/agency-coordination-v1/queue.json), ID `belong-functional-delivery-20261009`. Se conservan los recorridos de reapertura y las advertencias de sincronización de progreso anteriores. No hay cambios visuales, migraciones, grants, secretos ni billing.
 
 ## Validación y límites
 - ESLint focalizado, TypeScript, build y diff check: PASS.

@@ -85,6 +85,18 @@ export async function createProjectTask(
   const title = data.title.trim();
   if (!title) return { error: "Title is required" };
 
+  if (data.assigneeId) {
+    const { data: assignee, error: assigneeError } = await supabase
+      .from("project_members")
+      .select("user_id")
+      .eq("project_id", projectId)
+      .eq("user_id", data.assigneeId)
+      .maybeSingle();
+
+    if (assigneeError) return { error: assigneeError.message };
+    if (!assignee) return { error: "Assignee must be a project member" };
+  }
+
   const { count } = await supabase
     .from("project_tasks")
     .select("*", { count: "exact", head: true })

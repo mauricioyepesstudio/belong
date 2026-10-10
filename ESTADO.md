@@ -1,6 +1,6 @@
 # ESTADO — BELONG
 
-_Actualizado: 2026-10-09 (entrega focalizada; prioridades históricas de 2026-10-01 conservadas)_
+_Actualizado: 2026-10-10 (entrega focalizada; prioridades históricas de 2026-10-01 conservadas)_
 
 ## Objetivo
 Llevar BELONG a beta pública estable: producto social con impacto medible, datos reales y calidad verificable (CI + pruebas).
@@ -53,3 +53,10 @@ Llevar BELONG a beta pública estable: producto social con impacto medible, dato
 - Estado vigente de calidad: existe `.github/workflows/ci.yml`; las referencias anteriores a falta de CI son históricas. No se duplica el trabajo de Claude en PRs #8/#11/#12.
 - Contenido producido y listo para compartir aquí: `exec-472fef38-f5c2-43ec-900e-4e9599ed3099.png` (2026-10-09), tareas colaborativas y trabajo guardado; no publicado externamente ni incorporado a la app. Caption y evidencia: `docs/cerebro/2026-10-09-task-persistence-gate.md`.
 - Siguiente slice: validar que el responsable elegido al crear una tarea pertenece al proyecto, como ya exige la actualización de tareas; no implementado en esta entrega. Siguiente prueba real: usuario autorizado, proyecto de prueba, update rechazado o tarea eliminada, sin impacto/notificación de éxito; confirmar guardado y reapertura con progreso veraz.
+
+## Evidencia de entrega — 2026-10-10, responsables de tareas
+- Base remota actual `bd34308d6c475e9e94a52c99d30158ac79781b17`. PR #10 y corrección de `goals-tab` #13 siguen integrados; el progreso se confirma después de guardar. No se duplican los PR abiertos de Claude #8/#11/#12.
+- `createProjectTask` ahora comprueba membresía del responsable en el mismo proyecto antes de insertar tarea o registrar actividad/impacto. Una consulta fallida o una persona externa devuelve error. Se conserva la autorización del creador y la creación sin responsable; no hay cambios visuales, de esquema o políticas.
+- Validación: ESLint focalizado, TypeScript, build y diff PASS; Vitest **146 PASS / 8 SKIP**, 10 regresiones nuevas; revisión independiente GO. Evidencia y PR: `docs/cerebro/2026-10-10-task-assignee-membership.md`. El cierre con commit integrado, despliegue real y estado de verificación está en la tarea central `belong-task-assignee-20261010`; no confundir cambio preparado con desplegado.
+- Se conserva la pieza visual producida el 2026-10-09 por ser reciente y equivalente al objetivo: lista para compartir aquí, no publicada en redes. No se genera un duplicado.
+- Próximo objetivo: comprobar creación y asignación/rechazo en proyecto de prueba autorizado. Sigue faltando cuenta de prueba y acceso al proyecto Supabase de BELONG para verificar ese recorrido autenticado; las pruebas omitidas no se declaran exitosas.

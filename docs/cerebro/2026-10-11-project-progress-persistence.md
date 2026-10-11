@@ -8,6 +8,8 @@ Base remota `252fda2e025a0b72f91263923cd924968be40798`; checkout aislado `belong
 ## Evidencia y límites
 La tarea central es `belong-functional-delivery-20261011`, reclamada con lease esperado. La validación, PR, commit integrado y despliegue exacto se registran en la cola central al cerrar.
 
+Entrega preparada en [PR #18](https://github.com/mauricioyepesstudio/belong/pull/18), commit funcional `b8ededa521dee6c8c915f6da06207e149b0458e5`.
+
 - ESLint focalizado: PASS, 0 errores.
 - Persistencia focalizada: **17/17 PASS**.
 - Suite completa: **147 PASS / 8 SKIP**; las ocho integraciones requieren credenciales Supabase.

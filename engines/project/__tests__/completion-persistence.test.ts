@@ -130,10 +130,13 @@ function mockTaskReopenWithAggregateResults({
     { count: 4, error: null },
     { count: 2, error: null },
   ],
-  progressError = null,
+  progressResult = { data: { id: "project-1" }, error: null },
 }: {
   countResults?: Array<{ count: number | null; error: { message: string } | null }>;
-  progressError?: { message: string } | null;
+  progressResult?: {
+    data: { id: string } | null;
+    error: { message: string } | null;
+  };
 }) {
   let countQuery = 0;
 
@@ -145,7 +148,9 @@ function mockTaskReopenWithAggregateResults({
         return query;
       }),
       eq: vi.fn(() => query),
-      maybeSingle: vi.fn(async () => ({ data: { user_id: "member-1" }, error: null })),
+      maybeSingle: vi.fn(async () => table === "projects"
+        ? progressResult
+        : { data: { user_id: "member-1" }, error: null }),
       single: vi.fn(async () => table === "project_tasks"
         ? { data: { project_id: "project-1", title: "Ship prototype", status: "done", assignee_id: "member-1" } }
         : { data: { owner_id: "member-1" } }),
@@ -154,9 +159,7 @@ function mockTaskReopenWithAggregateResults({
       then: (resolve: (value: { count?: number | null; error: { message: string } | null }) => void) => {
         if (isCount) {
           resolve(countResults[countQuery++] ?? { count: null, error: null });
-        } else {
-          resolve({ error: table === "projects" ? progressError : null });
-        }
+        } else resolve({ error: null });
       },
     };
     return query;
@@ -189,10 +192,22 @@ it.each([
 });
 
 it("reports a project progress write failure after preserving the task change", async () => {
-  mockTaskReopenWithAggregateResults({ progressError: { message: "Project update unavailable" } });
+  mockTaskReopenWithAggregateResults({
+    progressResult: { data: null, error: { message: "Project update unavailable" } },
+  });
 
   expect(await updateProjectTask("task-1", { status: "review" })).toEqual({
     warning: "Task saved, but project progress could not be updated: Project update unavailable",
+  });
+  expect(mocks.update).toHaveBeenCalledWith({ progress: 50 });
+  expect(mocks.revalidate).toHaveBeenCalledWith("project-1");
+});
+
+it("reports a zero-row project progress write after preserving the task change", async () => {
+  mockTaskReopenWithAggregateResults({ progressResult: { data: null, error: null } });
+
+  expect(await updateProjectTask("task-1", { status: "review" })).toEqual({
+    warning: "Task saved, but project progress could not be updated",
   });
   expect(mocks.update).toHaveBeenCalledWith({ progress: 50 });
   expect(mocks.revalidate).toHaveBeenCalledWith("project-1");
@@ -212,7 +227,9 @@ function mockTaskCompletionPersistence(result: typeof mocks.mutationResult) {
       single: vi.fn(async () => table === "project_tasks"
         ? { data: { project_id: "project-1", title: "Ship prototype", status: "review", assignee_id: "member-2" } }
         : { data: { owner_id: "member-1" } }),
-      maybeSingle: vi.fn(async () => result),
+      maybeSingle: vi.fn(async () => table === "projects"
+        ? { data: { id: "project-1" }, error: null }
+        : result),
       update: mocks.update.mockImplementation(() => query),
       insert: mocks.insert.mockResolvedValue({ error: null }),
       then: (resolve: (value: { count?: number; error: null }) => void) => {

@@ -266,12 +266,16 @@ export async function updateProjectTask(
       const progress = totalResult.count
         ? Math.round(((completedResult.count ?? 0) / totalResult.count) * 100)
         : 0;
-      const { error: progressError } = await supabase
+      const { data: updatedProject, error: progressError } = await supabase
         .from("projects")
         .update({ progress })
-        .eq("id", task.project_id);
+        .eq("id", task.project_id)
+        .select("id")
+        .maybeSingle();
       if (progressError) {
         aggregateWarning = `Task saved, but project progress could not be updated: ${progressError.message}`;
+      } else if (!updatedProject) {
+        aggregateWarning = "Task saved, but project progress could not be updated";
       }
     }
   }

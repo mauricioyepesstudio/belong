@@ -1,6 +1,6 @@
 # ESTADO — BELONG
 
-_Actualizado: 2026-10-10 (entrega focalizada; prioridades históricas de 2026-10-01 conservadas)_
+_Actualizado: 2026-10-11 (entrega focalizada; prioridades históricas de 2026-10-01 conservadas)_
 
 ## Objetivo
 Llevar BELONG a beta pública estable: producto social con impacto medible, datos reales y calidad verificable (CI + pruebas).
@@ -60,3 +60,10 @@ Llevar BELONG a beta pública estable: producto social con impacto medible, dato
 - Validación: ESLint focalizado, TypeScript, build y diff PASS; Vitest **146 PASS / 8 SKIP**, 10 regresiones nuevas; revisión independiente GO. Evidencia y PR: `docs/cerebro/2026-10-10-task-assignee-membership.md`. El cierre con commit integrado, despliegue real y estado de verificación está en la tarea central `belong-task-assignee-20261010`; no confundir cambio preparado con desplegado.
 - Se conserva la pieza visual producida el 2026-10-09 por ser reciente y equivalente al objetivo: lista para compartir aquí, no publicada en redes. No se genera un duplicado.
 - Próximo objetivo: comprobar creación y asignación/rechazo en proyecto de prueba autorizado. Sigue faltando cuenta de prueba y acceso al proyecto Supabase de BELONG para verificar ese recorrido autenticado; las pruebas omitidas no se declaran exitosas.
+
+## Evidencia de entrega — 2026-10-11, progreso agregado persistido
+- Base remota `252fda2e025a0b72f91263923cd924968be40798`. PR #10 y la corrección de `goals-tab` #13 siguen integrados; los PR abiertos de Claude #8/#11/#12 no se duplican.
+- `updateProjectTask` confirma que la escritura de `projects.progress` devuelve una fila. Si la tarea quedó guardada pero el agregado falla o no modifica el proyecto, devuelve una advertencia en vez de representar sincronización completa. Sin cambios visuales, de esquema, RLS o permisos.
+- Validación: ESLint focalizado, TypeScript, build y diff PASS; Vitest **147 PASS / 8 SKIP**, con persistencia **17/17 PASS**. Evidencia y límites: `docs/cerebro/2026-10-11-project-progress-persistence.md`; cierre real en la tarea central `belong-functional-delivery-20261011`. El recorrido autenticado continúa pendiente de cuenta y proyecto de prueba de BELONG.
+- Se conserva la pieza visual producida el 2026-10-09 por ser reciente y equivalente; lista para compartir aquí, no publicada externamente. No se genera un duplicado.
+- Próximo objetivo: verificar en un proyecto autorizado que completar/reabrir una tarea conserva la tarea y el porcentaje agregado después de recargar.

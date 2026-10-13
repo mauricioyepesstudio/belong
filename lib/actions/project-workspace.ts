@@ -577,6 +577,10 @@ export async function updateProjectGoalProgress(
   const supabase = await createClient();
   const profile = await requireProfile();
 
+  if (typeof progressPercent !== "number" || !Number.isFinite(progressPercent)) {
+    return { error: "Progress must be a finite number" };
+  }
+
   const { data: goal } = await supabase
     .from("project_goals")
     .select("project_id, title, progress_percent")

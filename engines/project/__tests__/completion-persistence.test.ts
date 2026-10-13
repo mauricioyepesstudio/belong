@@ -83,6 +83,44 @@ for (const action of completionActions) {
   });
 }
 
+it.each([Infinity, -Infinity, NaN, "100", null, undefined, {}])(
+  "rejects malformed goal progress %j before querying or changing project data",
+  async (progress) => {
+    expect(await updateProjectGoalProgress("item-1", progress as number)).toEqual({
+      error: "Progress must be a finite number",
+    });
+    expect(mocks.from).not.toHaveBeenCalled();
+    expect(mocks.member).not.toHaveBeenCalled();
+    expect(mocks.update).not.toHaveBeenCalled();
+    expect(mocks.insert).not.toHaveBeenCalled();
+    expect(mocks.impact).not.toHaveBeenCalled();
+    expect(mocks.revalidate).not.toHaveBeenCalled();
+  }
+);
+
+it.each([
+  { input: -1, expected: 0 },
+  { input: 125, expected: 100 },
+  { input: 50, expected: 50 },
+])("preserves finite goal progress clamping for $input", async ({ input, expected }) => {
+  expect(await updateProjectGoalProgress("item-1", input)).toEqual({});
+  expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({
+    progress_percent: expected,
+    status: expected === 100 ? "completed" : "active",
+  }));
+  expect(mocks.member).toHaveBeenCalled();
+  expect(mocks.revalidate).toHaveBeenCalledWith("project-1");
+  if (expected === 100) {
+    expect(mocks.insert).toHaveBeenCalled();
+    expect(mocks.impact).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      eventType: "project_goal_completed",
+    }));
+  } else {
+    expect(mocks.insert).not.toHaveBeenCalled();
+    expect(mocks.impact).not.toHaveBeenCalled();
+  }
+});
+
 it("keeps partial goal progress free of completion events", async () => {
   expect(await updateProjectGoalProgress("item-1", 50)).toEqual({});
   expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({ progress_percent: 50, status: "active", completed_at: null }));

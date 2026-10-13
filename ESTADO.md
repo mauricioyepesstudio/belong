@@ -1,6 +1,6 @@
 # ESTADO — BELONG
 
-_Actualizado: 2026-10-11 (entrega focalizada; prioridades históricas de 2026-10-01 conservadas)_
+_Actualizado: 2026-10-13 (entrega focalizada; prioridades históricas de 2026-10-01 conservadas)_
 
 ## Objetivo
 Llevar BELONG a beta pública estable: producto social con impacto medible, datos reales y calidad verificable (CI + pruebas).
@@ -67,3 +67,11 @@ Llevar BELONG a beta pública estable: producto social con impacto medible, dato
 - Validación: ESLint focalizado, TypeScript, build y diff PASS; Vitest **147 PASS / 8 SKIP**, con persistencia **17/17 PASS**. Evidencia y límites: `docs/cerebro/2026-10-11-project-progress-persistence.md`; cierre real en la tarea central `belong-functional-delivery-20261011`. El recorrido autenticado continúa pendiente de cuenta y proyecto de prueba de BELONG.
 - Se conserva la pieza visual producida el 2026-10-09 por ser reciente y equivalente; lista para compartir aquí, no publicada externamente. No se genera un duplicado.
 - Próximo objetivo: verificar en un proyecto autorizado que completar/reabrir una tarea conserva la tarea y el porcentaje agregado después de recargar.
+
+## Evidencia de entrega — 2026-10-13, validación del progreso de metas
+- Base remota `ef685a1f431a8006d33d02bff5e2251c010f9d70`. PR10 de persistencia y PR13 de `goals-tab` siguen integrados; PR18 de progreso agregado también se conserva.
+- `updateProjectGoalProgress` rechaza valores no numéricos o no finitos después de autenticar y antes de consultar o modificar la meta. Evita convertir entradas malformadas en finalización o progreso cero; los números finitos conservan el límite de 0–100.
+- Evidencia: `docs/cerebro/2026-10-13-goal-progress-validation.md`; tarea central `belong-goal-progress-validation-20261013` con lease esperado. Sin cambios visuales, de esquema, RLS, permisos o secretos.
+- Validación: **157 pruebas PASS / 8 SKIP**, persistencia focalizada **27/27**, sincronización Goals **3/3**; ESLint, TypeScript, build y diff PASS; revisión independiente GO.
+- Pieza de metas producida y revisada el 2026-10-13: `exec-c305f33d-980a-4667-8bbd-de4ffdb0e19c.png`; lista para compartir aquí, no publicada externamente. Caption y QA en el cerebro.
+- Siguiente prueba: usuario y proyecto de BELONG autorizados, incremento guardado y rechazo sin progreso/actividad/impacto falso. Acceso autenticado real pendiente; no declarar como exitosas las integraciones omitidas.

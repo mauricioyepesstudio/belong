@@ -1,0 +1,44 @@
+version: 1
+project: belong
+orchestrator:
+  role: orchestrator
+  max_parallel_tasks: 4
+  requires_review: true
+agents:
+  - id: product
+    area: product
+    can_write: true
+  - id: ux
+    area: product
+    can_write: true
+  - id: frontend
+    area: engineering
+    can_write: true
+  - id: backend
+    area: engineering
+    can_write: true
+  - id: security
+    area: assurance
+    can_write: false
+  - id: qa
+    area: assurance
+    can_write: false
+  - id: community_trust
+    area: product
+    can_write: true
+  - id: growth
+    area: growth
+    can_write: true
+  - id: analytics
+    area: growth
+    can_write: false
+  - id: reviewer
+    area: assurance
+    can_write: false
+policies:
+  default_external_action: blocked
+  default_production_write: blocked
+  require_independent_reviewer: true
+  serialize_migrations: true
+  owner_decision_status: owner-decision
+  proof_required_for_done: true

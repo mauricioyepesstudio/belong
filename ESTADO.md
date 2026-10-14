@@ -1,5 +1,12 @@
 # ESTADO — BELONG
 
+## Evidencia de entrega — 2026-10-14, estado de tareas concurrente
+- Base remota `5f8ec83cf7a798b7390e935da36494f20ab76ae9`. Se preservan PR10 y Goals; PR abiertos #1/#2/#8/#11/#12 no duplicados.
+- `updateProjectTask` exige que siga vigente el estado observado cuando solicita un cambio de estado. Una aprobación o reapertura obsoleta no guarda ni registra efectos de éxito. Sin cambios visuales, esquema, RLS, permisos o secretos.
+- Tres regresiones nuevas: aprobaciones concurrentes, reapertura obsoleta y edición ordinaria; 160 PASS / 8 SKIP, persistencia 30/30 y focalizados 43/43. ESLint, TypeScript, build y diff PASS; revisión independiente GO. PR/producción al cierre en la tarea central `belong-task-status-cas-20261014`.
+- Evidencia y handoff: `docs/cerebro/2026-10-14-task-status-concurrency.md`. Recorrido autenticado pendiente de cuenta/proyecto BELONG; no inventar éxito de integraciones omitidas.
+- Contenido del 2026-10-13 conservado por ser reciente y equivalente: producido/listo aquí, no publicado en redes. Próximo slice: error de movimiento optimista de tareas en `tasks-tab`; no corregido en esta entrega.
+
 _Actualizado: 2026-10-13 (entrega focalizada; prioridades históricas de 2026-10-01 conservadas)_
 
 ## Objetivo

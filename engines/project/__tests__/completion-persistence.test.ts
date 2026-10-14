@@ -305,3 +305,102 @@ it("records task completion and aggregate progress after persistence", async () 
   expect(mocks.notify).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ userId: "member-2", title: "Contribution approved" }));
   expect(mocks.revalidate).toHaveBeenCalledWith("project-1");
 });
+
+function mockTaskStatusRace(readStatus: string, persistedStatus = readStatus) {
+  const mutationFilters: Array<Map<string, unknown>> = [];
+  let currentStatus = persistedStatus;
+  let countQueries = 0;
+  let writes = 0;
+
+  mocks.from.mockImplementation((table: string) => {
+    const filters = new Map<string, unknown>();
+    let isUpdate = false;
+    let isCount = false;
+    let updates: { status?: string } = {};
+    const query = {
+      select: vi.fn((_columns?: string, options?: { count?: string }) => {
+        isCount = options?.count === "exact";
+        return query;
+      }),
+      eq: vi.fn((column: string, value: unknown) => {
+        filters.set(column, value);
+        return query;
+      }),
+      single: vi.fn(async () => table === "project_tasks"
+        ? { data: { project_id: "project-1", title: "Ship prototype", status: readStatus, assignee_id: "member-2" } }
+        : { data: { owner_id: "member-1" } }),
+      maybeSingle: vi.fn(async () => {
+        if (table === "project_tasks" && isUpdate) {
+          mutationFilters.push(filters);
+          if (filters.has("status") && filters.get("status") !== currentStatus) {
+            return { data: null, error: null };
+          }
+          writes += 1;
+          if (updates.status !== undefined) currentStatus = updates.status;
+        }
+        return { data: { id: "task-1" }, error: null };
+      }),
+      update: mocks.update.mockImplementation((value: typeof updates) => {
+        isUpdate = true;
+        updates = value;
+        return query;
+      }),
+      insert: mocks.insert.mockResolvedValue({ error: null }),
+      then: (resolve: (value: { count?: number; error: null }) => void) => {
+        if (isCount) countQueries += 1;
+        resolve({ count: 1, error: null });
+      },
+    };
+    return query;
+  });
+  return {
+    mutationFilters,
+    getWrites: () => writes,
+    getCountQueries: () => countQueries,
+    getStatus: () => currentStatus,
+  };
+}
+
+it("persists only one of two approvals that read the same task status", async () => {
+  const race = mockTaskStatusRace("review");
+  const results = await Promise.all([
+    updateProjectTask("task-1", { status: "done" }),
+    updateProjectTask("task-1", { status: "done" }),
+  ]);
+
+  expect(results).toEqual([{}, { error: "Task could not be updated" }]);
+  expect(race.mutationFilters.map((filters) => filters.get("status"))).toEqual(["review", "review"]);
+  expect(race.getWrites()).toBe(1);
+  expect(race.getStatus()).toBe("done");
+  expect(mocks.insert).toHaveBeenCalledTimes(1);
+  expect(mocks.impact).toHaveBeenCalledTimes(1);
+  expect(mocks.notify).toHaveBeenCalledTimes(1);
+  expect(mocks.revalidate).toHaveBeenCalledTimes(1);
+  expect(race.getCountQueries()).toBe(2);
+});
+
+it("does not overwrite a newer status or record a move after a stale reopen", async () => {
+  const race = mockTaskStatusRace("done", "review");
+  expect(await updateProjectTask("task-1", { status: "todo" })).toEqual({ error: "Task could not be updated" });
+  expect(race.mutationFilters[0].get("status")).toBe("done");
+  expect(race.getWrites()).toBe(0);
+  expect(race.getStatus()).toBe("review");
+  expect(race.getCountQueries()).toBe(0);
+  expect(mocks.insert).not.toHaveBeenCalled();
+  expect(mocks.impact).not.toHaveBeenCalled();
+  expect(mocks.notify).not.toHaveBeenCalled();
+  expect(mocks.revalidate).not.toHaveBeenCalled();
+});
+
+it("preserves ordinary task edits without requiring an unchanged status", async () => {
+  const race = mockTaskStatusRace("review", "done");
+  expect(await updateProjectTask("task-1", { title: "Updated title", sortOrder: 2 })).toEqual({});
+  expect(race.mutationFilters[0].has("status")).toBe(false);
+  expect(race.getWrites()).toBe(1);
+  expect(race.getStatus()).toBe("done");
+  expect(mocks.update).toHaveBeenCalledWith({ title: "Updated title", sort_order: 2 });
+  expect(mocks.insert).not.toHaveBeenCalled();
+  expect(mocks.impact).not.toHaveBeenCalled();
+  expect(mocks.notify).not.toHaveBeenCalled();
+  expect(mocks.revalidate).toHaveBeenCalledWith("project-1");
+});

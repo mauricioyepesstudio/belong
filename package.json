@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "test:community-e2e": "supabase db query --linked -f scripts/validate-community-flow.sql",
     "test:project-e2e": "supabase db query --linked -f scripts/validate-project-flow.sql",
     "test:mission-e2e": "supabase db query --linked -f scripts/validate-mission-flow.sql",
@@ -33,6 +34,7 @@
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

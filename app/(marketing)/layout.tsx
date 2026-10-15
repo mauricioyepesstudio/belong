@@ -9,6 +9,18 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <Logo href="/" />
           <nav className="flex items-center gap-2">
             <Link
+              href="/#how-it-works"
+              className="hidden rounded-xl px-4 py-2 text-sm font-medium text-fg-secondary transition-colors hover:text-fg-primary sm:inline-flex"
+            >
+              How it works
+            </Link>
+            <Link
+              href="/#pricing"
+              className="hidden rounded-xl px-4 py-2 text-sm font-medium text-fg-secondary transition-colors hover:text-fg-primary sm:inline-flex"
+            >
+              Pricing
+            </Link>
+            <Link
               href="/login"
               className="rounded-xl px-4 py-2 text-sm font-medium text-fg-secondary transition-colors hover:text-fg-primary"
             >
@@ -25,8 +37,19 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       </header>
       <main>{children}</main>
       <footer className="border-t border-border-subtle py-12">
-        <div className="mx-auto max-w-6xl px-4 text-center text-sm text-fg-muted md:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 text-sm text-fg-muted md:flex-row md:justify-between md:px-6">
           <p>© {new Date().getFullYear()} BELONG. Build a life that matters.</p>
+          <nav className="flex gap-4">
+            <Link href="/#features" className="hover:text-fg-primary">
+              Features
+            </Link>
+            <Link href="/#pricing" className="hover:text-fg-primary">
+              Pricing
+            </Link>
+            <Link href="/login" className="hover:text-fg-primary">
+              Sign In
+            </Link>
+          </nav>
         </div>
       </footer>
     </div>

@@ -1,5 +1,13 @@
 # ESTADO — BELONG
 
+## Evidencia de entrega — 2026-10-15, movimiento confirmado de tareas
+
+- `tasks-tab.moveTask` espera confirmación antes de cambiar columna/orden. Errores y excepciones conservan el estado; bloqueo por tarea evita movimientos simultáneos del mismo ID. Propietario, advertencias y callback de éxito preservados.
+- Sin cambios de JSX, composición o estilos; sin cambios de servidor, esquema, permisos o secretos. Persistencia y Goals siguen integrados. Otros PR abiertos intactos.
+- Ocho regresiones nuevas PASS; suite completa 168 PASS / 8 SKIP. ESLint focalizado, TypeScript, build y diff PASS; revisión independiente GO. PR, integración y despliegue al cierre en la tarea central `belong-task-move-sync-20261015`.
+- Evidencia, reproducción y handoff: `docs/cerebro/2026-10-15-task-movement-confirmation.md`. Recorrido autenticado real pendiente de cuenta/proyecto de prueba; no confundir hooks simulados con navegador.
+- Creativo del 2026-10-13 conservado por reciente y equivalente; ninguna publicación externa en esta entrega. Siguiente slice separado: rollback de aprobar/reclamar tareas sin sobrescribir cambios de otras tareas.
+
 ## Evidencia de entrega — 2026-10-14, estado de tareas concurrente
 - Base remota `5f8ec83cf7a798b7390e935da36494f20ab76ae9`. Se preservan PR10 y Goals; PR abiertos #1/#2/#8/#11/#12 no duplicados.
 - `updateProjectTask` exige que siga vigente el estado observado cuando solicita un cambio de estado. Una aprobación o reapertura obsoleta no guarda ni registra efectos de éxito. Sin cambios visuales, esquema, RLS, permisos o secretos.

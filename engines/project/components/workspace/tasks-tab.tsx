@@ -58,6 +58,7 @@ export function ProjectTasksTab({
   const [isPending, startTransition] = useTransition();
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const creatingTaskRef = useRef(false);
+  const movingTaskIdsRef = useRef(new Set<string>());
 
   useEffect(() => {
     const syncId = window.setTimeout(() => setTasks(uniqueTasks(initialTasks)), 0);
@@ -108,24 +109,32 @@ export function ProjectTasksTab({
   };
 
   const moveTask = (task: ProjectTask, status: ProjectTaskStatus, index: number) => {
+    if (movingTaskIdsRef.current.has(task.id)) return;
     if (task.status === status && task.sortOrder === index) return;
     if (status === "done" && task.status !== "done" && !canApproveWork) {
       toast("The project owner must approve work before it is completed", "error");
       return;
     }
 
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === task.id ? { ...t, status, sortOrder: index } : t
-      )
-    );
-
+    movingTaskIdsRef.current.add(task.id);
     startTransition(async () => {
-      const result = await moveProjectTask(task.id, status, index);
-      if (result.error) toast(result.error, "error");
-      else {
+      try {
+        const result = await moveProjectTask(task.id, status, index);
+        if (result.error) {
+          toast(result.error, "error");
+          return;
+        }
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.id === task.id ? { ...t, status, sortOrder: index } : t
+          )
+        );
         if (result.warning) toast(result.warning, "info");
         onActivityCommitted?.();
+      } catch {
+        toast("Task could not be moved. Please try again.", "error");
+      } finally {
+        movingTaskIdsRef.current.delete(task.id);
       }
     });
   };

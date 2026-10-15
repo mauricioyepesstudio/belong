@@ -1,0 +1,130 @@
+{
+  "name": "equipos-rge",
+  "owner": {
+    "name": "Real Group Entertainment"
+  },
+  "metadata": {
+    "description": "Equipos de skills de BELONG. Generado por AI-Projects-Control-Plane/equipos-skills; no editar a mano.",
+    "version": "2026-10-15"
+  },
+  "plugins": [
+    {
+      "name": "marketing-skills",
+      "description": "Equipo de marketing: anuncios (ads, ad-creative), copywriting y copy-editing, SEO (seo-audit, ai-seo, programmatic-seo, schema, site-architecture), analítica y atribución, estrategia (marketing-plan, launch, pricing, offers, cro) y email.",
+      "source": {
+        "source": "github",
+        "repo": "coreyhaines31/marketingskills",
+        "sha": "55ff469422c3592dac45bcad08dfb40221981c02"
+      }
+    },
+    {
+      "name": "social-media-skills",
+      "description": "Equipo de redes: LinkedIn (post-writer, hook-generator, post-formatter, post-scorer, profile-optimizer), reels (reels-scripting), YouTube (youtube-thumbnail), analítica (analytics-dashboard), newsletter (newsletter-voice), voz de marca y carruseles.",
+      "source": {
+        "source": "github",
+        "repo": "charlie947/social-media-skills",
+        "sha": "8cefb5b6d03757885faa6918bd8bfaef202a83db"
+      }
+    },
+    {
+      "name": "taste-skill",
+      "description": "Equipo de diseño: dirección de arte anti-plantilla para landings y sitios (taste-skill v2, redesign, minimalist, soft, brutalist, brandkit, image-to-code).",
+      "source": {
+        "source": "github",
+        "repo": "Leonxlnx/taste-skill",
+        "sha": "f624f37a8c650b9cc550253104925efe4c8de246"
+      }
+    },
+    {
+      "name": "diseno-frontend",
+      "description": "frontend-design de Anthropic: interfaces con criterio visual, complemento de taste-skill.",
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills",
+        "sha": "dbd4588f9e1033efb41dad4bef2f7947c8993d44"
+      },
+      "strict": false,
+      "skills": [
+        "./skills/frontend-design"
+      ]
+    },
+    {
+      "name": "documentos",
+      "description": "Equipo de documentos: Word, PDF, PowerPoint, Excel, coautoría de documentos y comunicaciones internas. Se instala desde la fuente oficial; no se copia a los repos.",
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills",
+        "sha": "dbd4588f9e1033efb41dad4bef2f7947c8993d44"
+      },
+      "strict": false,
+      "skills": [
+        "./skills/docx",
+        "./skills/pdf",
+        "./skills/pptx",
+        "./skills/xlsx",
+        "./skills/doc-coauthoring",
+        "./skills/internal-comms"
+      ]
+    },
+    {
+      "name": "financial-analysis",
+      "description": "Equipo financiero: modelo de 3 estados, DCF, comparables, análisis competitivo, auditoría y limpieza de Excel, decks financieros.",
+      "source": {
+        "source": "git-subdir",
+        "url": "anthropics/financial-services-plugins",
+        "path": "plugins/vertical-plugins/financial-analysis",
+        "sha": "574ed3624aebd0418c7e96cd101262f30210ab26"
+      }
+    },
+    {
+      "name": "commercial-legal",
+      "description": "Contratos: NDAs (verde/amarillo/rojo), contratos de proveedor y SaaS, renovaciones, enmiendas, escalamiento.",
+      "source": {
+        "source": "git-subdir",
+        "url": "anthropics/claude-for-legal",
+        "path": "commercial-legal",
+        "sha": "4a6c651889c97cc9140580363c73e0eb17379c2b"
+      }
+    },
+    {
+      "name": "privacy-legal",
+      "description": "Privacidad: evaluaciones de impacto (PIA), DPAs, solicitudes de datos (DSAR), brechas regulatorias.",
+      "source": {
+        "source": "git-subdir",
+        "url": "anthropics/claude-for-legal",
+        "path": "privacy-legal",
+        "sha": "4a6c651889c97cc9140580363c73e0eb17379c2b"
+      }
+    },
+    {
+      "name": "ai-governance-legal",
+      "description": "Gobernanza de IA: inventario de usos de IA, evaluaciones de impacto, revisión de proveedores de IA, política inicial.",
+      "source": {
+        "source": "git-subdir",
+        "url": "anthropics/claude-for-legal",
+        "path": "ai-governance-legal",
+        "sha": "4a6c651889c97cc9140580363c73e0eb17379c2b"
+      }
+    },
+    {
+      "name": "ip-legal",
+      "description": "Propiedad intelectual: búsqueda de marca (clearance), cláusulas de PI, licencias open source, takedowns y cartas de cese.",
+      "source": {
+        "source": "git-subdir",
+        "url": "anthropics/claude-for-legal",
+        "path": "ip-legal",
+        "sha": "4a6c651889c97cc9140580363c73e0eb17379c2b"
+      }
+    },
+    {
+      "name": "product-legal",
+      "description": "Legal de producto: revisión de claims de marketing, revisión de lanzamientos y riesgo de funciones nuevas.",
+      "source": {
+        "source": "git-subdir",
+        "url": "anthropics/claude-for-legal",
+        "path": "product-legal",
+        "sha": "4a6c651889c97cc9140580363c73e0eb17379c2b"
+      }
+    }
+  ]
+}

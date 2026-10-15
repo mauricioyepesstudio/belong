@@ -336,3 +336,7 @@ Next.js 16 · React 19 · TypeScript · Supabase (Auth, Postgres, RLS, Realtime)
 
 ### Lo que no se toca
 Ver "Critical safety rules" arriba (.env*, credenciales Supabase/Vercel, remotes, secretos) y no modificar migraciones ya aplicadas; las nuevas van como archivo nuevo.
+
+## Equipos de skills (15-oct-2026)
+
+Marketing, redes, diseño, documentos, finanzas y legal como plugins fijados a un commit: ver `.claude/equipos/LEEME.md`. Los genera el cerebro central (`AI-Projects-Control-Plane/equipos-skills`); no editar a mano. El contenido externo de BELONG va en inglés y sin métricas inventadas.

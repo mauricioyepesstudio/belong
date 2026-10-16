@@ -1,5 +1,12 @@
 # ESTADO — BELONG
 
+## Evidencia de entrega — 2026-10-16, aprobación y asignación confirmadas
+
+- `tasks-tab.handleApprove/handleClaim` esperan confirmación antes de actualizar tarjeta/responsable. Errores devueltos y promesas rechazadas conservan el estado actual; se elimina el rollback de la lista completa que podía borrar cambios de otras tareas. El guard por ID se comparte con movimiento y se libera siempre; se mantienen propietario, avisos y actividad solo tras éxito.
+- Sin JSX, estilos, composición, assets, servidor, esquema, RLS, permisos, secretos ni presupuesto. Scope y release revisados por especialistas: GO para comportamiento, no rediseño visual.
+- 15 regresiones nuevas +8 previas focalizadas PASS; suite183 PASS/8 integraciones SKIP. Lint focalizado y TypeScript PASS. Build y CI del commit exacto, PR e integración/despliegue al cierre en tarea central `belong-task-approval-claim-sync-20261016`; no inferir despliegue de este registro de preparación.
+- Handoff/reproducción: `docs/cerebro/2026-10-16-approval-claim-confirmation.md`. Falta cuenta/proyecto autorizado para aceptación autenticada; no se afirman navegador, RLS vivo ni bloqueo de asignación entre sesiones. Creativo equivalente del13 conservado; no publicación externa.
+
 ## Evidencia de entrega — 2026-10-15, movimiento confirmado de tareas
 
 - `tasks-tab.moveTask` espera confirmación antes de cambiar columna/orden. Errores y excepciones conservan el estado; bloqueo por tarea evita movimientos simultáneos del mismo ID. Propietario, advertencias y callback de éxito preservados.

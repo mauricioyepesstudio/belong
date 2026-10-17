@@ -76,7 +76,9 @@ export function ProjectTasksTab({
       try {
         const result = await createProjectTask(projectId, { title: taskTitle });
         if (result.error) toast(result.error, "error");
-        else {
+        else if (!result.taskId?.trim()) {
+          toast("Task creation could not be confirmed. Refresh the board before trying again.", "error");
+        } else {
           toast("Task created", "success");
           setTitle("");
           setTasks((prev) => {
@@ -102,6 +104,8 @@ export function ProjectTasksTab({
             ];
           });
         }
+      } catch {
+        toast("Task creation could not be confirmed. Refresh the board before trying again.", "error");
       } finally {
         creatingTaskRef.current = false;
       }

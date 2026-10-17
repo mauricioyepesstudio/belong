@@ -1,5 +1,12 @@
 # ESTADO — BELONG
 
+## Evidencia de entrega — 2026-10-17, creación de tareas confirmada
+
+- `tasks-tab.handleCreate` captura rechazos inesperados y exige un ID no vacío antes de mostrar éxito, borrar borrador o añadir tarjeta. Error devuelto, rechazo o confirmación incompleta conservan texto y estado actual; lock liberado y deduplicación preservada.
+- Aviso neutral: refrescar el tablero antes de reintentar, porque una excepción posterior a insertar no demuestra ausencia de escritura. No se afirma idempotencia de creación entre peticiones ni se cambia servidor.
+- 11 regresiones nuevas PASS; suite194 PASS/8 integraciones SKIP. TypeScript y lint focalizado PASS; build, CI, revisión y SHA real de entrega se registran al cierre en tarea central `belong-task-create-failure-20261017`.
+- Sin JSX/estilos, esquema, RLS, permisos, secretos ni presupuesto. PR10/13 ya integrados verificados; pendientes autenticados no se presentan como exitosos. Handoff: `docs/cerebro/2026-10-17-task-creation-confirmation.md`. Pieza equivalente del13 conservada; no publicación externa.
+
 ## Evidencia de entrega — 2026-10-16, aprobación y asignación confirmadas
 
 - `tasks-tab.handleApprove/handleClaim` esperan confirmación antes de actualizar tarjeta/responsable. Errores devueltos y promesas rechazadas conservan el estado actual; se elimina el rollback de la lista completa que podía borrar cambios de otras tareas. El guard por ID se comparte con movimiento y se libera siempre; se mantienen propietario, avisos y actividad solo tras éxito.

@@ -1,5 +1,13 @@
 # ESTADO — BELONG
 
+## Evidencia de entrega — 2026-10-18, confirmación de progreso de metas
+
+- `goals-tab.bumpProgress` captura rechazos inesperados sin alterar metas y evita solicitudes simultáneas para el mismo ID en este componente. Guard liberado siempre; no se afirma exclusión entre sesiones.
+- Aviso neutral de confirmación incierta: refrescar antes de reintentar; el servidor podría haber escrito antes de rechazar. Sin cambios de JSX, estilos, servidor, esquema, permisos o secretos. PR10/13 preservados.
+- Suite 201 PASS / 8 integraciones SKIP; 10 casos focalizados PASS y lint focalizado/TypeScript PASS. Build, revisión, PR y SHA desplegado se registran al cierre central en `belong-goal-progress-rejection-20261018`.
+- Creativo nuevo producido, listo para compartir aquí, no programado ni publicado. Evidencia y caption: `docs/cerebro/2026-10-18-goal-progress-rejection.md`. Aceptación autenticada pendiente de cuenta/proyecto autorizados.
+
+
 ## Evidencia de entrega — 2026-10-17, creación de tareas confirmada
 
 - `tasks-tab.handleCreate` captura rechazos inesperados y exige un ID no vacío antes de mostrar éxito, borrar borrador o añadir tarjeta. Error devuelto, rechazo o confirmación incompleta conservan texto y estado actual; lock liberado y deduplicación preservada.

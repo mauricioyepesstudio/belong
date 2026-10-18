@@ -14,7 +14,7 @@ import {
   useToast,
 } from "@/systems/design-system";
 import { Target } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 
 function GoalList({
   items,
@@ -78,6 +78,7 @@ export function ProjectGoalsTab({
   const [title, setTitle] = useState("");
   const [goalType, setGoalType] = useState<"weekly" | "quarterly">("weekly");
   const [isPending, startTransition] = useTransition();
+  const pendingProgress = useRef(new Set<string>());
 
   const weekly = goals.filter((g) => g.goalType === "weekly");
   const quarterly = goals.filter((g) => g.goalType === "quarterly");
@@ -96,20 +97,28 @@ export function ProjectGoalsTab({
   };
 
   const bumpProgress = (goalId: string, current: number) => {
+    if (pendingProgress.current.has(goalId)) return;
+    pendingProgress.current.add(goalId);
     const next = Math.min(100, current + 25);
     startTransition(async () => {
-      const result = await updateProjectGoalProgress(goalId, next);
-      if (result.error) {
-        toast(result.error, "error");
-        return;
+      try {
+        const result = await updateProjectGoalProgress(goalId, next);
+        if (result.error) {
+          toast(result.error, "error");
+          return;
+        }
+        setGoals((prev) =>
+          prev.map((g) =>
+            g.id === goalId
+              ? { ...g, progressPercent: next, status: next === 100 ? "completed" : "active" }
+              : g
+          )
+        );
+      } catch {
+        toast("Goal progress could not be confirmed. Refresh before trying again.", "error");
+      } finally {
+        pendingProgress.current.delete(goalId);
       }
-      setGoals((prev) =>
-        prev.map((g) =>
-          g.id === goalId
-            ? { ...g, progressPercent: next, status: next === 100 ? "completed" : "active" }
-            : g
-        )
-      );
     });
   };
 

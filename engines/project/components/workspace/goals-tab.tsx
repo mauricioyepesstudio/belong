@@ -79,19 +79,29 @@ export function ProjectGoalsTab({
   const [goalType, setGoalType] = useState<"weekly" | "quarterly">("weekly");
   const [isPending, startTransition] = useTransition();
   const pendingProgress = useRef(new Set<string>());
+  const creatingGoal = useRef(false);
 
   const weekly = goals.filter((g) => g.goalType === "weekly");
   const quarterly = goals.filter((g) => g.goalType === "quarterly");
 
   const handleCreate = () => {
-    if (!title.trim()) return;
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle || creatingGoal.current) return;
+    creatingGoal.current = true;
     startTransition(async () => {
-      const result = await createProjectGoal(projectId, { title: title.trim(), goalType });
-      if (result.error) toast(result.error, "error");
-      else {
+      try {
+        const result = await createProjectGoal(projectId, { title: trimmedTitle, goalType });
+        if (result.error) {
+          toast(result.error, "error");
+          return;
+        }
         toast("Goal created", "success");
         setTitle("");
         window.location.reload();
+      } catch {
+        toast("Goal creation could not be confirmed. Refresh before trying again.", "error");
+      } finally {
+        creatingGoal.current = false;
       }
     });
   };

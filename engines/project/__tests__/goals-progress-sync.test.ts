@@ -19,7 +19,7 @@ vi.mock("react", async (importOriginal) => ({
     ? [initial, harness.setGoals]
     : [initial, vi.fn()],
   useTransition: () => [false, (work: () => Promise<void>) => { harness.pending = work(); }],
-  useRef: () => harness.progressRef,
+  useRef: (initial: unknown) => initial instanceof Set ? harness.progressRef : { current: initial },
 }));
 vi.mock("@/lib/actions/project-workspace", () => ({
   createProjectGoal: vi.fn(),

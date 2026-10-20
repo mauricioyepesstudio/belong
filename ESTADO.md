@@ -1,5 +1,10 @@
 # ESTADO — BELONG
 
+## Evidencia de entrega — 2026-10-20, perfiles demo diarios
+
+- Generador `systems/demo-profiles` + `scripts/demo-profiles.ts` + workflow `.github/workflows/demo-profiles.yml` (diario, **apagado** hasta `DEMO_PROFILES_ENABLED=true`). Marcas: `app_metadata.is_demo`, `@demo.belong.app`, bio "🧪 Perfil de prueba.". Borrado en bloque con `delete-all`. Guía: `docs/DEMO_PROFILES.md`.
+- 6 tests nuevos PASS; lint y TypeScript PASS. No probado contra Supabase real (sin acceso desde el agente). Pendiente dueño: secrets + variable en GitHub. Sin migraciones.
+
 ## Evidencia de entrega — 2026-10-18, confirmación de progreso de metas
 
 - `goals-tab.bumpProgress` captura rechazos inesperados sin alterar metas y evita solicitudes simultáneas para el mismo ID en este componente. Guard liberado siempre; no se afirma exclusión entre sesiones.

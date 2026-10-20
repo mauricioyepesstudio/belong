@@ -1,0 +1,52 @@
+name: Demo profiles
+
+# Creates a few clearly marked demo profiles every day (see
+# systems/demo-profiles/generator.ts). OFF by default: the daily run only
+# happens when the repository variable DEMO_PROFILES_ENABLED is "true".
+# Manual runs (Actions tab → Demo profiles → Run workflow) are always allowed.
+#
+# Needs repository secrets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.
+
+on:
+  schedule:
+    - cron: "0 14 * * *" # every day 14:00 UTC (09:00 Colombia)
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "generate = crear perfiles · count = contar · delete-all = borrar TODOS los perfiles demo"
+        type: choice
+        options: [generate, count, delete-all]
+        default: generate
+      count:
+        description: "Perfiles a crear (1-20)"
+        default: "3"
+
+concurrency:
+  group: demo-profiles
+  cancel-in-progress: false
+
+jobs:
+  run:
+    if: github.event_name == 'workflow_dispatch' || vars.DEMO_PROFILES_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      ACTION: ${{ inputs.action || 'generate' }}
+      COUNT: ${{ inputs.count || vars.DEMO_PROFILES_PER_DAY || '3' }}
+      MAX: ${{ vars.DEMO_PROFILES_MAX || '60' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run
+        run: |
+          case "$ACTION" in
+            generate)   npx --yes tsx@4 scripts/demo-profiles.ts generate --count "$COUNT" --max "$MAX" ;;
+            count)      npx --yes tsx@4 scripts/demo-profiles.ts count ;;
+            delete-all) npx --yes tsx@4 scripts/demo-profiles.ts delete-all --confirm ;;
+          esac

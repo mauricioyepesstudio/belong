@@ -1,5 +1,17 @@
 # ESTADO — BELONG
 
+## 2026-10-20 — Decisión del consejo de fundadores: congelar
+
+- Veredicto y razones: `control-plane/consejo/CONSEJO.md` en AI-Projects-Control-Plane (fuente: `consejo.json`).
+- **Desarrollo nuevo CONGELADO desde el 20-oct (cj-016).** Solo se aceptan arreglos de errores y seguridad. No se agregan funciones, pantallas ni integraciones hasta que haya evidencia de demanda: 5 conversaciones con organizaciones (academias, bootcamps, iglesias) para círculos de compromiso. El publicador de redes termina el 26-oct y no se renueva sin aprobación.
+- Objetivos: Conversaciones con organizaciones para la versión B2B (meta 30 días: 5; 90 días: 5).
+- Se desecha si: Sin 1 organización interesada por escrito en 30 días: se archiva como red social de consumo, se apaga el publicador después del 26-oct y queda como caso de estudio del portafolio. Fecha de revisión: 2026-11-19.
+- Agentes del consejo instalados en `.claude/agents/`: alianzas-canales, analista-metricas, consejo-director. Reglas: no envían, publican, cobran ni gastan sin aprobación de Mauricio; null = sin medir.
+- Tareas:
+  - cj-016 · 2026-10-27 · consejo-director: Congelar el desarrollo nuevo de BELONG y anotarlo en su ESTADO.md
+  - cj-017 · 2026-11-02 · alianzas-canales: Lista de 10 organizaciones (academias, bootcamps, iglesias) para validar círculos de compromiso y un mensaje borrador
+  - cj-018 · 2026-11-19 · Mauricio: Tener 5 conversaciones con organizaciones o decidir archivar
+
 ## Evidencia de entrega — 2026-10-20, creación de metas confirmada en servidor
 
 - Base remota `75e6ca6`; PR10/13 y el manejo cliente de creación del PR27 se conservan. `createProjectGoal` solicita el ID insertado antes de devolver éxito y revalidar; error o fila ausente conservan el fallo explícito, sin afirmar que una respuesta incierta significa ausencia de escritura.

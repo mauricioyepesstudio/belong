@@ -560,16 +560,17 @@ export async function createProjectGoal(
   const title = data.title.trim();
   if (!title) return { error: "Title is required" };
 
-  const { error } = await supabase.from("project_goals").insert({
+  const { data: createdGoal, error } = await supabase.from("project_goals").insert({
     project_id: projectId,
     creator_id: profile.id,
     title,
     description: data.description?.trim() || null,
     goal_type: data.goalType ?? "weekly",
     due_date: data.dueDate || null,
-  });
+  }).select("id").maybeSingle();
 
   if (error) return { error: error.message };
+  if (!createdGoal) return { error: "Goal creation could not be confirmed. Refresh before trying again." };
   revalidateProject(projectId);
   return {};
 }

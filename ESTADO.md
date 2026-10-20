@@ -1,5 +1,12 @@
 # ESTADO — BELONG
 
+## Evidencia de entrega — 2026-10-20, creación de metas confirmada en servidor
+
+- Base remota `75e6ca6`; PR10/13 y el manejo cliente de creación del PR27 se conservan. `createProjectGoal` solicita el ID insertado antes de devolver éxito y revalidar; error o fila ausente conservan el fallo explícito, sin afirmar que una respuesta incierta significa ausencia de escritura.
+- Sin JSX, estilos, esquema, permisos, credenciales, métricas o datos vivos modificados. La herramienta de perfiles demo permanece sin activar.
+- Pruebas, TypeScript, build, revisión, PR y commit desplegado se registran al cierre en la tarea central `belong-goal-create-persistence-20261020`. Handoff: `docs/cerebro/2026-10-20-goal-create-persistence.md`. Aceptación autenticada pendiente de cuenta/proyecto autorizados; no presentar integraciones omitidas como aprobadas.
+- Creativo equivalente del18 conservado, producido/listo aquí; no programado ni publicado externamente.
+
 ## Evidencia de entrega — 2026-10-20, perfiles demo diarios
 
 - Generador `systems/demo-profiles` + `scripts/demo-profiles.ts` + workflow `.github/workflows/demo-profiles.yml` (diario, **apagado** hasta `DEMO_PROFILES_ENABLED=true`). Marcas: `app_metadata.is_demo`, `@demo.belong.app`, bio "🧪 Perfil de prueba.". Borrado en bloque con `delete-all`. Guía: `docs/DEMO_PROFILES.md`.

@@ -85,6 +85,18 @@ export async function createProjectTask(
   const title = data.title.trim();
   if (!title) return { error: "Title is required" };
 
+  if (data.assigneeId) {
+    const { data: assignee, error: assigneeError } = await supabase
+      .from("project_members")
+      .select("user_id")
+      .eq("project_id", projectId)
+      .eq("user_id", data.assigneeId)
+      .maybeSingle();
+
+    if (assigneeError) return { error: assigneeError.message };
+    if (!assignee) return { error: "Assignee must be a project member" };
+  }
+
   const { count } = await supabase
     .from("project_tasks")
     .select("*", { count: "exact", head: true })
@@ -142,6 +154,7 @@ export async function updateProjectTask(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   const profile = await requireProfile();
+  let aggregateWarning: string | undefined;
 
   const { data: task } = await supabase
     .from("project_tasks")
@@ -183,8 +196,18 @@ export async function updateProjectTask(
     updates.completed_at = data.status === "done" ? new Date().toISOString() : null;
   }
 
-  const { error } = await supabase.from("project_tasks").update(updates).eq("id", taskId);
+  let taskUpdate = supabase
+    .from("project_tasks")
+    .update(updates)
+    .eq("id", taskId);
+  if (data.status !== undefined) {
+    taskUpdate = taskUpdate.eq("status", task.status);
+  }
+  const { data: updatedTask, error } = await taskUpdate
+    .select("id")
+    .maybeSingle();
   if (error) return { error: error.message };
+  if (!updatedTask) return { error: "Task could not be updated" };
 
   if (data.status === "done" && task.status !== "done") {
     await logProjectActivity(supabase, {
@@ -213,7 +236,22 @@ export async function updateProjectTask(
       });
     }
 
-    const [{ count: totalTasks }, { count: completedTasks }] = await Promise.all([
+  } else if (data.status !== undefined && data.status !== task.status) {
+    const statusLabel = data.status.replace(/_/g, " ");
+    await logProjectActivity(supabase, {
+      projectId: task.project_id,
+      actorId: profile.id,
+      activityType: "task_moved",
+      title: `Moved task "${task.title}" to ${statusLabel}`,
+      metadata: { task_id: taskId, from_status: task.status, to_status: data.status },
+    });
+  }
+
+  if (
+    data.status !== undefined &&
+    (task.status === "done") !== (data.status === "done")
+  ) {
+    const [totalResult, completedResult] = await Promise.all([
       supabase
         .from("project_tasks")
         .select("*", { count: "exact", head: true })
@@ -225,19 +263,25 @@ export async function updateProjectTask(
         .eq("status", "done"),
     ]);
 
-    const progress = totalTasks
-      ? Math.round(((completedTasks ?? 0) / totalTasks) * 100)
-      : 0;
-    await supabase.from("projects").update({ progress }).eq("id", task.project_id);
-  } else if (data.status !== undefined && data.status !== task.status) {
-    const statusLabel = data.status.replace(/_/g, " ");
-    await logProjectActivity(supabase, {
-      projectId: task.project_id,
-      actorId: profile.id,
-      activityType: "task_moved",
-      title: `Moved task "${task.title}" to ${statusLabel}`,
-      metadata: { task_id: taskId, from_status: task.status, to_status: data.status },
-    });
+    const countError = totalResult.error ?? completedResult.error;
+    if (countError) {
+      aggregateWarning = `Task saved, but project progress could not be recalculated: ${countError.message}`;
+    } else {
+      const progress = totalResult.count
+        ? Math.round(((completedResult.count ?? 0) / totalResult.count) * 100)
+        : 0;
+      const { data: updatedProject, error: progressError } = await supabase
+        .from("projects")
+        .update({ progress })
+        .eq("id", task.project_id)
+        .select("id")
+        .maybeSingle();
+      if (progressError) {
+        aggregateWarning = `Task saved, but project progress could not be updated: ${progressError.message}`;
+      } else if (!updatedProject) {
+        aggregateWarning = "Task saved, but project progress could not be updated";
+      }
+    }
   }
 
   if (data.assigneeId !== undefined && data.assigneeId !== task.assignee_id) {
@@ -254,7 +298,7 @@ export async function updateProjectTask(
   }
 
   revalidateProject(task.project_id);
-  return {};
+  return aggregateWarning ? { warning: aggregateWarning } : {};
 }
 
 export async function moveProjectTask(
@@ -516,16 +560,17 @@ export async function createProjectGoal(
   const title = data.title.trim();
   if (!title) return { error: "Title is required" };
 
-  const { error } = await supabase.from("project_goals").insert({
+  const { data: createdGoal, error } = await supabase.from("project_goals").insert({
     project_id: projectId,
     creator_id: profile.id,
     title,
     description: data.description?.trim() || null,
     goal_type: data.goalType ?? "weekly",
     due_date: data.dueDate || null,
-  });
+  }).select("id").maybeSingle();
 
   if (error) return { error: error.message };
+  if (!createdGoal) return { error: "Goal creation could not be confirmed. Refresh before trying again." };
   revalidateProject(projectId);
   return {};
 }
@@ -536,6 +581,10 @@ export async function updateProjectGoalProgress(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   const profile = await requireProfile();
+
+  if (typeof progressPercent !== "number" || !Number.isFinite(progressPercent)) {
+    return { error: "Progress must be a finite number" };
+  }
 
   const { data: goal } = await supabase
     .from("project_goals")

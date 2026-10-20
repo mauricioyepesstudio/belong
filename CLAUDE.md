@@ -317,6 +317,8 @@ Este proyecto lo resume el cerebro central (AI-Projects-Control-Plane) cada lune
 
 Estado y prioridades: `ESTADO.md`. Contexto de negocio/marca/decisiones: `docs/cerebro/`.
 
+Agencia por departamentos (agentes y tareas recurrentes): `docs/cerebro/agencia.md`.
+
 ### Qué es y para quién
 BELONG es una plataforma social y de colaboración con propósito ("Build a life that matters"): conecta constructores, convierte ideas en proyectos y mide impacto real. Público: personas y organizaciones orientadas a misión (builders, comunidades, creadores). Detalle: `docs/PRODUCT_VISION.md`.
 

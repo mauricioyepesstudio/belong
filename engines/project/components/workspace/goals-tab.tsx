@@ -14,7 +14,7 @@ import {
   useToast,
 } from "@/systems/design-system";
 import { Target } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 
 function GoalList({
   items,
@@ -78,31 +78,57 @@ export function ProjectGoalsTab({
   const [title, setTitle] = useState("");
   const [goalType, setGoalType] = useState<"weekly" | "quarterly">("weekly");
   const [isPending, startTransition] = useTransition();
+  const pendingProgress = useRef(new Set<string>());
+  const creatingGoal = useRef(false);
 
   const weekly = goals.filter((g) => g.goalType === "weekly");
   const quarterly = goals.filter((g) => g.goalType === "quarterly");
 
   const handleCreate = () => {
-    if (!title.trim()) return;
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle || creatingGoal.current) return;
+    creatingGoal.current = true;
     startTransition(async () => {
-      const result = await createProjectGoal(projectId, { title: title.trim(), goalType });
-      if (result.error) toast(result.error, "error");
-      else {
+      try {
+        const result = await createProjectGoal(projectId, { title: trimmedTitle, goalType });
+        if (result.error) {
+          toast(result.error, "error");
+          return;
+        }
         toast("Goal created", "success");
         setTitle("");
         window.location.reload();
+      } catch {
+        toast("Goal creation could not be confirmed. Refresh before trying again.", "error");
+      } finally {
+        creatingGoal.current = false;
       }
     });
   };
 
   const bumpProgress = (goalId: string, current: number) => {
+    if (pendingProgress.current.has(goalId)) return;
+    pendingProgress.current.add(goalId);
     const next = Math.min(100, current + 25);
-    setGoals((prev) =>
-      prev.map((g) => (g.id === goalId ? { ...g, progressPercent: next } : g))
-    );
     startTransition(async () => {
-      const result = await updateProjectGoalProgress(goalId, next);
-      if (result.error) toast(result.error, "error");
+      try {
+        const result = await updateProjectGoalProgress(goalId, next);
+        if (result.error) {
+          toast(result.error, "error");
+          return;
+        }
+        setGoals((prev) =>
+          prev.map((g) =>
+            g.id === goalId
+              ? { ...g, progressPercent: next, status: next === 100 ? "completed" : "active" }
+              : g
+          )
+        );
+      } catch {
+        toast("Goal progress could not be confirmed. Refresh before trying again.", "error");
+      } finally {
+        pendingProgress.current.delete(goalId);
+      }
     });
   };
 

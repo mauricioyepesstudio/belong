@@ -58,6 +58,7 @@ export function ProjectTasksTab({
   const [isPending, startTransition] = useTransition();
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const creatingTaskRef = useRef(false);
+  const mutatingTaskIdsRef = useRef(new Set<string>());
 
   useEffect(() => {
     const syncId = window.setTimeout(() => setTasks(uniqueTasks(initialTasks)), 0);
@@ -75,7 +76,9 @@ export function ProjectTasksTab({
       try {
         const result = await createProjectTask(projectId, { title: taskTitle });
         if (result.error) toast(result.error, "error");
-        else {
+        else if (!result.taskId?.trim()) {
+          toast("Task creation could not be confirmed. Refresh the board before trying again.", "error");
+        } else {
           toast("Task created", "success");
           setTitle("");
           setTasks((prev) => {
@@ -101,6 +104,8 @@ export function ProjectTasksTab({
             ];
           });
         }
+      } catch {
+        toast("Task creation could not be confirmed. Refresh the board before trying again.", "error");
       } finally {
         creatingTaskRef.current = false;
       }
@@ -108,22 +113,33 @@ export function ProjectTasksTab({
   };
 
   const moveTask = (task: ProjectTask, status: ProjectTaskStatus, index: number) => {
+    if (mutatingTaskIdsRef.current.has(task.id)) return;
     if (task.status === status && task.sortOrder === index) return;
     if (status === "done" && task.status !== "done" && !canApproveWork) {
       toast("The project owner must approve work before it is completed", "error");
       return;
     }
 
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === task.id ? { ...t, status, sortOrder: index } : t
-      )
-    );
-
+    mutatingTaskIdsRef.current.add(task.id);
     startTransition(async () => {
-      const result = await moveProjectTask(task.id, status, index);
-      if (result.error) toast(result.error, "error");
-      else onActivityCommitted?.();
+      try {
+        const result = await moveProjectTask(task.id, status, index);
+        if (result.error) {
+          toast(result.error, "error");
+          return;
+        }
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.id === task.id ? { ...t, status, sortOrder: index } : t
+          )
+        );
+        if (result.warning) toast(result.warning, "info");
+        onActivityCommitted?.();
+      } catch {
+        toast("Task could not be moved. Please try again.", "error");
+      } finally {
+        mutatingTaskIdsRef.current.delete(task.id);
+      }
     });
   };
 
@@ -136,46 +152,60 @@ export function ProjectTasksTab({
   };
 
   const handleApprove = (task: ProjectTask) => {
-    const previousTasks = tasks;
+    if (mutatingTaskIdsRef.current.has(task.id)) return;
+    if (!canApproveWork) {
+      toast("The project owner must approve work before it is completed", "error");
+      return;
+    }
     const doneIndex = tasksByStatus("done").length;
-    setTasks((current) =>
-      current.map((item) =>
-        item.id === task.id
-          ? { ...item, status: "done", sortOrder: doneIndex, completedAt: new Date().toISOString() }
-          : item
-      )
-    );
-
+    mutatingTaskIdsRef.current.add(task.id);
     startTransition(async () => {
-      const result = await moveProjectTask(task.id, "done", doneIndex);
-      if (result.error) {
-        setTasks(previousTasks);
-        toast(result.error, "error");
-      } else {
-        toast("Contribution approved", "success");
+      try {
+        const result = await moveProjectTask(task.id, "done", doneIndex);
+        if (result.error) {
+          toast(result.error, "error");
+          return;
+        }
+        setTasks((current) =>
+          current.map((item) =>
+            item.id === task.id
+              ? { ...item, status: "done", sortOrder: doneIndex, completedAt: new Date().toISOString() }
+              : item
+          )
+        );
+        toast(result.warning ?? "Contribution approved", result.warning ? "info" : "success");
         onActivityCommitted?.();
+      } catch {
+        toast("Task could not be approved. Please try again.", "error");
+      } finally {
+        mutatingTaskIdsRef.current.delete(task.id);
       }
     });
   };
 
   const handleClaim = (task: ProjectTask) => {
-    const previousTasks = tasks;
-    setTasks((current) =>
-      current.map((item) =>
-        item.id === task.id
-          ? { ...item, assigneeId: currentUserId, assigneeName: currentUserName ?? "You" }
-          : item
-      )
-    );
-
+    if (mutatingTaskIdsRef.current.has(task.id)) return;
+    mutatingTaskIdsRef.current.add(task.id);
     startTransition(async () => {
-      const result = await updateProjectTask(task.id, { assigneeId: currentUserId });
-      if (result.error) {
-        setTasks(previousTasks);
-        toast(result.error, "error");
-      } else {
+      try {
+        const result = await updateProjectTask(task.id, { assigneeId: currentUserId });
+        if (result.error) {
+          toast(result.error, "error");
+          return;
+        }
+        setTasks((current) =>
+          current.map((item) =>
+            item.id === task.id
+              ? { ...item, assigneeId: currentUserId, assigneeName: currentUserName ?? "You" }
+              : item
+          )
+        );
         toast("Task claimed", "success");
         onActivityCommitted?.();
+      } catch {
+        toast("Task could not be claimed. Please try again.", "error");
+      } finally {
+        mutatingTaskIdsRef.current.delete(task.id);
       }
     });
   };

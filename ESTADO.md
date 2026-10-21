@@ -12,6 +12,14 @@
   - cj-017 · 2026-11-02 · alianzas-canales: Lista de 10 organizaciones (academias, bootcamps, iglesias) para validar círculos de compromiso y un mensaje borrador
   - cj-018 · 2026-11-19 · Mauricio: Tener 5 conversaciones con organizaciones o decidir archivar
 
+## Evidencia de entrega — 2026-10-20, matriz autenticada segura
+
+- Las integraciones de proyectos y comunidad ya no crean usuarios ni escriben perfiles como fallback: requieren dos cuentas BELONG existentes y reportan `BLOCKED / SKIP` cuando faltan URL, anon key o credenciales E2E.
+- La matriz cubre creación y readback de proyecto/tarea/meta, aislamiento previo a membresía, acceso permitido después de unirse, persistencia de progreso y una carrera CAS entre dos sesiones. Se mantiene explícito que la aprobación exclusiva del owner vive en la acción de servidor, no en RLS.
+- Se corrigió un riesgo de limpieza de pruebas: comentarios y likes se eliminan únicamente por el `post_id` creado en la ejecución; tareas y metas, por IDs exactos. No hay cambios de producto, esquema, RLS, permisos ni datos vivos.
+- Estado local: 229 pruebas PASS y 11 integraciones autenticadas SKIP; TypeScript, lint focalizado, build y `git diff --check` PASS. Las 11 integraciones no se presentan como aprobadas. Matriz y requisito único: `docs/cerebro/2026-10-20-authenticated-acceptance-matrix.md`.
+- Se conserva el creativo equivalente del 18-oct (`exec-22619d8a-fd46-4f30-ae64-3468f78a19f7.png`), listo para compartir aquí y no publicado externamente; no se generó un duplicado.
+
 ## Evidencia de entrega — 2026-10-20, creación de metas confirmada en servidor
 
 - Base remota `75e6ca6`; PR10/13 y el manejo cliente de creación del PR27 se conservan. `createProjectGoal` solicita el ID insertado antes de devolver éxito y revalidar; error o fila ausente conservan el fallo explícito, sin afirmar que una respuesta incierta significa ausencia de escritura.

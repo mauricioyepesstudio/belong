@@ -1,11 +1,12 @@
 export {
+  getDiscoverProjects,
   getUserProjects,
   getProjectDetail,
   type ProjectWithMemberCount,
   type ProjectDetail,
   type ProjectMember,
   type ProjectPostWithMeta,
-} from "@/lib/data/projects";
+} from "./data";
 
 export { ProjectScreen } from "./components/project-screen";
 export { ProjectDetailScreen } from "./components/project-detail-screen";

@@ -25,7 +25,7 @@ import {
 } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import { MIN_LISTING_CENTS } from "@/lib/stripe/config";
-import type { ListingWithSeller } from "@/lib/data/marketplace";
+import type { ListingWithSeller } from "@/engines/marketplace/data";
 import type { MarketplaceListing, MarketplaceListingCategory } from "@/types/database.types";
 import { BookOpen, ExternalLink, ImageIcon, Plus, Search, Store, X } from "lucide-react";
 import { useRouter } from "next/navigation";

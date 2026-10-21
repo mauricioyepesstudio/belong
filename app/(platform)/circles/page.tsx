@@ -4,7 +4,7 @@ import { Users, Target } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseServerClient } from "@/lib/core/types";
-import { getAcceptedConnections } from "@/lib/data/connections";
+import { getAcceptedConnections } from "@/engines/social/connections";
 import { CIRCLE_MAX_MEMBERS, listMyCircles, type AccountabilityCircle } from "@/engines/circles";
 import { CreateCircleDialog } from "@/engines/circles/components/create-circle-dialog";
 import { CircleInviteActions } from "@/engines/circles/components/circle-invite-actions";

@@ -1,5 +1,5 @@
 import { MessagesView } from "@/engines/messages/components/messages-view";
-import { getConversationMessages, getConversations } from "@/lib/data/messages";
+import { getConversationMessages, getConversations } from "@/engines/messages/data";
 import { requireProfile } from "@/lib/auth/session";
 import type { Metadata } from "next";
 

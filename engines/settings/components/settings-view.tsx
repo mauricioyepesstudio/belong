@@ -23,7 +23,7 @@ import {
 } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
 import type { UserProfile } from "@/types/database.types";
-import type { ProfileCompatibility } from "@/lib/data/profile";
+import type { ProfileCompatibility } from "@/engines/settings/data";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 

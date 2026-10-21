@@ -1,7 +1,7 @@
 "use client";
 
 import { createMarketplaceCheckout } from "@/lib/actions/billing";
-import type { ListingWithSeller } from "@/lib/data/marketplace";
+import type { ListingWithSeller } from "@/engines/marketplace/data";
 import { formatCents } from "@/engines/billing";
 import {
   Avatar,

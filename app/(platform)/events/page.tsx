@@ -1,5 +1,5 @@
 import { EventsView } from "@/engines/events/components/events-view";
-import { getPastEvents, getUpcomingEvents } from "@/lib/data/events";
+import { getPastEvents, getUpcomingEvents } from "@/engines/events/data";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Events" };

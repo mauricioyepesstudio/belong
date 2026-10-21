@@ -11,7 +11,7 @@ import {
   sendConnectionRequest,
   startConversation,
 } from "@/lib/actions/connections";
-import type { PendingConnection, DiscoverUser } from "@/lib/data/connections";
+import type { PendingConnection, DiscoverUser } from "@/engines/social/connections";
 import type { DiscoverCommunity, UserCommunity } from "@/lib/core";
 import { formatCents, PayModal } from "@/engines/billing";
 import {

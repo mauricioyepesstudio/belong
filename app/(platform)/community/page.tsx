@@ -2,8 +2,8 @@ import { CommunityScreen } from "@/engines/community";
 import {
   getDiscoverCommunities,
   getUserCommunities,
-} from "@/lib/data/communities";
-import { getDiscoverUsers, getPendingConnections } from "@/lib/data/connections";
+} from "@/engines/community/data";
+import { getDiscoverUsers, getPendingConnections } from "@/engines/social/connections";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Community" };

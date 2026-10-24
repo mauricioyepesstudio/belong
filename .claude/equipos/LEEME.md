@@ -1,6 +1,6 @@
 # Equipos de skills — BELONG
 
-> Generado por `AI-Projects-Control-Plane/equipos-skills` (versión 2026-10-15). No editar a mano: el cambio se hace en el cerebro central y se regenera.
+> Generado por `AI-Projects-Control-Plane/equipos-skills` (versión 2026-10-23). No editar a mano: el cambio se hace en el cerebro central y se regenera.
 
 **Para qué sirve este proyecto:** Plataforma social con propósito; contenido externo en inglés.
 
@@ -25,6 +25,24 @@
 | Legal (apoyo, con revisión de abogado) | `ai-governance-legal` | Gobernanza de IA: inventario de usos de IA, evaluaciones de impacto, revisión de proveedores de IA, política inicial. | [anthropics/claude-for-legal](https://github.com/anthropics/claude-for-legal/tree/4a6c651889c97cc9140580363c73e0eb17379c2b/ai-governance-legal) @ `4a6c651` · Apache-2.0 |
 | Legal (apoyo, con revisión de abogado) | `ip-legal` | Propiedad intelectual: búsqueda de marca (clearance), cláusulas de PI, licencias open source, takedowns y cartas de cese. | [anthropics/claude-for-legal](https://github.com/anthropics/claude-for-legal/tree/4a6c651889c97cc9140580363c73e0eb17379c2b/ip-legal) @ `4a6c651` · Apache-2.0 |
 | Legal (apoyo, con revisión de abogado) | `product-legal` | Legal de producto: revisión de claims de marketing, revisión de lanzamientos y riesgo de funciones nuevas. | [anthropics/claude-for-legal](https://github.com/anthropics/claude-for-legal/tree/4a6c651889c97cc9140580363c73e0eb17379c2b/product-legal) @ `4a6c651` · Apache-2.0 |
+
+## Conectores (`.mcp.json`)
+
+| Conector | Para qué |
+|---|---|
+| `supabase` | Base de datos y auth. **Solo lectura** (`read_only=true`): consultar tablas, RLS, logs y advisors; no aplica migraciones. |
+| `vercel` | Despliegues, logs de build y de runtime, dominios. Para verificar que producción está READY. |
+| `playwright` | Navegador real para QA (recorridos 375/768/1280, capturas). Paquete `@playwright/mcp@0.0.83` fijado. |
+
+Supabase y Vercel piden iniciar sesión la primera vez (`/mcp` → el conector → Authenticate). Lo hace el dueño con su cuenta; no se guardan llaves en el repo ni se pegan en el chat.
+
+## Mods (`.claude/mods/`)
+
+| Mod | Cuándo corre | Qué hace |
+|---|---|---|
+| `guardia` | Antes de cada comando o edición | Frena push directo o forzado a la rama principal, `gh pr merge`, migraciones al Supabase vivo, `vercel --prod`, Stripe Live y edición de `.env`. Explica el motivo y manda a pedírselo al dueño. |
+| `parte` | Al abrir una sesión | Le da al agente el «Siguiente» y el «Bloqueado» de `ESTADO.md` y avisa si lleva más de 3 días sin actualizarse. |
+| `linea` | Siempre, en la barra de estado | Puntos de color: ● ESTADO al día (verde ≤2 días, amarillo ≤7, rojo más), ● cambios sin commit, ● agentes del proyecto. |
 
 ## Reglas de este proyecto (mandan sobre cualquier skill)
 

@@ -25,7 +25,6 @@
 | Legal (apoyo, con revisión de abogado) | `ai-governance-legal` | Gobernanza de IA: inventario de usos de IA, evaluaciones de impacto, revisión de proveedores de IA, política inicial. | [anthropics/claude-for-legal](https://github.com/anthropics/claude-for-legal/tree/4a6c651889c97cc9140580363c73e0eb17379c2b/ai-governance-legal) @ `4a6c651` · Apache-2.0 |
 | Legal (apoyo, con revisión de abogado) | `ip-legal` | Propiedad intelectual: búsqueda de marca (clearance), cláusulas de PI, licencias open source, takedowns y cartas de cese. | [anthropics/claude-for-legal](https://github.com/anthropics/claude-for-legal/tree/4a6c651889c97cc9140580363c73e0eb17379c2b/ip-legal) @ `4a6c651` · Apache-2.0 |
 | Legal (apoyo, con revisión de abogado) | `product-legal` | Legal de producto: revisión de claims de marketing, revisión de lanzamientos y riesgo de funciones nuevas. | [anthropics/claude-for-legal](https://github.com/anthropics/claude-for-legal/tree/4a6c651889c97cc9140580363c73e0eb17379c2b/product-legal) @ `4a6c651` · Apache-2.0 |
-| Ingeniería (código mínimo que funciona) | `ponytail` | Equipo de ingeniería: obliga a escribir el código más corto que funcione (6 skills, 3 hooks); menos tokens y menos prueba y error. *Requiere:* Sus hooks corren node al iniciar sesión y escriben un archivo de modo en ~/.claude; no hace llamadas de red (leído el 15-oct). | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail/tree/84740e3d344b69b4a133201fa519eb37a62a2b2a) @ `84740e3` · MIT |
 
 ## Reglas de este proyecto (mandan sobre cualquier skill)
 

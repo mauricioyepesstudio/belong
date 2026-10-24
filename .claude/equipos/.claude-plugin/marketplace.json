@@ -125,6 +125,15 @@
         "path": "product-legal",
         "sha": "4a6c651889c97cc9140580363c73e0eb17379c2b"
       }
+    },
+    {
+      "name": "ponytail",
+      "description": "Equipo de ingeniería: obliga a escribir el código más corto que funcione (6 skills, 3 hooks); menos tokens y menos prueba y error.",
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail",
+        "sha": "84740e3d344b69b4a133201fa519eb37a62a2b2a"
+      }
     }
   ]
 }

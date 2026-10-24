@@ -8,6 +8,7 @@
     }
   },
   "enabledPlugins": {
+    "ponytail@equipos-rge": true,
     "marketing-skills@equipos-rge": true,
     "social-media-skills@equipos-rge": true,
     "taste-skill@equipos-rge": true,

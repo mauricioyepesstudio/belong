@@ -9,6 +9,15 @@
   },
   "plugins": [
     {
+      "name": "ponytail",
+      "description": "Modo ingeniero senior perezoso: obliga a la solución más corta que funcione (YAGNI, librería estándar primero). Menos código, menos tokens y menos prueba y error.",
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail",
+        "sha": "84740e3d344b69b4a133201fa519eb37a62a2b2a"
+      }
+    },
+    {
       "name": "marketing-skills",
       "description": "Equipo de marketing: anuncios (ads, ad-creative), copywriting y copy-editing, SEO (seo-audit, ai-seo, programmatic-seo, schema, site-architecture), analítica y atribución, estrategia (marketing-plan, launch, pricing, offers, cro) y email.",
       "source": {

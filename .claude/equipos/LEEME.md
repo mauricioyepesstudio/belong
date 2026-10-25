@@ -1,6 +1,6 @@
 # Equipos de skills — BELONG
 
-> Generado por `AI-Projects-Control-Plane/equipos-skills` (versión 2026-10-15). No editar a mano: el cambio se hace en el cerebro central y se regenera.
+> Generado por `AI-Projects-Control-Plane/equipos-skills` (versión 2026-10-23). No editar a mano: el cambio se hace en el cerebro central y se regenera.
 
 **Para qué sirve este proyecto:** Plataforma social con propósito; contenido externo en inglés.
 
@@ -14,6 +14,7 @@
 
 | Equipo | Plugin | Qué hace | Fuente · licencia |
 |---|---|---|---|
+| Ingeniería | `ponytail` | Modo ingeniero senior perezoso: obliga a la solución más corta que funcione (YAGNI, librería estándar primero). Menos código, menos tokens y menos prueba y error. *Requiere:* Sus 3 hooks (SessionStart, SubagentStart, UserPromptSubmit) corren node y guardan un archivo de modo en ~/.claude; no hacen llamadas de red. Cuesta ~641 tokens fijos por sesión. | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail/tree/84740e3d344b69b4a133201fa519eb37a62a2b2a) @ `84740e3` · MIT |
 | Marketing (anuncios, copy, SEO, analítica, estrategia) | `marketing-skills` | Equipo de marketing: anuncios (ads, ad-creative), copywriting y copy-editing, SEO (seo-audit, ai-seo, programmatic-seo, schema, site-architecture), analítica y atribución, estrategia (marketing-plan, launch, pricing, offers, cro) y email. | [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills/tree/55ff469422c3592dac45bcad08dfb40221981c02) @ `55ff469` · MIT |
 | Redes sociales (LinkedIn, reels, YouTube, analítica, newsletter) | `social-media-skills` | Equipo de redes: LinkedIn (post-writer, hook-generator, post-formatter, post-scorer, profile-optimizer), reels (reels-scripting), YouTube (youtube-thumbnail), analítica (analytics-dashboard), newsletter (newsletter-voice), voz de marca y carruseles. *Requiere:* reels-scripting usa APIFY_API_TOKEN y GOOGLE_AI_API_KEY; las imágenes usan Gemini. Sin esas llaves esos skills no corren; el resto sí. | [charlie947/social-media-skills](https://github.com/charlie947/social-media-skills/tree/8cefb5b6d03757885faa6918bd8bfaef202a83db) @ `8cefb5b` · MIT |
 | Diseño | `taste-skill` | Equipo de diseño: dirección de arte anti-plantilla para landings y sitios (taste-skill v2, redesign, minimalist, soft, brutalist, brandkit, image-to-code). *Requiere:* Su script de imágenes consulta APIs públicas (Openverse, Wikimedia, Met, Art Institute, Internet Archive) y solo trae imágenes CC0/CC-BY con su licencia. | [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill/tree/f624f37a8c650b9cc550253104925efe4c8de246) @ `f624f37` · MIT |
@@ -25,6 +26,24 @@
 | Legal (apoyo, con revisión de abogado) | `ai-governance-legal` | Gobernanza de IA: inventario de usos de IA, evaluaciones de impacto, revisión de proveedores de IA, política inicial. | [anthropics/claude-for-legal](https://github.com/anthropics/claude-for-legal/tree/4a6c651889c97cc9140580363c73e0eb17379c2b/ai-governance-legal) @ `4a6c651` · Apache-2.0 |
 | Legal (apoyo, con revisión de abogado) | `ip-legal` | Propiedad intelectual: búsqueda de marca (clearance), cláusulas de PI, licencias open source, takedowns y cartas de cese. | [anthropics/claude-for-legal](https://github.com/anthropics/claude-for-legal/tree/4a6c651889c97cc9140580363c73e0eb17379c2b/ip-legal) @ `4a6c651` · Apache-2.0 |
 | Legal (apoyo, con revisión de abogado) | `product-legal` | Legal de producto: revisión de claims de marketing, revisión de lanzamientos y riesgo de funciones nuevas. | [anthropics/claude-for-legal](https://github.com/anthropics/claude-for-legal/tree/4a6c651889c97cc9140580363c73e0eb17379c2b/product-legal) @ `4a6c651` · Apache-2.0 |
+
+## Conectores (`.mcp.json`)
+
+| Conector | Para qué |
+|---|---|
+| `supabase` | Base de datos y auth. **Solo lectura** (`read_only=true`): consultar tablas, RLS, logs y advisors; no aplica migraciones. |
+| `vercel` | Despliegues, logs de build y de runtime, dominios. Para verificar que producción está READY. |
+| `playwright` | Navegador real para QA (recorridos 375/768/1280, capturas). Paquete `@playwright/mcp@0.0.83` fijado. |
+
+Supabase y Vercel piden iniciar sesión la primera vez (`/mcp` → el conector → Authenticate). Lo hace el dueño con su cuenta; no se guardan llaves en el repo ni se pegan en el chat.
+
+## Mods (`.claude/mods/`)
+
+| Mod | Cuándo corre | Qué hace |
+|---|---|---|
+| `guardia` | Antes de cada comando o edición | Frena push directo o forzado a la rama principal, `gh pr merge`, migraciones al Supabase vivo, `vercel --prod`, Stripe Live y edición de `.env`. Explica el motivo y manda a pedírselo al dueño. |
+| `parte` | Al abrir una sesión | Le da al agente el «Siguiente» y el «Bloqueado» de `ESTADO.md` y avisa si lleva más de 3 días sin actualizarse. |
+| `linea` | Siempre, en la barra de estado | Puntos de color: ● ESTADO al día (verde ≤2 días, amarillo ≤7, rojo más), ● cambios sin commit, ● agentes del proyecto. |
 
 ## Reglas de este proyecto (mandan sobre cualquier skill)
 

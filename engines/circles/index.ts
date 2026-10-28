@@ -25,3 +25,11 @@ export {
 } from "./guards";
 export type { AccountabilityCheckinRow, CircleCheckin, CircleCheckinAuthor } from "./checkins";
 export { listCircleCheckins } from "./checkins";
+export type { CircleVitalityInput } from "./vitality";
+export {
+  LIVE_CIRCLE_MIN_MEMBERS,
+  LIVE_CIRCLE_MIN_WEEKS,
+  checkinStreakWeeks,
+  countLiveCircles,
+  isLiveCircle,
+} from "./vitality";

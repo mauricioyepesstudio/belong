@@ -1,5 +1,12 @@
 # ESTADO — BELONG
 
+## 2026-10-23 — Mauricio reactiva el desarrollo continuo
+
+- Mauricio pidió el desarrollo continuo de la website y su crecimiento, alineados a una red con propósito universal de crecimiento social. Esto levanta el congelamiento del 20-oct para Desarrollo; se mantiene la meta de 1 organización interesada por escrito al 19-nov.
+- Brújula de producto: `docs/cerebro/vision-proposito.md` (la idea, lo construido, necesidades humanas con fuente, métrica norte "círculos vivos" y plan de 5 PRs).
+- Empresa autónoma (departamentos, agentes y rutina diaria 10:37 Miami): `/mnt/project-files/belong/equipo-autonomo/EMPRESA.md`.
+- Primer PR: sección "Why BELONG exists" en la portada (`engines/belong/purpose.ts` + prueba). Sin esquema, permisos ni datos de usuarios.
+
 ## 2026-10-20 — Decisión del consejo de fundadores: congelar
 
 - Veredicto y razones: `control-plane/consejo/CONSEJO.md` en AI-Projects-Control-Plane (fuente: `consejo.json`).

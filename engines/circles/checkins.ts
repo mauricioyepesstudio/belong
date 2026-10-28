@@ -69,3 +69,31 @@ export async function listCircleCheckins(
 
   return (checkins ?? []).map((row) => toCircleCheckin(row, authorMap));
 }
+
+/**
+ * Reads check-in timestamps for several circles since a given date, grouped
+ * by circle. Feeds the "live circles" streak (see ./vitality.ts); RLS
+ * already limits rows to circles the caller belongs to.
+ */
+export async function listCheckinDatesByCircle(
+  supabase: SupabaseServerClient,
+  circleIds: string[],
+  since: Date
+): Promise<Map<string, string[]>> {
+  const byCircle = new Map<string, string[]>();
+  if (circleIds.length === 0) return byCircle;
+
+  const { data, error } = await supabase
+    .from("accountability_checkins")
+    .select("circle_id, created_at")
+    .in("circle_id", circleIds)
+    .gte("created_at", since.toISOString());
+  if (error) throw error;
+
+  for (const row of data ?? []) {
+    const bucket = byCircle.get(row.circle_id) ?? [];
+    bucket.push(row.created_at);
+    byCircle.set(row.circle_id, bucket);
+  }
+  return byCircle;
+}

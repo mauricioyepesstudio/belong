@@ -24,7 +24,7 @@ export {
   isAtCapacity,
 } from "./guards";
 export type { AccountabilityCheckinRow, CircleCheckin, CircleCheckinAuthor } from "./checkins";
-export { listCircleCheckins } from "./checkins";
+export { listCheckinDatesByCircle, listCircleCheckins } from "./checkins";
 export type { CircleVitalityInput } from "./vitality";
 export {
   LIVE_CIRCLE_MIN_MEMBERS,

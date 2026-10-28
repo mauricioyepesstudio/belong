@@ -1,11 +1,18 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Users, Target } from "lucide-react";
+import { Flame, Users, Target } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseServerClient } from "@/lib/core/types";
 import { getAcceptedConnections } from "@/lib/data/connections";
-import { CIRCLE_MAX_MEMBERS, listMyCircles, type AccountabilityCircle } from "@/engines/circles";
+import {
+  CIRCLE_MAX_MEMBERS,
+  checkinStreakWeeks,
+  isLiveCircle,
+  listCheckinDatesByCircle,
+  listMyCircles,
+  type AccountabilityCircle,
+} from "@/engines/circles";
 import { CreateCircleDialog } from "@/engines/circles/components/create-circle-dialog";
 import { CircleInviteActions } from "@/engines/circles/components/circle-invite-actions";
 import { Avatar, Badge, Card, CardContent, EmptyState, FeatureScreen } from "@/systems/design-system";
@@ -76,6 +83,7 @@ export default async function CirclesPage() {
     getAcceptedConnections(),
     listPendingCircleInvites(supabase, profile.id),
   ]);
+  const vitality = await loadCircleVitality(supabase, circles);
 
   return (
     <FeatureScreen
@@ -128,7 +136,11 @@ export default async function CirclesPage() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {circles.map((circle) => (
-                <CircleCard key={circle.id} circle={circle} />
+                <CircleCard
+                  key={circle.id}
+                  circle={circle}
+                  vitality={vitality.get(circle.id) ?? { streak: 0, live: false }}
+                />
               ))}
             </div>
           )}
@@ -138,7 +150,46 @@ export default async function CirclesPage() {
   );
 }
 
-function CircleCard({ circle }: { circle: AccountabilityCircle }) {
+type CircleVitality = { streak: number; live: boolean };
+
+/**
+ * Weekly check-in streak and "live" status per circle (the north-star metric
+ * in docs/cerebro/vision-proposito.md). Reads six weeks of check-ins: enough
+ * for a 4-week streak plus the week in progress.
+ */
+async function loadCircleVitality(
+  supabase: SupabaseServerClient,
+  circles: AccountabilityCircle[]
+): Promise<Map<string, CircleVitality>> {
+  const now = new Date();
+  const since = new Date(now.getTime() - 6 * 7 * 24 * 60 * 60 * 1000);
+  const datesByCircle = await listCheckinDatesByCircle(
+    supabase,
+    circles.map((circle) => circle.id),
+    since
+  );
+  return new Map(
+    circles.map((circle) => {
+      const checkinDates = datesByCircle.get(circle.id) ?? [];
+      const activeMemberCount = circle.members.filter((m) => m.status === "active").length;
+      return [
+        circle.id,
+        {
+          streak: checkinStreakWeeks(checkinDates, now),
+          live: isLiveCircle({ activeMemberCount, checkinDates }, now),
+        },
+      ];
+    })
+  );
+}
+
+function CircleCard({
+  circle,
+  vitality: { streak, live },
+}: {
+  circle: AccountabilityCircle;
+  vitality: CircleVitality;
+}) {
   const visibleMembers = circle.members
     .filter((member) => member.status === "active" || member.status === "invited")
     .slice(0, 4);
@@ -169,10 +220,18 @@ function CircleCard({ circle }: { circle: AccountabilityCircle }) {
                 </div>
               )}
             </div>
-            <Badge variant="outline">
-              <Users className="mr-1 h-3 w-3" aria-hidden />
-              {circle.memberCount}/{CIRCLE_MAX_MEMBERS}
-            </Badge>
+            <div className="flex items-center gap-2">
+              {streak > 0 && (
+                <Badge variant={live ? "success" : "outline"}>
+                  <Flame className="mr-1 h-3 w-3" aria-hidden />
+                  {live ? "Live" : `${streak} wk`}
+                </Badge>
+              )}
+              <Badge variant="outline">
+                <Users className="mr-1 h-3 w-3" aria-hidden />
+                {circle.memberCount}/{CIRCLE_MAX_MEMBERS}
+              </Badge>
+            </div>
           </div>
         </CardContent>
       </Card>

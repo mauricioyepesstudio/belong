@@ -1322,6 +1322,7 @@ export interface Database {
           name: string;
           goal_description: string;
           creator_id: string;
+          invite_code: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -1330,6 +1331,7 @@ export interface Database {
           name: string;
           goal_description: string;
           creator_id: string;
+          invite_code?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1338,6 +1340,7 @@ export interface Database {
           name?: string;
           goal_description?: string;
           creator_id?: string;
+          invite_code?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1865,6 +1868,23 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      circle_invite_preview: {
+        Args: {
+          p_code: string;
+        };
+        Returns: {
+          circle_id: string;
+          name: string;
+          goal_description: string;
+          member_count: number;
+        }[];
+      };
+      join_circle_by_invite_code: {
+        Args: {
+          p_code: string;
+        };
+        Returns: string;
+      };
       create_notification: {
         Args: {
           p_user_id: string;

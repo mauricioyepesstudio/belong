@@ -11,6 +11,7 @@ import {
   CircleLeaveButton,
   CircleRemoveMemberButton,
 } from "@/engines/circles/components/circle-detail-actions";
+import { CircleInviteLinkCard } from "@/engines/circles/components/circle-invite-link";
 import { CheckinComposer } from "@/engines/circles/components/checkin-composer";
 import { CheckinFeed } from "@/engines/circles/components/checkin-feed";
 import { Avatar, Badge, Button, Card, CardContent, EmptyState } from "@/systems/design-system";
@@ -71,6 +72,15 @@ export default async function CircleDetailPage({ params }: CirclePageProps) {
   const atCapacity = isAtCapacity(memberCount);
   const remainingSlots = Math.max(0, CIRCLE_MAX_MEMBERS - memberCount);
 
+  // Read separately so the page keeps working before the invite-link migration is applied.
+  const { data: inviteRow } = isOwner
+    ? await supabase
+        .from("accountability_circles")
+        .select("invite_code")
+        .eq("id", circleId)
+        .maybeSingle()
+    : { data: null };
+
   const connections = viewerCanInvite && !atCapacity ? await getAcceptedConnections() : [];
   const memberIdSet = new Set(memberIds);
   const invitableConnections = connections.filter((connection) => !memberIdSet.has(connection.id));
@@ -111,6 +121,14 @@ export default async function CircleDetailPage({ params }: CirclePageProps) {
           )}
         </div>
       </div>
+
+      {isOwner && (
+        <CircleInviteLinkCard
+          circleId={circle.id}
+          initialCode={inviteRow?.invite_code ?? null}
+          atCapacity={atCapacity}
+        />
+      )}
 
       <Card>
         <CardContent className="space-y-1 pt-5">

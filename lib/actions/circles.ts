@@ -12,7 +12,9 @@ import {
   canDeleteCheckin,
   canInvite,
   canPostCheckin,
+  generateCircleInviteCode,
   isAtCapacity,
+  normalizeCircleInviteCode,
 } from "@/engines/circles";
 
 function revalidateCircleSurfaces() {
@@ -354,4 +356,63 @@ export async function deleteCircleCheckin(checkinId: string): Promise<ActionResu
 
   revalidatePath(`/circles/${checkin.circle_id}`);
   return {};
+}
+
+/**
+ * Turns the circle's shareable invite link on (fresh code) or off. Only the
+ * creator may do this; RLS "Creator updates their circle" enforces it too.
+ */
+export async function setCircleInviteLink(
+  circleId: string,
+  enabled: boolean
+): Promise<ActionResult & { code?: string | null }> {
+  const supabase = await createClient();
+  const profile = await requireProfile();
+
+  const { data: circle } = await supabase
+    .from("accountability_circles")
+    .select("id, creator_id")
+    .eq("id", circleId)
+    .maybeSingle();
+  if (!circle) return { error: "Circle not found" };
+  if (circle.creator_id !== profile.id) return { error: "Only the circle's creator can share a link" };
+
+  const code = enabled ? generateCircleInviteCode() : null;
+  const { error } = await supabase
+    .from("accountability_circles")
+    .update({ invite_code: code })
+    .eq("id", circleId);
+  if (error) {
+    return { error: toUserErrorMessage(error, "Could not update the invite link. Please try again.") };
+  }
+  revalidatePath(`/circles/${circleId}`);
+  return { code };
+}
+
+/** Joins the circle behind an invite link as the signed-in user. */
+export async function joinCircleByInviteCode(
+  rawCode: string
+): Promise<ActionResult & { circleId?: string }> {
+  const code = normalizeCircleInviteCode(rawCode);
+  if (!code) return { error: "This invite link is not valid" };
+
+  const supabase = await createClient();
+  await requireProfile();
+
+  const { data: circleId, error } = await supabase.rpc("join_circle_by_invite_code", {
+    p_code: code,
+  });
+  if (error || !circleId) {
+    if (error?.message?.includes("circle_full")) {
+      return { error: `This circle is full (${CIRCLE_MAX_MEMBERS} members max)` };
+    }
+    if (error?.message?.includes("circle_link_invalid")) {
+      return { error: "This invite link is no longer active" };
+    }
+    return { error: toUserErrorMessage(error, "Could not join this circle. Please try again.") };
+  }
+
+  revalidateCircleSurfaces();
+  revalidatePath("/circles");
+  return { circleId };
 }

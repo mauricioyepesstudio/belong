@@ -9,6 +9,13 @@ export const FIRST_WEEK_DAYS = 7;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * There is no /missions index route; the mission and the weekly goals live in
+ * the "Your missions" row on Home, which carries this anchor.
+ */
+export const FIRST_WEEK_MISSIONS_ANCHOR = "your-missions";
+const FIRST_WEEK_MISSIONS_HREF = `/dashboard#${FIRST_WEEK_MISSIONS_ANCHOR}`;
+
 export type FirstWeekStepId = "purpose" | "weekly_goal" | "circle" | "checkin";
 
 export type FirstWeekStep = {
@@ -48,14 +55,14 @@ export function buildFirstWeekPlan(input: FirstWeekInput, now: Date = new Date()
       id: "purpose",
       title: "Name what you are building",
       description: "Your life mission is the why behind every week.",
-      href: "/missions",
+      href: FIRST_WEEK_MISSIONS_HREF,
       done: input.hasMission,
     },
     {
       id: "weekly_goal",
       title: "Set this week's goal",
       description: "One concrete thing you will finish in the next seven days.",
-      href: "/missions",
+      href: FIRST_WEEK_MISSIONS_HREF,
       done: input.hasWeeklyGoal,
     },
     {

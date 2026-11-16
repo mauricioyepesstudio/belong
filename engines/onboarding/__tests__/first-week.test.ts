@@ -18,6 +18,7 @@ describe("buildFirstWeekPlan", () => {
     expect(plan.completed).toBe(0);
     expect(plan.total).toBe(4);
     expect(plan.next?.id).toBe("purpose");
+    expect(plan.next?.href).toBe("/dashboard#your-missions");
     expect(plan.visible).toBe(true);
   });
 

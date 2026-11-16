@@ -43,5 +43,5 @@ export {
 } from "./utils";
 
 // First guided week
-export { FIRST_WEEK_DAYS, buildFirstWeekPlan } from "./first-week";
+export { FIRST_WEEK_DAYS, FIRST_WEEK_MISSIONS_ANCHOR, buildFirstWeekPlan } from "./first-week";
 export type { FirstWeekInput, FirstWeekPlan, FirstWeekStep, FirstWeekStepId } from "./first-week";

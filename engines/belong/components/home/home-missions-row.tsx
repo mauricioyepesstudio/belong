@@ -5,6 +5,7 @@ import { ArrowRight, Palette, Plus, Rocket, Target, TrendingUp, UsersRound } fro
 import Link from "next/link";
 import { GlassCard, SectionHeader } from "../dashboard/primitives";
 import styles from "./home-missions-row.module.css";
+import { FIRST_WEEK_MISSIONS_ANCHOR } from "@/engines/onboarding/first-week";
 
 type MissionArtBucket = "startup" | "community" | "growth" | "portfolio" | "default";
 
@@ -44,7 +45,7 @@ export function HomeMissionsRow({
 }) {
   const cards = goals.slice(0, 4);
   return (
-    <section aria-labelledby="missions-row-heading">
+    <section id={FIRST_WEEK_MISSIONS_ANCHOR} aria-labelledby="missions-row-heading" className="scroll-mt-24">
       <SectionHeader
         label="Your missions"
         title="Your path. Your pace. We're with you."

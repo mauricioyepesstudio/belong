@@ -1,4 +1,5 @@
 import { siteConfig } from "@/config/site";
+import { HUMAN_NEEDS } from "@/engines/belong/purpose";
 import { PLATFORM_TIERS } from "@/engines/billing/config";
 import { Card, CardContent } from "@/systems/design-system";
 import {
@@ -119,6 +120,42 @@ export default function LandingPage() {
             </Link>
           </div>
           <p className="mt-4 text-sm text-fg-muted">Free plan. No credit card needed.</p>
+        </div>
+      </section>
+
+      <section id="why" className="border-t border-border-subtle px-4 py-20 md:px-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center">
+            <p className="text-label text-brand">Why BELONG exists</p>
+            <h2 className="mt-3 text-2xl font-semibold text-fg-primary md:text-3xl">
+              People need each other to grow
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-fg-muted">
+              Connection, growth and contribution are universal needs. BELONG is built around all
+              three.
+            </p>
+          </div>
+          <ul className="mt-12 grid gap-6 md:grid-cols-3">
+            {HUMAN_NEEDS.map((need) => (
+              <li key={need.id}>
+                <Card className="h-full border-border-subtle bg-bg-elevated">
+                  <CardContent className="pt-6">
+                    <p className="text-3xl font-semibold text-brand">{need.stat}</p>
+                    <p className="mt-2 text-fg-primary">{need.statement}</p>
+                    <p className="mt-4 text-sm text-fg-muted">{need.answer}</p>
+                    <a
+                      href={need.source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 inline-block text-xs text-fg-muted underline underline-offset-2 hover:text-fg-secondary"
+                    >
+                      Source: {need.source.name}, {need.source.year}
+                    </a>
+                  </CardContent>
+                </Card>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

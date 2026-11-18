@@ -40,7 +40,7 @@ Tomadas de `ESTADO.md` (Siguiente y Bloqueado) y de la cola central al 2026-10-2
 **QA y pruebas**
 1. Cada PR: `npm run lint`, `npx tsc --noEmit`, `npx vitest run`, `npm run build`; resultado en el PR.
 2. Playwright E2E (PR #11) en CI una vez integrado.
-3. Aceptación autenticada (12 tareas de la cola central): **bloqueada** hasta que el dueño cree una cuenta de prueba y dé acceso al proyecto Supabase de BELONG. No crear cuentas para sortearlo.
+3. Aceptación autenticada (12 tareas de la cola central). **Desde 2026-10-20 la cuenta de prueba existe** y está guardada como secretos de GitHub Actions `E2E_USER_EMAIL` y `E2E_USER_PASSWORD` (más `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`). Tarea prioritaria: workflow `.github/workflows/acceptance.yml` **solo manual** (`workflow_dispatch`) que mapea esos secretos a `E2E_TEST_EMAIL`/`E2E_TEST_PASSWORD`, inicia sesión con Playwright y recorre las tareas bloqueadas (crear/mover/aprobar tarea, metas, progreso), marcando con prefijo `[E2E]` todo dato que cree y borrándolo al final. Nunca imprimir los secretos ni usar `SUPABASE_SERVICE_ROLE_KEY` desde el navegador. Solo hay una cuenta: las pruebas que necesiten un segundo usuario se marcan "pendiente segunda cuenta", sin crear cuentas.
 
 **Aprobación y release**
 1. `migration-reviewer` antes de cualquier migración; `git-release` revisa rama, CI y descripción del PR.

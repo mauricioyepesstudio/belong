@@ -45,3 +45,7 @@ next-env.d.ts
 .claude-flow/
 .swarm/
 ruvector.db
+
+# Playwright
+/test-results/
+/playwright-report/

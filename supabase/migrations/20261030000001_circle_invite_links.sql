@@ -43,7 +43,9 @@ as $$
     and c.invite_code = lower(p_code);
 $$;
 
-revoke all on function public.circle_invite_preview(text) from public;
+-- Supabase grants EXECUTE on new public functions to anon directly, so
+-- revoking from public alone leaves anon able to call it.
+revoke all on function public.circle_invite_preview(text) from public, anon;
 grant execute on function public.circle_invite_preview(text) to authenticated;
 
 -- Join the circle behind p_code as the calling user. Returns the circle id.
@@ -110,5 +112,7 @@ begin
 end;
 $$;
 
-revoke all on function public.join_circle_by_invite_code(text) from public;
+-- Supabase grants EXECUTE on new public functions to anon directly, so
+-- revoking from public alone leaves anon able to call it.
+revoke all on function public.join_circle_by_invite_code(text) from public, anon;
 grant execute on function public.join_circle_by_invite_code(text) to authenticated;

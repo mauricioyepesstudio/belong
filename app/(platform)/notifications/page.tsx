@@ -1,5 +1,5 @@
 import { NotificationsView } from "@/engines/notifications/components/notifications-view";
-import { getNotifications } from "@/lib/data/notifications";
+import { getNotifications } from "@/engines/notifications/data";
 import { requireProfile } from "@/lib/auth/session";
 import type { Metadata } from "next";
 

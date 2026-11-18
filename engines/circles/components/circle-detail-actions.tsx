@@ -6,7 +6,7 @@ import { LogOut, Search, UserPlus, X } from "lucide-react";
 import { inviteToCircle, leaveCircle, removeCircleMember } from "@/lib/actions/circles";
 import { Avatar, Button, Input, Modal, useToast } from "@/systems/design-system";
 import { formatInitials } from "@/lib/format";
-import type { ConnectedUser } from "@/lib/data/connections";
+import type { ConnectedUser } from "@/engines/social/connections";
 
 type CircleLeaveButtonProps = {
   circleId: string;

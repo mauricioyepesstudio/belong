@@ -1,5 +1,5 @@
 import { CreatorScreen } from "@/engines/billing";
-import { getCreatorStats } from "@/lib/data/marketplace";
+import { getCreatorStats } from "@/engines/marketplace/data";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 

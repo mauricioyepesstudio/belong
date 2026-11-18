@@ -1,5 +1,5 @@
 import { ListingDetailView } from "@/engines/marketplace/components/listing-detail-view";
-import { getListingById } from "@/lib/data/marketplace";
+import { getListingById } from "@/engines/marketplace/data";
 import { requireProfile } from "@/lib/auth/session";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";

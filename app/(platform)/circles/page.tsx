@@ -4,7 +4,7 @@ import { Flame, Users, Target } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseServerClient } from "@/lib/core/types";
-import { getAcceptedConnections } from "@/lib/data/connections";
+import { getAcceptedConnections } from "@/engines/social/connections";
 import {
   CIRCLE_MAX_MEMBERS,
   checkinStreakWeeks,

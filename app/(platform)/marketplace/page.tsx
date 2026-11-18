@@ -1,5 +1,5 @@
 import { MarketplaceScreen } from "@/engines/marketplace";
-import { getActiveListings, getMyListings } from "@/lib/data/marketplace";
+import { getActiveListings, getMyListings } from "@/engines/marketplace/data";
 import { getCurrentProfile } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";

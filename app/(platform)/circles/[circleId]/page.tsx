@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { ArrowLeft, MessageCircle, Target } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { getAcceptedConnections } from "@/lib/data/connections";
+import { getAcceptedConnections } from "@/engines/social/connections";
 import { CIRCLE_MAX_MEMBERS, canInvite, isAtCapacity, listCircleCheckins } from "@/engines/circles";
 import {
   CircleInviteMemberDialog,

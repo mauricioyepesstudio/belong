@@ -39,7 +39,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import type { ProjectStatus } from "@/types/database.types";
-import type { CopilotPanelData } from "@/lib/data/ai-copilot";
+import type { CopilotPanelData } from "@/engines/ai/data";
 import { SegmentErrorBoundary } from "@/components/error/segment-error-boundary";
 import { CopilotPanel } from "@/engines/ai/components/copilot-panel";
 import {

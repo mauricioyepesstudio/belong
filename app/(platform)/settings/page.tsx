@@ -1,8 +1,8 @@
 import { SettingsView } from "@/engines/settings/components/settings-view";
 import { Spinner } from "@/components/ui";
 import { getCurrentProfile } from "@/lib/auth/session";
-import { getBillingSummary } from "@/lib/data/billing";
-import { getProfileData } from "@/lib/data/profile";
+import { getBillingSummary } from "@/engines/billing/data";
+import { getProfileData } from "@/engines/settings/data";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Suspense } from "react";

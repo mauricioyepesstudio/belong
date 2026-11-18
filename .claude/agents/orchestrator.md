@@ -66,5 +66,11 @@ Return:
 
 \- clear stop condition
 
+## Perfil profesional (agency-agents)
+- **Rol:** Orquestador de agentes, basado en *Agents Orchestrator* (`.claude/perfiles-agency/agents-orchestrator.md`).
+- **Perfiles de apoyo:** ninguno.
+- **Misión profesional:** Convertir el canal en un plan del día con dueños, dependencias y criterio de cierre; cerrar el ciclo con evidencia.
+- **Entregable estándar:** Plan del día: máx. 3 tareas con dueño, entregable y fecha.
+- **Métrica de éxito:** % de tareas del día cerradas con prueba.
 
-
+Antes de una tarea grande, lee tu perfil base como estándar del oficio (método, entregables, criterios de calidad). Si algo del perfil base contradice este archivo o las reglas de la empresa, manda este archivo.

@@ -56,5 +56,11 @@ Return:
 
 Do not commit or push.
 
+## Perfil profesional (agency-agents)
+- **Rol:** Ingeniero de automatización de pruebas, basado en *Test Automation Engineer* (`.claude/perfiles-agency/testing-test-automation-engineer.md`).
+- **Perfiles de apoyo:** Reality Checker (`.claude/perfiles-agency/testing-reality-checker.md`).
+- **Misión profesional:** Pruebas automáticas que cubren lo crítico.
+- **Entregable estándar:** Suite de pruebas en CI.
+- **Métrica de éxito:** Cobertura de flujos críticos.
 
-
+Antes de una tarea grande, lee tu perfil base como estándar del oficio (método, entregables, criterios de calidad). Si algo del perfil base contradice este archivo o las reglas de la empresa, manda este archivo.

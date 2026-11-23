@@ -170,6 +170,145 @@
         "repo": "iart-ai/web-animation-skills",
         "sha": "ed3a045192679b24d32090ee7a983871311ababd"
       }
+    },
+    {
+      "name": "data-animation-skills",
+      "description": "Datos en movimiento: gráficas animadas desde CSV, infografías animadas y presentaciones/decks convertidos en video.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/data-animation-skills",
+        "sha": "6570c0c4fbc9daa8d7ac1f1163a890352344206b"
+      }
+    },
+    {
+      "name": "freelance-motion-skills",
+      "description": "Negocio de estudio: brief creativo, cotización de proyectos de motion, control de revisiones y alcance, specs de entrega por red y guía de motion de marca.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/freelance-motion-skills",
+        "sha": "9f294eb6df73cde7e2dea235f42275df11a16466"
+      }
+    },
+    {
+      "name": "motion-design-skills",
+      "description": "Motion design de estudio: Remotion (video desde código), animación de logos, principios de animación, dirección de arte, color, composición, edición al ritmo y expresiones de After Effects.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/motion-design-skills",
+        "sha": "b85e50c4cef5ff17aa2187a10d49d2dae9226c74"
+      }
+    },
+    {
+      "name": "text-message-video-skills",
+      "description": "Historias en formato chat: videos de conversaciones de mensajes de texto animadas (tipo iMessage/WhatsApp) para reels.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/text-message-video-skills",
+        "sha": "10ae6bb32e89519c904b8f7950479ff655f839aa"
+      }
+    },
+    {
+      "name": "youtube-video-skills",
+      "description": "YouTube y podcast: intros/outros de canal y audiogramas (audio con onda y subtítulos para redes).",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/youtube-video-skills",
+        "sha": "7838388571a3a6301bf5633e91941f9dfed0abfd"
+      }
+    },
+    {
+      "name": "ecommerce-video-skills",
+      "description": "Video de venta: demo de producto, video promocional y slideshow de fotos con texto y música.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/ecommerce-video-skills",
+        "sha": "a430fbbb7660783c421ad0a145bcc1c98d6f0b7b"
+      }
+    },
+    {
+      "name": "map-animation-skills",
+      "description": "Mapas animados estilo editorial (Vox): rutas, zonas y datos sobre un mapa.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/map-animation-skills",
+        "sha": "c8ef8463f5a4a8aa35ff0c6c17f42e52bbf588a5"
+      }
+    },
+    {
+      "name": "kinetic-typography-skills",
+      "description": "Tipografía animada: frases y títulos en movimiento al ritmo de la voz o la música.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/kinetic-typography-skills",
+        "sha": "2b79c81230c6647a344844f9ed53b6fa07f3f1f9"
+      }
+    },
+    {
+      "name": "webgl-animation-skills",
+      "description": "3D y WebGL: Three.js, shaders GLSL y sistemas de partículas para hero, fondos y piezas de marca.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/webgl-animation-skills",
+        "sha": "0041933813688c357804f7b13dcb85095c5a3210"
+      }
+    },
+    {
+      "name": "manim-skills",
+      "description": "Manim: animaciones matemáticas y educativas (fórmulas, gráficas, procesos paso a paso).",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/manim-skills",
+        "sha": "3e989cb044f6a6fed8c07b06dddade6e3463d7ac"
+      }
+    },
+    {
+      "name": "generative-illustration-skills",
+      "description": "Ilustración generativa: piezas ilustradas animadas con assets SVG y música generados por IA.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/generative-illustration-skills",
+        "sha": "e7d62437c875fc8ad5eff6e90fe0e25b30e43933"
+      },
+      "strict": false,
+      "skills": [
+        "./skills/generative-illustration"
+      ]
+    },
+    {
+      "name": "javascript-animation-skills",
+      "description": "Animación 100% en código: películas en canvas sin assets y música generada por código (soundtrack).",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/javascript-animation-skills",
+        "sha": "060f7467a6e5ae5b57c90c9cb1b3508c13b88e49"
+      }
+    },
+    {
+      "name": "lower-thirds-skills",
+      "description": "Lower thirds transparentes (WebM alpha, ProRes 4444) para OBS, Premiere y Resolve: nombre, cargo, redes.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/lower-thirds-skills",
+        "sha": "58d3623da95a2c97a4890a2d3f6d9d67e040b3d7"
+      }
+    },
+    {
+      "name": "b-roll-skills",
+      "description": "B-roll para videos de persona hablando: gráficos animados que ilustran lo que se dice, sincronizados con la transcripción.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/b-roll-skills",
+        "sha": "bcd56742a8a99edaa699a6f7bc5a45922a8ec567"
+      }
+    },
+    {
+      "name": "talking-head-skills",
+      "description": "Presentador con IA: genera video de una persona hablando a partir de una foto y una voz, y lo combina con narración y gráficos.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/talking-head-skills",
+        "sha": "eac1f6b01467f6f95d8ab7602310ba0ff67ed91b"
+      }
     }
   ]
 }

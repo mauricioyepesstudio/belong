@@ -23,7 +23,22 @@
     "tiktok-video-skills@equipos-rge": true,
     "ad-video-skills@equipos-rge": true,
     "explainer-video-skills@equipos-rge": true,
-    "web-animation-skills@equipos-rge": true
+    "web-animation-skills@equipos-rge": true,
+    "data-animation-skills@equipos-rge": true,
+    "freelance-motion-skills@equipos-rge": true,
+    "motion-design-skills@equipos-rge": true,
+    "text-message-video-skills@equipos-rge": true,
+    "youtube-video-skills@equipos-rge": true,
+    "ecommerce-video-skills@equipos-rge": true,
+    "map-animation-skills@equipos-rge": true,
+    "kinetic-typography-skills@equipos-rge": true,
+    "webgl-animation-skills@equipos-rge": true,
+    "manim-skills@equipos-rge": true,
+    "generative-illustration-skills@equipos-rge": true,
+    "javascript-animation-skills@equipos-rge": true,
+    "lower-thirds-skills@equipos-rge": true,
+    "b-roll-skills@equipos-rge": true,
+    "talking-head-skills@equipos-rge": true
   },
   "hooks": {
     "PreToolUse": [

@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Equipos de skills de BELONG. Generado por AI-Projects-Control-Plane/equipos-skills; no editar a mano.",
-    "version": "2026-10-23"
+    "version": "2026-11-23"
   },
   "plugins": [
     {
@@ -133,6 +133,42 @@
         "url": "anthropics/claude-for-legal",
         "path": "product-legal",
         "sha": "4a6c651889c97cc9140580363c73e0eb17379c2b"
+      }
+    },
+    {
+      "name": "tiktok-video-skills",
+      "description": "Video corto vertical: reels/TikTok/Shorts con gancho y retención, subtítulos animados palabra por palabra, lower thirds y cuentas regresivas.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/tiktok-video-skills",
+        "sha": "88e7152fc2710fa16852d013959cfd988a8adc8b"
+      }
+    },
+    {
+      "name": "ad-video-skills",
+      "description": "Video de anuncios: creativos de video para pauta y variantes A/B, videos de lanzamiento y testimonios animados.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/ad-video-skills",
+        "sha": "cc8071678f4225ee7bdccc4506f2468722bb3515"
+      }
+    },
+    {
+      "name": "explainer-video-skills",
+      "description": "Videos explicativos: guion y storyboard de cómo funciona, diagramas y flujos que se revelan por pasos, whiteboard, isométrico y resumen tipo Wrapped.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/explainer-video-skills",
+        "sha": "3c13a1bc360c08503f24f9c9a99fda6d3d35de56"
+      }
+    },
+    {
+      "name": "web-animation-skills",
+      "description": "Animación web: GSAP y scroll, SVG, Lottie, microinteracciones, transiciones de página, rendimiento a 60fps y respeto a prefers-reduced-motion.",
+      "source": {
+        "source": "github",
+        "repo": "iart-ai/web-animation-skills",
+        "sha": "ed3a045192679b24d32090ee7a983871311ababd"
       }
     }
   ]

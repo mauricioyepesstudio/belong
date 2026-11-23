@@ -1,6 +1,6 @@
 # Equipos de skills — BELONG
 
-> Generado por `AI-Projects-Control-Plane/equipos-skills` (versión 2026-10-23). No editar a mano: el cambio se hace en el cerebro central y se regenera.
+> Generado por `AI-Projects-Control-Plane/equipos-skills` (versión 2026-11-23). No editar a mano: el cambio se hace en el cerebro central y se regenera.
 
 **Para qué sirve este proyecto:** Plataforma social con propósito; contenido externo en inglés.
 
@@ -26,6 +26,10 @@
 | Legal (apoyo, con revisión de abogado) | `ai-governance-legal` | Gobernanza de IA: inventario de usos de IA, evaluaciones de impacto, revisión de proveedores de IA, política inicial. | [anthropics/claude-for-legal](https://github.com/anthropics/claude-for-legal/tree/4a6c651889c97cc9140580363c73e0eb17379c2b/ai-governance-legal) @ `4a6c651` · Apache-2.0 |
 | Legal (apoyo, con revisión de abogado) | `ip-legal` | Propiedad intelectual: búsqueda de marca (clearance), cláusulas de PI, licencias open source, takedowns y cartas de cese. | [anthropics/claude-for-legal](https://github.com/anthropics/claude-for-legal/tree/4a6c651889c97cc9140580363c73e0eb17379c2b/ip-legal) @ `4a6c651` · Apache-2.0 |
 | Legal (apoyo, con revisión de abogado) | `product-legal` | Legal de producto: revisión de claims de marketing, revisión de lanzamientos y riesgo de funciones nuevas. | [anthropics/claude-for-legal](https://github.com/anthropics/claude-for-legal/tree/4a6c651889c97cc9140580363c73e0eb17379c2b/product-legal) @ `4a6c651` · Apache-2.0 |
+| Video y motion (reels, anuncios, explicativos, animación web) | `tiktok-video-skills` | Video corto vertical: reels/TikTok/Shorts con gancho y retención, subtítulos animados palabra por palabra, lower thirds y cuentas regresivas. *Requiere:* Render con Remotion/Manim o HTML + ffmpeg en el equipo donde se use; ninguna llamada de red: sus scripts/ son ayudas locales de ffmpeg (congelar un cuadro, hoja de contacto, revisar el MP4). | [iart-ai/tiktok-video-skills](https://github.com/iart-ai/tiktok-video-skills/tree/88e7152fc2710fa16852d013959cfd988a8adc8b) @ `88e7152` · MIT |
+| Video y motion (reels, anuncios, explicativos, animación web) | `ad-video-skills` | Video de anuncios: creativos de video para pauta y variantes A/B, videos de lanzamiento y testimonios animados. *Requiere:* Render con Remotion/Manim o HTML + ffmpeg en el equipo donde se use; ninguna llamada de red: sus scripts/ son ayudas locales de ffmpeg (congelar un cuadro, hoja de contacto, revisar el MP4). | [iart-ai/ad-video-skills](https://github.com/iart-ai/ad-video-skills/tree/cc8071678f4225ee7bdccc4506f2468722bb3515) @ `cc80716` · MIT |
+| Video y motion (reels, anuncios, explicativos, animación web) | `explainer-video-skills` | Videos explicativos: guion y storyboard de cómo funciona, diagramas y flujos que se revelan por pasos, whiteboard, isométrico y resumen tipo Wrapped. *Requiere:* Render con Remotion/Manim o HTML + ffmpeg en el equipo donde se use; ninguna llamada de red: sus scripts/ son ayudas locales de ffmpeg (congelar un cuadro, hoja de contacto, revisar el MP4). | [iart-ai/explainer-video-skills](https://github.com/iart-ai/explainer-video-skills/tree/3c13a1bc360c08503f24f9c9a99fda6d3d35de56) @ `3c13a1b` · MIT |
+| Video y motion (reels, anuncios, explicativos, animación web) | `web-animation-skills` | Animación web: GSAP y scroll, SVG, Lottie, microinteracciones, transiciones de página, rendimiento a 60fps y respeto a prefers-reduced-motion. *Requiere:* Render con Remotion/Manim o HTML + ffmpeg en el equipo donde se use; ninguna llamada de red: sus scripts/ son ayudas locales de ffmpeg (congelar un cuadro, hoja de contacto, revisar el MP4). | [iart-ai/web-animation-skills](https://github.com/iart-ai/web-animation-skills/tree/ed3a045192679b24d32090ee7a983871311ababd) @ `ed3a045` · MIT |
 
 ## Conectores (`.mcp.json`)
 
@@ -54,3 +58,4 @@ Supabase y Vercel piden iniciar sesión la primera vez (`/mcp` → el conector �
 - Ningún skill publica, envía, paga ni cambia campañas por sí solo: publicar sigue necesitando el «sí» explícito del dueño.
 - Las reglas del CLAUDE.md del proyecto mandan sobre cualquier skill.
 - Los conectores que traen los plugins (Ironclad, DocuSign, FactSet, etc.) quedan sin conectar; no se crean cuentas ni se pegan llaves en el chat.
+- Los skills de video producen archivos locales (MP4/HTML) para revisión; publicarlos sigue necesitando el «publica» del dueño. No se conecta el MCP de pago de iart.ai.
